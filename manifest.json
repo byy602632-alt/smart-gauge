@@ -1,0 +1,13 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "SmartGauge",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "SmartGauge",
+  "start_url": "/",
+  "theme_color": "#ffffff",
+  "description": "Honda Motorcycle Telemetry Smart Gauge App",
+  "id": "/"
+}
