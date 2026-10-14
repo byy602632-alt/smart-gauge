@@ -6,8 +6,15 @@
   "orientation": "any",
   "scope": "/",
   "short_name": "SmartGauge",
-  "start_url": "/smart-gauge/mobile.html",
+  "start_url": "/smart-gauge/",
   "theme_color": "#ffffff",
   "description": "Honda Motorcycle Telemetry Smart Gauge App",
-  "id": "/smart-gauge/mobile.html"
+  "id": "/smart-gauge/",
+  "icons": [
+    {
+      "src": "/smart-gauge/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
