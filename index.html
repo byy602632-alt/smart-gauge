@@ -16,16 +16,13 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{min-height:100%}
 body{
-  background:var(--bg);
-  color:var(--text);
+  background:var(--bg); color:var(--text);
   font-family:"Segoe UI",Tahoma,system-ui,sans-serif;
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   display:flex;flex-direction:column;height:100vh;height:100dvh
 }
 .wrap{width:100%;max-width:520px;margin:0 auto;padding:12px 12px 40px;
   flex:1 1 auto;display:flex;flex-direction:column;min-height:0;min-width:0}
-
-/* ---------- header : แถบเรียบ มุมเหลี่ยมตัวหนา ---------- */
 header{display:flex;align-items:center;gap:9px;margin-bottom:6px}
 .brand{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;
   letter-spacing:3px;color:var(--text);text-transform:uppercase}
@@ -53,13 +50,8 @@ header{display:flex;align-items:center;gap:9px;margin-bottom:6px}
 .btn.ghost{background:var(--panel);border-color:var(--line);color:var(--text)}
 .btn.danger{background:transparent;border-color:rgba(255,77,77,.5);color:var(--red)}
 .btn.danger:active{background:rgba(255,77,77,.12)}
-
-/* ---------- card / hero ---------- */
-/* ---------- card (ใช้กับหน้า 2/3) ---------- */
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
   position:relative;overflow:hidden}
-
-/* ---------- dashboard : RALLY FLAT (สเลท + ส้มเรซซิ่ง ตัวหนา บล็อกเหลี่ยม) ---------- */
 .dash2{position:relative;display:grid;gap:8px;height:100%;min-height:0;padding-bottom:14px;
   grid-template-columns:minmax(150px,1.2fr) minmax(160px,1fr) minmax(110px,.8fr);
   grid-template-rows:auto minmax(0,1fr);
@@ -69,8 +61,6 @@ header{display:flex;align-items:center;gap:9px;margin-bottom:6px}
 .gcenter{display:flex;flex-direction:column;min-width:0;min-height:0}
 .grows{display:flex;flex-direction:column;min-height:0;justify-content:center;
   background:var(--panel);border-radius:8px;padding:2px 10px}
-
-/* --- แถบ Shift-light RPM เต็มความกว้าง --- */
 .hdZone{grid-area:hd;display:flex;flex-direction:column;gap:3px}
 .shiftRow{display:flex;align-items:baseline;gap:10px}
 .drpm{display:flex;align-items:baseline;gap:6px}
@@ -89,17 +79,11 @@ header{display:flex;align-items:center;gap:9px;margin-bottom:6px}
   font-family:var(--mono);font-size:max(7px,2vmin);color:#4a5260}
 .rpmScale span:first-child{transform:none}
 .rpmScale span:last-child{transform:translateX(-100%)}
-
-/* --- ตัวเลข/ป้ายสากล : ตัวหนา ไร้เงา --- */
 .val{font-family:var(--mono);font-weight:700;color:#fff;letter-spacing:-1px;
   font-variant-numeric:tabular-nums}
-.val.warn{color:var(--amber)}
-.val.bad{color:var(--red)}
-.val.cool{color:var(--blue)}
-.val.over{color:var(--red)}
+.val.warn{color:var(--amber)} .val.bad{color:var(--red)}
+.val.cool{color:var(--blue)} .val.over{color:var(--red)}
 .iconBtn{font-size:14px;padding:3px 8px;line-height:1}
-
-/* --- ซ้าย : ความเร็วตัวหนาใหญ่ + TOP/AVG + เวลา/โหมด + ปุ่ม BT --- */
 .spdBlock{display:flex;flex-direction:column;justify-content:center;gap:2px;flex:1 1 auto;min-height:0}
 .gLab{font-size:max(8px,2.4vmin);letter-spacing:3px;color:var(--dim);font-weight:700}
 .dspd{display:flex;align-items:baseline;gap:8px}
@@ -121,8 +105,6 @@ header{display:flex;align-items:center;gap:9px;margin-bottom:6px}
 .footHint{position:absolute;left:50%;bottom:3px;transform:translateX(-50%);
   font-size:9.5px;color:#3d4552;white-space:nowrap;pointer-events:none}
 .ver{position:absolute;right:2px;bottom:3px;font-size:8.5px;color:#333a45;letter-spacing:1px}
-
-/* --- กลาง : มาตรวัด 4 ช่องแบบบล็อกเหลี่ยม (TPS/AFR/TEMP/MAP) --- */
 .gpad{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:8px;
   flex:1 1 auto;min-height:0;min-width:0}
 .gt{background:var(--panel);border-radius:8px;padding:6px 9px;display:flex;flex-direction:column;
@@ -135,8 +117,6 @@ header{display:flex;align-items:center;gap:9px;margin-bottom:6px}
 .gFill{fill:none;stroke:var(--acc,#ff6b1a);stroke-width:5}
 .rng{display:flex;justify-content:space-between;font-size:8px;color:#4a5260;
   font-family:var(--mono);margin-top:1px}
-
-/* --- ขวา : รายการค่าแบบเส้นคั่นบาง --- */
 .rows .r{flex:1 1 0;display:flex;align-items:center;justify-content:space-between;gap:6px;
   border-bottom:1px solid var(--line);padding:0 2px;min-height:0;overflow:hidden}
 .rows .r:last-child{border-bottom:0}
@@ -144,28 +124,19 @@ header{display:flex;align-items:center;gap:9px;margin-bottom:6px}
   white-space:nowrap}
 .rLab i{font-style:normal;font-size:.75em;opacity:.6;letter-spacing:0}
 .rows .r .val{font-size:max(12px,3.6vmin);text-align:right;font-weight:700}
-
 body.stale .spdBlock,body.stale .gpad,body.stale .rows,body.stale .hdZone
   {opacity:.35;filter:grayscale(.7)}
-
-/* ---------- footer / info ---------- */
 .info{margin-top:16px;font-size:11.5px;line-height:1.75;color:var(--dim);
   background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 13px}
 .info b{color:var(--text)}
 .info code{font-family:var(--mono);color:var(--acc);background:rgba(255,107,26,.10);padding:1px 5px;border-radius:5px;
   font-size:11px;word-break:break-all}
 .info h4{font-size:11px;letter-spacing:2px;color:var(--acc);margin-bottom:6px}
-
-
-
-/* ---------- bottom sheet ---------- */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(3px);
   opacity:0;pointer-events:none;transition:.2s;z-index:40}
 .overlay.open{opacity:1;pointer-events:auto}
-/* แผงเชื่อมต่อ/ตั้งค่า : เต็มจอ (ทั้งแนวตั้ง-แนวนอน) */
 .sheet{
-  position:fixed;inset:0;z-index:50;margin:0;
-  background:#14181f;
+  position:fixed;inset:0;z-index:50;margin:0; background:#14181f;
   padding:calc(8px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));
   overflow-y:auto;overscroll-behavior:contain;
   transform:translateY(105%);transition:transform .25s cubic-bezier(.2,.8,.2,1)
@@ -184,7 +155,6 @@ body.stale .spdBlock,body.stale .gpad,body.stale .rows,body.stale .hdZone
 .tabs button.active{background:rgba(255,107,26,.12);border-color:rgba(255,107,26,.55);color:var(--acc);font-weight:800}
 .pane{display:none;max-width:640px;margin:0 auto}
 .pane.show{display:block}
-/* ช่องตั้งค่าสเกล/เกณฑ์สี : ใช้พื้นที่เต็มหน้าจอ (2 คอลัมน์บนจอกว้าง) */
 .pane#pane-set{max-width:none}
 @media (orientation:landscape){
   .pane#pane-set.show{max-width:1000px;column-count:2;column-gap:20px}
@@ -207,14 +177,10 @@ input[type=text]:focus{border-color:#155e75}
 .statusline{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin-top:12px;
   min-height:16px;word-break:break-all}
 .statusline.ok{color:var(--green)} .statusline.err{color:var(--red)}
-
-/* ---------- toast ---------- */
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:60;
   background:var(--panel2);border:1px solid var(--line);color:var(--acc);font-size:12px;font-weight:700;
   padding:9px 16px;border-radius:6px;opacity:0;pointer-events:none;max-width:92vw;text-align:center}
 .toast.show{opacity:1}
-
-/* ---------- settings (สเกล / เกณฑ์สี) ---------- */
 .sub{font-size:11px;letter-spacing:2px;color:var(--acc);margin:14px 0 8px;
   border-top:1px dashed var(--line);padding-top:12px}
 .sub:first-child{margin-top:2px;border-top:0;padding-top:0}
@@ -227,8 +193,6 @@ input[type=text]:focus{border-color:#155e75}
 input[type=number]{-moz-appearance:textfield}
 input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 input[type=color]{padding:2px;height:38px;cursor:pointer}
-
-/* ---------- pager : 3 หน้า ปัดซ้าย-ขวา ---------- */
 .pagebar{display:flex;gap:6px;margin-bottom:8px}
 .pagebar button{
   flex:1;font:inherit;font-size:11.5px;font-weight:600;letter-spacing:.3px;
@@ -248,8 +212,6 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
   scrollbar-width:none;padding-bottom:6px
 }
 .page::-webkit-scrollbar{display:none}
-
-/* ---------- หน้า 2 : ตารางค่าทั้งหมด (ช่องเล็กแนวตั้ง-แนวนอน) ---------- */
 .ptable{padding:10px 10px 12px}
 .pthead{display:flex;justify-content:space-between;font-size:11px;letter-spacing:2px;
   color:var(--dim);padding:0 6px 8px;border-bottom:1px solid var(--line);margin-bottom:8px}
@@ -264,8 +226,6 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .pbox .pv{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--green);
   text-align:right;white-space:nowrap}
 .pbox .pu{font-size:9px;color:#3f5165;min-width:24px;text-align:left}
-
-/* ---------- หน้า 3 : อ่าน/ลบโค้ด DTC (ยืดเต็มจอ) ---------- */
 .page#page2{overflow:hidden}
 .dtc{padding:10px;height:100%;display:flex;flex-direction:column;min-height:0}
 .dtcHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
@@ -287,7 +247,6 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .dtc .statusline{margin-top:10px;flex:0 0 auto}
 .dtc .dtcLog{flex:0 0 auto;max-height:22vh}
 .dtc .hint{display:none}
-/* จอกว้าง : คอลัมน์เดียวตรงกลาง ไม่ยืดเกินอ่าน */
 @media (orientation:landscape) and (min-width:700px){
   .dtc{max-width:760px;margin:0 auto;width:100%}
 }
@@ -300,10 +259,7 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .dtcLog:not(:empty){display:block}
 .logline{padding:3px 0;border-bottom:1px solid #101a25;word-break:break-all}
 .logline:last-child{border-bottom:0}
-
-/* ---------- landscape : มือถือติดแฮนด์ ---------- */
 @media (orientation:landscape){
-  /* แถบบนชิดขอบจอ : brand ซ้าย / ปุ่มเล็ก ๆ รวมกับปุ่มเลือกหน้าชิดขวา */
   .wrap{max-width:none;padding:4px 10px 6px;
     display:grid;grid-template-columns:minmax(0,1fr) auto;
     grid-template-rows:auto minmax(0,1fr);
@@ -322,15 +278,12 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
   .rpmBar{height:max(18px,5vmin)}
   .rows{padding:2px 10px}
 }
-/* จอแนวตั้ง : แถบ RPM บนสุด → ความเร็วเต็มความกว้าง → มาตรวัด / รายการค่า */
 @media (orientation:portrait){
-  /* แถบหัวจอแคบลงให้พอดีความกว้างมือถือ (ไม่ให้ปุ่มเชื่อมต่อเลยขอบ) */
   header{gap:6px}
   .brand{font-size:11px;letter-spacing:2px;min-width:0;white-space:nowrap}
   .pill{font-size:9.5px;padding:4px 7px;gap:5px;min-width:0;overflow:hidden}
   .pill #connText{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   header .btn{padding:7px 11px}
-  /* หน้า 2 : ตารางค่า — จอโทรศัพท์เป็น列表เต็มความกว้าง อ่านง่าย ไม่เบียด */
   .plist{grid-template-columns:1fr}
   .pbox{min-height:44px;padding:9px 12px;gap:10px}
   .pbox .pk{font-size:12px;line-height:1.35;opacity:1}
@@ -353,7 +306,6 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 </head>
 <body>
 <div class="wrap">
-
   <header>
     <button type="button" class="btn ghost iconBtn" id="menuBtn" title="เมนู">☰</button>
     <div class="brand">SMART GAUGE<small>TELEMETRY / BLUETOOTH + WIFI</small></div>
@@ -362,18 +314,14 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
     <button class="btn ghost" id="fsBtn" title="เต็มจอ (ล็อกแนวนอน)">⛶</button>
     <button class="btn" id="openSheet">เชื่อมต่อ</button>
   </header>
-
   <nav class="pagebar" id="pagebar">
     <button type="button" class="active" data-page="0">① หน้าหลัก</button>
     <button type="button" data-page="1">② ค่าทั้งหมด</button>
     <button type="button" data-page="2">③ ล้างโค้ด DTC</button>
   </nav>
-
   <div class="pager" id="pager">
   <section class="page" id="page0">
-
   <div class="dash2">
-    <!-- ============ แถบ Shift-light RPM เต็มความกว้าง ============ -->
     <div class="hdZone">
       <div class="shiftRow">
         <span class="drpm"><span class="val" id="rpmVal">0</span><i>RPM</i></span>
@@ -384,8 +332,6 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
       <div class="rpmBar" id="rpmBar"></div>
       <div class="rpmScale" id="rpmScale"></div>
     </div>
-
-    <!-- ============ ซ้าย : ความเร็วตัวหนา + TOP/AVG + ปุ่ม BT ============ -->
     <div class="gleft">
       <div class="spdBlock">
         <span class="gLab">ความเร็ว / SPEED</span>
@@ -404,8 +350,6 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
         </div>
       </div>
     </div>
-
-    <!-- ============ กลาง : มาตรวัด 4 ช่อง (TPS/AFR/TEMP/MAP) ============ -->
     <div class="gcenter">
       <div class="gpad">
         <div class="gt" style="--acc:#ff6b1a">
@@ -446,8 +390,6 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
         </div>
       </div>
     </div>
-
-    <!-- ============ ขวา : รายการค่า ============ -->
     <div class="grows rows">
       <div class="r"><span class="rLab">INJ <i>(ms)</i></span><span class="val" id="v_inj">–</span></div>
       <div class="r"><span class="rLab">IGN <i>(°)</i></span><span class="val" id="v_ign">–</span></div>
@@ -457,11 +399,9 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
       <div class="r"><span class="rLab">TRIM <i>(%)</i></span><span class="val" id="r_trim">–</span></div>
       <div class="r"><span class="rLab">O2 <i>(V)</i></span><span class="val" id="r_o2">–</span></div>
     </div>
-
     <span class="footHint">ปุ่มหน้าหลัง : ปิดแอปพลิเคชัน</span>
     <span class="ver">v1.0</span>
   </div>
-
   <div class="info">
     <h4>โปรโตคอลข้อมูล</h4>
     อุปกรณ์ส่งข้อความเป็น <b>บรรทัดเดียวต่อแพ็กเก็จ</b> (จบด้วย <code>\n</code>) รูปแบบใดก็ได้:<br>
@@ -471,17 +411,13 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
     ชื่อที่รองรับ: <code>speed/spd</code>, <code>ign/lgn</code>, <code>inj/lnj</code>,
     <code>bat/volt</code>, <code>temp/ect</code>
   </div>
-  </section><!-- /page0 : หน้าหลัก -->
-
-  <!-- ================= page 2 : ตารางค่าทั้งหมด ================= -->
+  </section>
   <section class="page" id="page1">
     <div class="card ptable">
       <div class="pthead"><span>Parameter</span><span>Value</span></div>
       <div class="plist" id="plist"></div>
     </div>
   </section>
-
-  <!-- ================= page 3 : อ่าน/ลบโค้ด DTC ================= -->
   <section class="page" id="page2">
     <div class="card dtc">
       <div class="dtcHead">
@@ -504,11 +440,8 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
         — ส่งผ่านช่องทางที่เชื่อมต่ออยู่ (BLE / Wi‑Fi) ต้องกด “เชื่อมต่อ” ก่อนใช้งาน</div>
     </div>
   </section>
-
-  </div><!-- /pager -->
-</div><!-- /wrap -->
-
-<!-- ================= connect sheet ================= -->
+  </div>
+</div>
 <div class="overlay" id="overlay"></div>
 <div class="sheet" id="sheet">
   <div class="grab"></div>
@@ -519,7 +452,6 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
     <button data-tab="demo">Demo</button>
     <button data-tab="set">ตั้งค่า</button>
   </div>
-
   <div class="pane show" id="pane-ble">
     <div id="bleSupport" class="hint"></div>
     <label>SERVICE UUID</label>
@@ -534,7 +466,6 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
       ที่ประกาศในสเก็ตช์ของคุณ (เช่น <code>4fafc201-1fb5-459f-85fe-9ff9b9d8</code>)</div>
     <div class="statusline" id="bleStatus"></div>
   </div>
-
   <div class="pane" id="pane-wifi">
     <label>WebSocket URL</label>
     <input type="text" id="wsURL" value="ws://192.168.4.1/ws">
@@ -546,7 +477,6 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
       <b>HTTPS</b> จึงจะต่อ <code>wss://</code> ได้ (การต่อ <code>ws://</code> จากเพจ HTTPS ถูกบล็อก)</div>
     <div class="statusline" id="wsStatus"></div>
   </div>
-
   <div class="pane" id="pane-demo">
     <div class="hint">โหมดข้อมูลจำลอง ใช้ดูหน้าจอ/ตรวจสีเตือนโดยไม่ต้องมีอุปกรณ์จริง</div>
     <div class="row">
@@ -555,7 +485,6 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
     </div>
     <div class="statusline" id="demoStatus"></div>
   </div>
-
   <div class="pane" id="pane-set">
     <div class="sub">สเกลมาตรวัด</div>
     <div id="scaleRows"></div>
@@ -570,16 +499,10 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
     <div class="statusline" id="tuneStatus">เปลี่ยนค่าแล้วบันทึกให้เอง</div>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
-
 <script>
 'use strict';
-/* ============================================================
-   1. นิยามเมตริก (label / ช่วงวัด / สี / เงื่อนไขสีเตือน)
-   ============================================================ */
 const GREEN='#34d399', AMBER='#fbbf24', RED='#fb5c5c', CYAN='#22d3ee';
-
 const TILES = [
   {key:'tps',  label:'TPS',  un:'%',     min:0,  max:100, dec:0, color:'#22d3ee', clamp:[0,100]},
   {key:'afr',  label:'AFR',  un:'ratio', min:10, max:18,  dec:1, color:'#a78bfa', clamp:[0,30]},
@@ -607,10 +530,8 @@ const ALIASES = {
   stand:['stand','standswitch','kickstand','sidestand'],
   bank: ['bank','bankangle','leanangle','angle']
 };
-const STRING_KEYS = new Set(['mode','fastidle','stand']); // ค่าข้อความ เช่น IDLE / ON / OFF
+const STRING_KEYS = new Set(['mode','fastidle','stand']);
 const CSV_ORDER = ['rpm','afr','tps','speed','ign','inj','bat','temp'];
-
-/* หน้า 2 : รายการค่าทั้งหมด (เรียงตามภาพตัวอย่าง Parameter / Value) */
 const PARAMS = [
   {key:'rpm',      label:'Rpm Engine',                  un:'rpm',   dec:0, st:'rpm',   color:'#34d399'},
   {key:'tps',      label:'Trottle Position / TPS',      un:'%',     dec:0, st:'tps',   color:'#22d3ee'},
@@ -629,7 +550,6 @@ const PARAMS = [
   {key:'stand',    label:'Stand Switch / ขาตั้ง',        un:'',                 color:'#fbbf24'},
   {key:'bank',     label:'Bank Angle / มุมเอียง',        un:'°',     dec:1,            color:'#fb5c5c'}
 ];
-
 function statusOf(key, v){
   const t = tune.th;
   switch(key){
@@ -645,8 +565,6 @@ function statusOf(key, v){
   return 'ok';
 }
 const statusColor = s => s==='bad'?RED : s==='warn'?AMBER : s==='cool'?CYAN : GREEN;
-
-/* ---- ค่าที่ตั้งได้ (สเกล / เกณฑ์สี / สีช่อง) เก็บลง localStorage ---- */
 const DEFAULT_TUNE = {
   rpmMax: 8000, redline: 7000, speedMax: 240,
   scale: { afr:[10,18], tps:[0,100], temp:[0,120], bat:[10,15], inj:[0,15], ign:[0,50] },
@@ -666,18 +584,13 @@ function mergeTune(saved){
   return base;
 }
 let tune = clone(DEFAULT_TUNE);
-
-/* ============================================================
-   2. สถานะข้อมูลรวม
-   ============================================================ */
 const data = {rpm:0, speed:0, afr:14.7, tps:0, ign:0, inj:0, bat:12.6, temp:20, map:null,
   iat:null, iacv:null, mode:null, o2:null, fueltrim:null, fastidle:null, stand:null, bank:null};
 let lastUpdate = 0, hadData = false, spdMax = 0, spdAvg = 0, rpmMax = 0;
-let mode = 'off';          // off | ble | wifi | demo
+let mode = 'off';
 let connectedAt = 0;
 const fmt = (v,dec) => dec ? Number(v).toFixed(dec) : String(Math.round(v));
 const clamp = (v,a,b) => Math.min(b, Math.max(a, v));
-
 function ingestObject(obj){
   let hit = 0;
   for (const key in data){
@@ -693,7 +606,7 @@ function ingestObject(obj){
           data[key] = c ? clamp(v, c.clamp[0], c.clamp[1]) : clamp(v, -360, 30000);
           hit++;
         } else if (!blank && typeof raw !== 'object' && STRING_KEYS.has(key)){
-          data[key] = String(raw).trim();   // ค่าข้อความ เช่น IDLE / ON / OFF
+          data[key] = String(raw).trim();
           hit++;
         }
         break;
@@ -703,7 +616,6 @@ function ingestObject(obj){
   if (hit) markLive();
   return hit;
 }
-/* ค่าสำหรับหน้าตาราง (คืน '-' ถ้ายังไม่มีข้อมูล / ยังไม่ได้เชื่อมต่อ) */
 function fmtParam(p){
   const v = data[p.key];
   if (!hadData || v == null || v === '') return '-';
@@ -726,14 +638,13 @@ function ingestCSV(parts){
 function ingest(text){
   const t = String(text).trim();
   if (!t) return 0;
-  // รอคำตอบหลังส่งคำสั่งล้างโค้ด (อุปกรณ์ส่วนใหญ่ตอบ OK / CLEARED)
   if (pendingClear && /\b(ok|okay|done|success|cleared)\b/i.test(t)){
     pendingClear = false; clearDtc();
     setStatus('dtcStatus','ล้างโค้ด DTC แล้ว','ok');
   }
-  const dtcHit = collectDtcLine(t); // จับรหัส DTC (รองรับ JSON / key=value / บรรทัดเปล่า)
+  const dtcHit = collectDtcLine(t);
   if (t[0]==='{'){
-    try { return ingestObject(JSON.parse(t)) + dtcHit; } catch(e){ /* ข้อมูลยังไม่ครบ */ return dtcHit; }
+    try { return ingestObject(JSON.parse(t)) + dtcHit; } catch(e){ return dtcHit; }
   }
   if (t.includes('=')){
     const obj = {};
@@ -743,7 +654,6 @@ function ingest(text){
     return ingestObject(obj) + dtcHit;
   }
   if (/^[0-9eE+\-.,\s]+$/.test(t)) return ingestCSV(t.split(',')) + dtcHit;
-  // บรรทัด header เช่น "rpm,afr,tps,speed" เก็บไว้ใช้จับคู่คอลัมน์ของแถวถัดไป
   if (/^[a-z_,\s]+$/i.test(t)){
     csvHeader = t.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
     return dtcHit;
@@ -752,20 +662,12 @@ function ingest(text){
 }
 function markLive(){ lastUpdate = performance.now(); hadData = true; }
 function noteConnected(){ connectedAt = performance.now(); lastUpdate = 0; hadData = false; }
-
-/* ============================================================
-   3. สร้างองค์ประกอบ UI
-   ============================================================ */
-/* ---- มาตรวัด SVG : เติมเส้นโค้ง + เข็มหน้าปัดกลาง ---- */
 function setArc(id, frac, color){
   const el = document.getElementById(id);
   if (!el) return;
   el.style.strokeDasharray = (clamp(frac,0,1) * 100).toFixed(1) + ' 100';
   if (color) el.style.stroke = color;
 }
-
-
-/* หน้า 2 : สร้างช่องค่าเล็กๆ ตามรายการ PARAMS */
 const plistEl = document.getElementById('plist');
 PARAMS.forEach(p=>{
   const box = document.createElement('div');
@@ -779,15 +681,13 @@ PARAMS.forEach(p=>{
   box.appendChild(k); box.appendChild(r);
   plistEl.appendChild(box);
 });
-
-/* ---- RPM แบบแท่ง LED segments + สเกลตัวเลขใต้แท่ง ---- */
 let RPM_MAX = tune.rpmMax, REDLINE = tune.redline, SPEED_MAX = tune.speedMax;
 const rpmValEl = document.getElementById('rpmVal');
 let rpmWasOver = false;
 const SEGS = 32;
 const rpmBarEl = document.getElementById('rpmBar');
 const rpmScaleEl = document.getElementById('rpmScale');
-let segRedFrom = 0;               // แท่งไหนขึ้นไปเป็นโซนแดง
+let segRedFrom = 0;
 function updateRed(){
   segRedFrom = Math.round(clamp(REDLINE / RPM_MAX, 0, 1) * SEGS);
 }
@@ -798,12 +698,10 @@ function buildTicks(){
   segNodes.length = 0;
   for (let i = 0; i < SEGS; i++){
     const s = document.createElement('i');
-    // โซนสี: <75% เขียว, 75-redline เหลือง, >=redline แดง
     s.dataset.zone = '';
     rpmBarEl.appendChild(s);
     segNodes.push(s);
   }
-  // สเกลตัวเลขใต้แท่ง (แบ่ง 4 ช่วง: 0 / ½ / ¾ / max x1000)
   if (rpmScaleEl){
     rpmScaleEl.textContent = '';
     [0, 0.5, 0.75, 1].forEach(f=>{
@@ -833,7 +731,6 @@ function setSegs(frac){
     }
   }
 }
-// ใช้ค่าที่ตั้ง (หรือค่าเริ่มต้น) กับหน้าจอ
 function applyTune(){
   RPM_MAX = tune.rpmMax; REDLINE = tune.redline; SPEED_MAX = tune.speedMax;
   TILES.forEach(t=>{
@@ -851,10 +748,6 @@ function applyTune(){
   updateRed();
 }
 applyTune();
-
-/* ============================================================
-   4. render loop (อัปเดตเฉพาะค่าที่เปลี่ยน)
-   ============================================================ */
 const cache = {};
 function put(id, val){
   if (cache[id] === val) return;
@@ -871,15 +764,13 @@ function scheduleRender(){
 function frame(t){ rafPending = false; render(t); scheduleRender(); }
 function render(now){
   lastFrame = now;
-  // ---- stale detection ----
   const live = lastUpdate > 0 && (now - lastUpdate) < 2500;
   document.body.classList.toggle('stale', hadData && !live);
-  if (mode === 'demo'){ /* demo ไม่ต้องแจ้ง */ }
+  if (mode === 'demo'){ }
   else if ((mode === 'ble' || mode === 'wifi') && hadData && !live) setPill('err', 'ข้อมูลค้าง');
   else if ((mode === 'ble' || mode === 'wifi') && lastUpdate === 0 && now - connectedAt > 6000)
     setPill('warn', 'ยังไม่มีข้อมูล');
 
-  // ---- RPM / แท่ง LED กลางจอ ----
   put('rpmVal', String(Math.round(data.rpm)));
   rpmMax = Math.max(rpmMax, data.rpm);
   put('rpmMax', String(Math.round(rpmMax)));
@@ -890,7 +781,6 @@ function render(now){
     rpmValEl.classList.toggle('over', rpmOver);
   }
 
-  // ---- ความเร็ว / นาฬิกา / โหมด ----
   put('spdVal', String(Math.round(data.speed)));
   spdMax = Math.max(spdMax, data.speed);
   spdAvg += (data.speed - spdAvg) * 0.02;
@@ -904,7 +794,6 @@ function render(now){
     ' ' + clock.getFullYear());
   put('modeVal', hadData && data.mode != null && data.mode !== '' ? String(data.mode) : '–');
 
-  // ---- มาตรวัด : TPS / AFR / TEMP (+ MAP) ----
   const gaugeArcs = {tps:'f_tps', afr:'f_afr', temp:'f_temp'};
   TILES.forEach(t=>{
     const v = data[t.key], st = statusOf(t.key, v), sc = statusColor(st);
@@ -920,7 +809,6 @@ function render(now){
   put('mapVal', mv == null || !hadData ? '–' : fmt(mv, 0));
   setArc('f_map', mv == null ? 0 : mv/400, GREEN);
 
-  // ---- รายการค่าด้านขวา (ISC / IAT / TRIM / O2) ----
   [['r_iacv','iacv',0], ['r_iat','iat',0], ['r_trim','fueltrim',1], ['r_o2','o2',2]]
     .forEach(([id,k,dec])=>{
       const v = data[k];
@@ -928,7 +816,6 @@ function render(now){
         : (typeof v === 'string' ? v : fmt(v, dec)));
     });
 
-  // ---- หน้า 2 : ตารางค่าทั้งหมด ----
   PARAMS.forEach(p=>{
     put('pv_'+p.key, fmtParam(p));
     const el = document.getElementById('pv_'+p.key);
@@ -941,31 +828,23 @@ function render(now){
   });
 }
 scheduleRender();
-// กัน rAF ถูกหยุดใน webview/แท็บเบื้องหลัง — ยังอัปเดตจอทุก 300ms ถ้าเฟรมไม่มา
 setInterval(()=>{
   if (performance.now() - lastFrame > 500) render(performance.now());
 }, 300);
 
-/* ============================================================
-   5. การเชื่อมต่อ : Bluetooth LE
-   ============================================================ */
 const $ = id => document.getElementById(id);
 const pill = $('connPill'), pillText = $('connText');
 function setPill(kind, text){
   pill.className = 'pill' + (kind==='on' ? ' on' : kind==='warn' ? ' warn' : kind==='err' ? ' err' : '');
   pillText.textContent = text;
-  // ปุ่มบลูทูธมุมซ้ายล่าง = สถานะการเชื่อมต่อ (เขียวเมื่อต่ออยู่)
   const fab = document.getElementById('fabBle');
   if (fab) fab.classList.toggle('on', kind === 'on');
 }
 function setStatus(id, text, cls){
   const el = $(id); el.textContent = text; el.className = 'statusline' + (cls ? ' '+cls : '');
 }
-
 let bleDevice = null, bleChar = null, bleLineBuf = '';
 let ws = null, wsTimer = null, wsShouldRun = false;
-
-/* ---- native BLE bridge (แอป Android : window.GaugeBle) ---- */
 const NATIVE_BLE = !!window.GaugeBle;
 function updateBleSupport(){
   const el = $('bleSupport');
@@ -989,13 +868,12 @@ function updateBleSupport(){
 }
 updateBleSupport();
 
-/* native bridge → JS callbacks */
 window.__gaugeBleReceive = function(text){ ingestBleText(String(text || '')); };
 window.__gaugeBleStatus = function(state, extra){
   extra = extra || '';
   if (state === 'scan'){ setStatus('bleStatus', extra || 'กำลังสแกน…'); return; }
   if (state === 'connected'){
-    bleChar = { native: true };               // sentinel: ต่ออยู่ผ่าน bridge
+    bleChar = { native: true };
     setPill('on', extra.slice(0,14) || 'BLE');
     noteConnected(); saveCfg();
     setStatus('bleStatus','✅ รับข้อมูลจาก '+(extra||'อุปกรณ์'),'ok');
@@ -1029,7 +907,7 @@ function stopAll(keepMode){
 }
 
 async function bleConnect(){
-  if (window.GaugeBle){                 // native bridge ในแอป Android
+  if (window.GaugeBle){
     if (!window.GaugeBle.isSupported()){ setStatus('bleStatus','อุปกรณ์นี้ไม่รองรับ Bluetooth LE','err'); return; }
     stopAll();
     mode = 'ble'; setPill('warn','กำลังสแกน…');
@@ -1080,7 +958,6 @@ async function bleConnect(){
 function onBleValue(ev){ ingestBleText(new TextDecoder().decode(ev.target.value)); }
 function ingestBleText(text){
   bleLineBuf += text;
-  // ถ้าเป็น JSON ก้อนเดียว (ไม่มี \n) ให้ parse ทันทีเมื่อครบ
   if (bleLineBuf.trim()[0] === '{'){
     const close = bleLineBuf.lastIndexOf('}');
     if (close >= 0){
@@ -1098,10 +975,6 @@ function ingestBleText(text){
   }
   if (bleLineBuf.length > 8192) bleLineBuf = '';
 }
-
-/* ============================================================
-   6. การเชื่อมต่อ : Wi‑Fi (WebSocket)
-   ============================================================ */
 function wsConnect(){
   stopAll();
   const url = $('wsURL').value.trim();
@@ -1132,10 +1005,6 @@ function openWs(url, attempt){
     wsTimer = setTimeout(()=> openWs(url, attempt+1), wait);
   };
 }
-
-/* ============================================================
-   7. Demo mode
-   ============================================================ */
 let demoTimer = null;
 function demoStart(){
   stopAll();
@@ -1152,9 +1021,7 @@ function demoStart(){
     const tT = 15 + 70*Math.pow(0.5 + 0.5*Math.sin(ph*0.55), 2);
     tps = clamp(tps + (tT - tps)*0.15, 0, 100);
     ingestObject({
-      rpm: rpm,
-      speed: spd,
-      tps: tps,
+      rpm: rpm, speed: spd, tps: tps,
       afr: 14.7 - (tps/100)*3.2 + 0.1*Math.sin(ph*3.1),
       temp: 22 + 70*Math.min(1, ph/50) + 2.5*Math.sin(ph*0.7),
       map: 30 + 55*Math.pow(0.5 + 0.5*Math.sin(ph*0.55), 2) + 4*Math.sin(ph*2.3),
@@ -1177,17 +1044,12 @@ function demoStop(){
   mode = 'off'; setPill('', 'ไม่ได้เชื่อมต่อ');
   setStatus('demoStatus','');
 }
-
-/* ============================================================
-   8. Sheet / events / settings
-   ============================================================ */
 const sheet = $('sheet'), overlay = $('overlay');
 function sheetOnScreen(){ const r = sheet.getBoundingClientRect(); return r.top < innerHeight - 4 && r.bottom > 4; }
-// กันกรณีเบราว์เซอร์/เว็บวิวไม่เล่น animation (แผงจะค้างนอกจอ) — บังคับสถานะหลัง 380ms
 function forceSheet(open){
   setTimeout(()=>{
-    if (sheet.classList.contains('open') !== open) return;          // เปลี่ยนใจแล้ว
-    if (sheetOnScreen() === open) return;                            // สถานะถูกต้องแล้ว
+    if (sheet.classList.contains('open') !== open) return;
+    if (sheetOnScreen() === open) return;
     sheet.style.transition = 'none';
     sheet.style.transform = open ? 'none' : 'translateY(105%)';
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
@@ -1199,10 +1061,8 @@ function openSheet(){ sheet.classList.add('open'); overlay.classList.add('open')
 function closeSheet(){ sheet.classList.remove('open'); overlay.classList.remove('open'); forceSheet(false); }
 $('openSheet').addEventListener('click', openSheet);
 overlay.addEventListener('click', closeSheet);
-// ปุ่ม ☰ บนแถบบน + ปุ่มบลูทูธมุมซ้ายล่าง = เปิดแผงเชื่อมต่อ/ตั้งค่า
 $('menuBtn').addEventListener('click', openSheet);
 $('fabBle').addEventListener('click', openSheet);
-
 document.querySelectorAll('.tabs button').forEach(b=>{
   b.addEventListener('click', ()=>{
     document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));
@@ -1217,7 +1077,6 @@ $('wsConnect').addEventListener('click', wsConnect);
 $('wsDisconnect').addEventListener('click', ()=>{ wsShouldRun=false; stopAll(); setStatus('wsStatus','ตัดการเชื่อมต่อแล้ว'); });
 $('demoStart').addEventListener('click', demoStart);
 $('demoStop').addEventListener('click', ()=>{ demoStop(); setStatus('demoStatus','หยุดแล้ว'); });
-
 function readStore(){ try{ return JSON.parse(localStorage.getItem('gauge_cfg') || '{}') || {}; }catch(e){ return {}; } }
 function writeStore(patch){ const o = Object.assign(readStore(), patch); try{ localStorage.setItem('gauge_cfg', JSON.stringify(o)); }catch(e){} return o; }
 function saveCfg(){ writeStore({ svc: $('svcUUID').value, chr: $('chrUUID').value, ws: $('wsURL').value,
@@ -1233,10 +1092,6 @@ function loadCfg(){
   if (c.tune) tune = mergeTune(c.tune);
 }
 ['svcUUID','chrUUID','wsURL','cmdRead','cmdClear'].forEach(id=> $(id).addEventListener('change', saveCfg));
-
-/* ============================================================
-   9. หน้าตั้งค่า : สเกล / เกณฑ์สี / สีประจำช่อง
-   ============================================================ */
 const SCALE_FIELDS = [
   {k:'rpmMax',   label:'RPM สูงสุด',       step:100},
   {k:'redline',  label:'REDLINE',          step:100},
@@ -1258,7 +1113,6 @@ const TH_FIELDS = [
   {k:'injWarn',   label:'INJ เตือน',        step:0.5},
   {k:'ignWarn',   label:'IGN เตือน',        step:1}
 ];
-
 function validTune(t){
   if (!(t.rpmMax > 500 && t.redline > 0 && t.redline < t.rpmMax))
     return 'REDLINE ต้องอยู่ระหว่าง 0 ถึง RPM สูงสุด';
@@ -1278,7 +1132,7 @@ function validTune(t){
   for (const k in t.accent){ if (!/^#[0-9a-f]{6}$/i.test(String(t.accent[k]))) return 'ค่าสีไม่ถูกต้อง'; }
   return null;
 }
-let tuneSnapshot = clone(DEFAULT_TUNE);   // เก็บค่าที่ใช้ได้ล่าสุดไว้ย้อนกลับเมื่อกรอกผิด
+let tuneSnapshot = clone(DEFAULT_TUNE);
 function tuneChanged(msg){
   const err = validTune(tune);
   if (err){
@@ -1344,14 +1198,12 @@ $('tuneReset').addEventListener('click', ()=>{
   toast('คืนค่าเริ่มต้นแล้ว');
 });
 $('tuneClose').addEventListener('click', closeSheet);
-
-/* ---- โหมดเต็มจอ (สำหรับมือถือติดแฮนด์) ---- */
 function lockLandscape(){
   try{
     if (screen.orientation && screen.orientation.lock)
       screen.orientation.lock('landscape')
         .catch(()=> toast('เบราว์เซอร์นี้ไม่รองรับการล็อกทิศทาง'));
-  }catch(e){ /* API ไม่มีในเบราว์เซอร์นี้ */ }
+  }catch(e){}
 }
 $('fsBtn').addEventListener('click', ()=>{
   if (document.fullscreenElement){
@@ -1377,8 +1229,6 @@ $('fsBtn').addEventListener('click', ()=>{
 document.addEventListener('fullscreenchange', ()=>{
   $('fsBtn').textContent = document.fullscreenElement ? '✕' : '⛶';
 });
-
-/* ---- toast ---- */
 const toastEl = $('toast');
 let toastTimer = null;
 function toast(msg){
@@ -1387,13 +1237,8 @@ function toast(msg){
   clearTimeout(toastTimer);
   toastTimer = setTimeout(()=> toastEl.classList.remove('show'), 2400);
 }
-
-/* ============================================================
-   10. หน้า DTC (อ่าน/ลบโค้ด) + ระบบหน้าปัดซ้าย-ขวา
-   ============================================================ */
 const dtcSet = new Set();
 let pendingClear = false;
-
 function addDtc(code){
   const c = String(code).toUpperCase().trim();
   if (!/^[PBCU][0-9A-F]{4}$/.test(c) || dtcSet.has(c)) return;
@@ -1477,7 +1322,6 @@ async function sendRaw(cmd){
   throw new Error('ยังไม่ได้เชื่อมต่ออุปกรณ์ — กด “เชื่อมต่อ” ก่อน');
 }
 async function runCmd(kind){
-  const cmd = (kind === 'read' ? $('cmdRead' : $('cmdClear')).value.trim()); // ใช้ค่าจากช่องกรอก
   const cmdVal = (kind === 'read' ? $('cmdRead') : $('cmdClear')).value.trim();
   if (!cmdVal){ setStatus('dtcStatus','กรุณาใส่คำสั่ง','err'); return; }
   logLine('>> ' + cmdVal + (kind === 'read' ? '  (อ่านโค้ด)' : '  (ล้างโค้ด)'));
@@ -1508,7 +1352,7 @@ let clearArm = 0, clearArmTimer = null;
 $('dtcReadBtn').addEventListener('click', ()=> runCmd('read'));
 $('dtcClearBtn').addEventListener('click', ()=>{
   const btn = $('dtcClearBtn'), now = Date.now();
-  if (clearArm < now){                 // แตะครั้งแรก = ขอยืนยันก่อน 4 วิ
+  if (clearArm < now){
     clearArm = now + 4000;
     btn.textContent = 'แตะอีกครั้งเพื่อยืนยัน';
     setStatus('dtcStatus','กดยืนยันอีกครั้งภายใน 4 วินาทีเพื่อล้างความจำ ECU');
@@ -1523,8 +1367,6 @@ $('dtcClearBtn').addEventListener('click', ()=>{
   clearArm = 0; btn.textContent = 'ลบโค้ด DTC';
   runCmd('clear');
 });
-
-/* ---- เลื่อนหน้า : ปัดนิ้ว / ปุ่มแถบบน / ลูกศร ← → ---- */
 const pagerEl = $('pager');
 const pageEls = [...pagerEl.querySelectorAll('.page')];
 const barBtns = [...$('pagebar').querySelectorAll('button')];
@@ -1551,16 +1393,12 @@ document.addEventListener('keydown', e=>{
   if (e.key === 'ArrowRight') setPage(curPage + 1, true);
   if (e.key === 'ArrowLeft')  setPage(curPage - 1, true);
 });
-
 renderDtc();
 setPage(0, false);
-
-loadCfg();          // โหลดค่าที่เคยบันทึก (รวมสเกล/เกณฑ์สี)
+loadCfg();
 tuneSnapshot = clone(tune);
-applyTune();        // ใช้ค่าจาก storage กับหน้าจอ (ซ้ำจากรอบแรกได้ ไม่เป็นไร)
-buildSettings();    // สร้างช่องกรอกตามค่าปัจจุบัน
-
-// เริ่มต้น: ถ้าเปิดจากไฟล์/localhost ให้โชว์สถานะเปล่า ไม่ error
+applyTune();
+buildSettings();
 setPill('', 'ไม่ได้เชื่อมต่อ');
 </script>
 </body>
