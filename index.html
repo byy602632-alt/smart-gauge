@@ -1453,12 +1453,22 @@ async function sendRaw(cmd){
     }
     if (!bleChar) throw new Error('Bluetooth ยังไม่ได้เชื่อมต่อ');
     const buf = new TextEncoder().encode(payload);
-    if (bleChar.writeValue){
-      try { await bleChar.writeValue(buf); return; }
-      catch(e){ if (!bleChar.writeValueWithoutResponse) throw e; }
+    try {
+      if (bleChar.writeValueWithoutResponse) {
+        await bleChar.writeValueWithoutResponse(buf);
+      } else if (bleChar.writeValue) {
+        await bleChar.writeValue(buf);
+      } else {
+        throw new Error('Characteristic นี้ไม่รองรับการเขียนข้อมูล');
+      }
+    } catch(err) {
+      if (bleChar.writeValue) {
+        await bleChar.writeValue(buf);
+      } else {
+        throw err;
+      }
     }
-    if (bleChar.writeValueWithoutResponse){ await bleChar.writeValueWithoutResponse(buf); return; }
-    throw new Error('Characteristic นี้ไม่รองรับการส่งคำสั่ง');
+    return;
   }
   if (mode === 'wifi'){
     if (!ws || ws.readyState !== 1) throw new Error('Wi‑Fi ยังไม่ได้เชื่อมต่อ');
@@ -1467,13 +1477,14 @@ async function sendRaw(cmd){
   throw new Error('ยังไม่ได้เชื่อมต่ออุปกรณ์ — กด “เชื่อมต่อ” ก่อน');
 }
 async function runCmd(kind){
-  const cmd = (kind === 'read' ? $('cmdRead') : $('cmdClear')).value.trim();
-  if (!cmd){ setStatus('dtcStatus','กรุณาใส่คำสั่ง','err'); return; }
-  logLine('>> ' + cmd + (kind === 'read' ? '  (อ่านโค้ด)' : '  (ล้างโค้ด)'));
+  const cmd = (kind === 'read' ? $('cmdRead' : $('cmdClear')).value.trim()); // ใช้ค่าจากช่องกรอก
+  const cmdVal = (kind === 'read' ? $('cmdRead') : $('cmdClear')).value.trim();
+  if (!cmdVal){ setStatus('dtcStatus','กรุณาใส่คำสั่ง','err'); return; }
+  logLine('>> ' + cmdVal + (kind === 'read' ? '  (อ่านโค้ด)' : '  (ล้างโค้ด)'));
   setStatus('dtcStatus','กำลังส่งคำสั่ง…');
   if (kind === 'clear') pendingClear = true;
   try {
-    await sendRaw(cmd);
+    await sendRaw(cmdVal);
     setStatus('dtcStatus','ส่งคำสั่งแล้ว — รออุปกรณ์ตอบ…','ok');
     if (mode === 'demo'){
       setTimeout(()=>{
