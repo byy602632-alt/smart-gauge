@@ -149,16 +149,6 @@ header{display:flex;align-items:center;gap:9px;margin-bottom:6px}
 body.stale .spdBlock,body.stale .gpad,body.stale .rows,body.stale .hdZone
   {opacity:.35;filter:grayscale(.7)}
 
-/* ---------- footer / info ---------- */
-.info{margin-top:16px;font-size:11.5px;line-height:1.75;color:var(--dim);
-  background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 13px}
-.info b{color:var(--text)}
-.info code{font-family:var(--mono);color:var(--acc);background:rgba(255,107,26,.10);padding:1px 5px;border-radius:5px;
-  font-size:11px;word-break:break-all}
-.info h4{font-size:11px;letter-spacing:2px;color:var(--acc);margin-bottom:6px}
-
-
-
 /* ---------- bottom sheet ---------- */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(3px);
   opacity:0;pointer-events:none;transition:.2s;z-index:40}
@@ -322,7 +312,6 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
   .pill{font-size:9.5px;padding:3px 8px;gap:5px;min-width:0;overflow:hidden}
   .pill .dot{width:6px;height:6px}
   .btn{padding:4px 10px;font-size:10.5px}
-  .info{display:none}
   .tabs button{font-size:11px;padding:7px 4px}
   .hdZone{gap:2px}
   .rpmBar{height:max(18px,5vmin)}
@@ -617,15 +606,6 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
     <span class="ver">v1.0</span>
   </div>
 
-  <div class="info">
-    <h4>โปรโตคอลข้อมูล</h4>
-    อุปกรณ์ส่งข้อความเป็น <b>บรรทัดเดียวต่อแพ็กเก็จ</b> (จบด้วย <code>\n</code>) รูปแบบใดก็ได้:<br>
-    JSON: <code>{"rpm":3200,"speed":78,"afr":13.4,"tps":44,"ign":22,"inj":5.1,"bat":13.8,"temp":92}</code><br>
-    CSV (ตามลำดับ): <code>3200,13.4,44,78,22,5.1,13.8,92</code><br>
-    หรือ key=value: <code>rpm=3200&amp;afr=13.4&amp;tps=44&amp;speed=78</code><br>
-    ชื่อที่รองรับ: <code>speed/spd</code>, <code>ign/lgn</code>, <code>inj/lnj</code>,
-    <code>bat/volt</code>, <code>temp/ect</code>
-  </div>
   </section><!-- /page0 : หน้าหลัก -->
 
   <!-- ================= page 2 : ตารางค่าทั้งหมด ================= -->
