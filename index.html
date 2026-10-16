@@ -4,20 +4,19 @@
 <link rel="manifest" href="manifest.json">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#05070c">
+<meta name="theme-color" content="#11141a">
 <title>Smart Gauge — มือถือ (Bluetooth / Wi‑Fi)</title>
 <style>
 :root{
-  --bg:#05070c; --panel:#0b1119; --panel2:#0e1622; --line:#1a2836;
-  --text:#d9e4ee; --dim:#5d7085;
-  --cyan:#00e5ff; --green:#00e676; --amber:#ffb300; --red:#ff3d3d;
+  --bg:#11141a; --panel:#1a1f28; --panel2:#232b38; --line:rgba(255,255,255,.09);
+  --text:#eef1f5; --dim:#7d8794;
+  --acc:#ff6b1a; --green:#39d98a; --amber:#ffb020; --red:#ff4d4d; --blue:#4d9fff;
   --mono:Consolas,"SF Mono",ui-monospace,"Courier New",monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{min-height:100%}
 body{
   background:var(--bg);
-  background-image:radial-gradient(900px 420px at 50% -8%, rgba(0,229,255,.10), transparent 65%);
   color:var(--text);
   font-family:"Segoe UI",Tahoma,system-ui,sans-serif;
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
@@ -26,143 +25,181 @@ body{
 .wrap{width:100%;max-width:520px;margin:0 auto;padding:12px 12px 40px;
   flex:1 1 auto;display:flex;flex-direction:column;min-height:0;min-width:0}
 
-/* ---------- header ---------- */
-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.brand{font-size:15px;font-weight:700;letter-spacing:2px;color:var(--cyan)}
-.brand small{display:block;font-size:9px;letter-spacing:1.5px;color:var(--dim);font-weight:400}
+/* ---------- header : แถบเรียบ มุมเหลี่ยมตัวหนา ---------- */
+header{display:flex;align-items:center;gap:9px;margin-bottom:6px}
+.brand{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;
+  letter-spacing:3px;color:var(--text);text-transform:uppercase}
+.brand::before{content:"";width:9px;height:9px;background:var(--acc);flex:0 0 auto}
+.brand small{display:none}
 .spacer{flex:1}
 .pill{
-  display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:1px;
-  padding:6px 10px;border:1px solid var(--line);border-radius:99px;background:var(--panel);
-  color:var(--dim);white-space:nowrap
+  display:flex;align-items:center;gap:6px;font-size:10.5px;letter-spacing:1.5px;
+  padding:5px 10px;border:1px solid var(--line);border-radius:5px;background:var(--panel);
+  color:var(--dim);white-space:nowrap;font-weight:700;text-transform:uppercase
 }
-.pill .dot{width:7px;height:7px;border-radius:50%;background:var(--dim);box-shadow:0 0 6px currentColor}
-.pill.on{color:var(--green);border-color:#124a2e}
+.pill .dot{width:7px;height:7px;border-radius:2px;background:var(--dim)}
+.pill.on{color:var(--green);border-color:rgba(57,217,138,.45)}
 .pill.on .dot{background:var(--green);animation:blink 1.1s infinite}
-.pill.warn{color:var(--amber);border-color:#4a3a12}
+.pill.warn{color:var(--amber);border-color:rgba(255,176,32,.45)}
 .pill.warn .dot{background:var(--amber);animation:blink .6s infinite}
-.pill.err{color:var(--red);border-color:#4a1519}
+.pill.err{color:var(--red);border-color:rgba(255,77,77,.45)}
 .pill.err .dot{background:var(--red)}
 @keyframes blink{50%{opacity:.25}}
 .btn{
-  font:inherit;font-size:12px;font-weight:600;letter-spacing:.5px;cursor:pointer;white-space:nowrap;
-  padding:9px 14px;border-radius:10px;border:1px solid #0c5f6b;background:#062b33;color:var(--cyan);
+  font:inherit;font-size:12px;font-weight:800;letter-spacing:.5px;cursor:pointer;white-space:nowrap;
+  padding:8px 15px;border-radius:6px;border:1px solid transparent;background:var(--acc);color:#180a00;
 }
 .btn:active{transform:scale(.97)}
-.btn.ghost{background:transparent;border-color:var(--line);color:var(--dim)}
+.btn.ghost{background:var(--panel);border-color:var(--line);color:var(--text)}
+.btn.danger{background:transparent;border-color:rgba(255,77,77,.5);color:var(--red)}
+.btn.danger:active{background:rgba(255,77,77,.12)}
 
 /* ---------- card / hero ---------- */
-.card{
-  background:linear-gradient(180deg,#0d1521,#080d15);
-  border:1px solid var(--line);border-radius:16px;position:relative;overflow:hidden;
-  box-shadow:0 10px 30px rgba(0,0,0,.45)
-}
-.card::after{
-  content:"";position:absolute;inset:0;pointer-events:none;
-  background:repeating-linear-gradient(45deg,transparent 0 7px,rgba(255,255,255,.012) 7px 8.4px)
-}
-/* --- tach strip : แถบวัดรอบเต็มความกว้าง --- */
-.tachCard{padding:8px 12px 5px}
-.tachTop{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:6px}
-.tachNum b{font-family:var(--mono);font-size:34px;font-weight:700;line-height:34px;color:#fff;
-  text-shadow:0 0 14px rgba(0,229,255,.55);letter-spacing:-1px;transition:color .15s}
-.tachNum b.over{color:var(--red);text-shadow:0 0 14px rgba(255,61,61,.6)}
-.tachNum i{font-style:normal;font-size:9px;letter-spacing:4px;color:var(--dim);margin-left:8px}
-.tachRed{font-size:9px;letter-spacing:2px;color:var(--dim)}
-.tachRed b{font-family:var(--mono);color:var(--red);font-size:13px;margin-left:4px}
-.rpmBar{position:relative;height:16px;border-radius:8px;background:#101a26;
-  border:1px solid #1a2836;overflow:hidden}
-.rpmBar::after{content:"";position:absolute;inset:0;pointer-events:none;
-  background:repeating-linear-gradient(90deg,transparent 0 calc(2.5% - 1px),
-    rgba(0,0,0,.6) calc(2.5% - 1px) 2.5%)}
-.rpmRedzone{position:absolute;top:0;bottom:0;left:87.5%;right:0;
-  background:linear-gradient(90deg,#3a1013,#5a1a20);border-left:1px solid #7a2028}
-.rpmFill{position:absolute;top:0;bottom:0;left:0;width:0;border-radius:8px;
-  background:linear-gradient(90deg,#0891a8,#00e5ff);box-shadow:0 0 12px rgba(0,229,255,.6)}
-.rpmScale{position:relative;height:15px;margin-top:3px}
-.rpmScale i{position:absolute;top:0;height:100%}
-.rpmScale i::before{content:"";position:absolute;top:0;left:-1px;width:2px;height:5px;background:#33465a}
-.rpmScale i.big::before{height:8px;background:#4a6178}
-.rpmScale i.red::before{background:var(--red)}
-.rpmScale i b{position:absolute;top:8px;left:0;transform:translateX(-50%);
-  font-family:var(--mono);font-size:9px;font-weight:400;color:#5d7085}
+/* ---------- card (ใช้กับหน้า 2/3) ---------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  position:relative;overflow:hidden}
 
-/* --- speed card --- */
-.speedCard{padding:6px 10px 8px;text-align:center}
-.spdHead{font-size:9px;letter-spacing:5px;color:var(--dim)}
-.spdNum{font-family:var(--mono);font-size:74px;font-weight:700;line-height:78px;color:#fff;
-  text-shadow:0 0 22px rgba(0,229,255,.65);letter-spacing:-3px}
-.spdUnit{font-size:10px;letter-spacing:6px;color:var(--cyan);margin-top:-8px}
-.mini{display:flex;justify-content:center;gap:14px;margin-top:8px;font-size:11px;color:var(--dim)}
-.mini b{font-family:var(--mono);font-weight:700;color:var(--green)}
-.mini b.max{color:var(--cyan)}
-.speedBar{display:flex;gap:2px;height:8px;margin:8px 2px 4px}
-.speedBar i{flex:1;border-radius:2px;background:#132130}
-.haz{height:5px;margin:0 2px 2px;
-  background:repeating-linear-gradient(45deg,#ede700 0 6px,#0b1119 6px 12px);opacity:.75;border-radius:2px}
+/* ---------- dashboard : RALLY FLAT (สเลท + ส้มเรซซิ่ง ตัวหนา บล็อกเหลี่ยม) ---------- */
+.dash2{position:relative;display:grid;gap:8px;height:100%;min-height:0;padding-bottom:14px;
+  grid-template-columns:minmax(150px,1.2fr) minmax(160px,1fr) minmax(110px,.8fr);
+  grid-template-rows:auto minmax(0,1fr);
+  grid-template-areas:"hd hd hd" "l c r";align-items:stretch}
+.gleft{grid-area:l} .gcenter{grid-area:c} .grows{grid-area:r}
+.gleft{display:flex;flex-direction:column;gap:8px;min-height:0}
+.gcenter{display:flex;flex-direction:column;min-width:0;min-height:0}
+.grows{display:flex;flex-direction:column;min-height:0;justify-content:center;
+  background:var(--panel);border-radius:8px;padding:2px 10px}
 
-/* ---------- tiles ---------- */
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
-.tile{
-  background:linear-gradient(180deg,#0e1725,#0a1119);
-  border:1px solid var(--line);border-left:3px solid var(--acc,#00e5ff);
-  border-radius:10px;padding:6px 9px 7px;position:relative;overflow:hidden
-}
-.tile::after{content:"";position:absolute;left:0;right:0;top:0;height:1px;
-  background:linear-gradient(90deg,var(--acc),transparent 70%);opacity:.55}
-.tile .top{display:flex;align-items:baseline;justify-content:space-between}
-.tile .lab{font-size:10px;letter-spacing:2px;font-weight:700;color:var(--acc);opacity:.9}
-.tile .un{font-size:8px;color:var(--dim);letter-spacing:.5px}
-.tile .val{
-  font-family:var(--mono);font-size:30px;font-weight:700;line-height:34px;color:var(--green);
-  text-align:center;text-shadow:0 0 12px rgba(0,230,118,.4);letter-spacing:-1px
-}
-.tile .val.warn{color:var(--amber);text-shadow:0 0 10px rgba(255,179,0,.4)}
-.tile .val.bad{color:var(--red);text-shadow:0 0 10px rgba(255,61,61,.45)}
-.tile .val.cool{color:var(--cyan);text-shadow:0 0 10px rgba(0,229,255,.4)}
-.tile .bar{display:flex;gap:2px;height:6px;margin-top:5px}
-.tile .bar i{flex:1;border-radius:1px;background:#152232}
-.tile .rng{display:flex;justify-content:space-between;font-size:8px;color:#3f5165;margin-top:3px;
-  font-family:var(--mono)}
-body.stale .tile .val,body.stale .spdNum,body.stale .tachNum b,body.stale .rpmFill
+/* --- แถบ Shift-light RPM เต็มความกว้าง --- */
+.hdZone{grid-area:hd;display:flex;flex-direction:column;gap:3px}
+.shiftRow{display:flex;align-items:baseline;gap:10px}
+.drpm{display:flex;align-items:baseline;gap:6px}
+.drpm .val{font-size:max(22px,9vmin);line-height:1;font-weight:800;letter-spacing:-1px;
+  font-variant-numeric:tabular-nums;transition:color .15s}
+.drpm i{font-style:normal;font-size:max(8px,2.6vmin);letter-spacing:4px;color:var(--dim);font-weight:700}
+.shiftRow .clk{margin-left:auto;font-family:var(--mono);font-size:max(8px,2.6vmin);color:var(--dim)}
+.drmax{font-size:max(7px,2.2vmin);color:var(--dim);letter-spacing:1px;font-weight:700}
+.drmax b{font-family:var(--mono);color:var(--red);font-weight:700}
+.dmode{font-size:max(9px,3vmin);font-weight:800;color:var(--acc);letter-spacing:2px}
+.rpmBar{display:flex;gap:3px;height:max(16px,4.5vmin)}
+.rpmBar i{flex:1;background:var(--panel2);border-radius:2px}
+.rpmBar i.on{background:var(--seg,var(--acc))}
+.rpmScale{position:relative;height:12px}
+.rpmScale span{position:absolute;top:0;transform:translateX(-50%);
+  font-family:var(--mono);font-size:max(7px,2vmin);color:#4a5260}
+.rpmScale span:first-child{transform:none}
+.rpmScale span:last-child{transform:translateX(-100%)}
+
+/* --- ตัวเลข/ป้ายสากล : ตัวหนา ไร้เงา --- */
+.val{font-family:var(--mono);font-weight:700;color:#fff;letter-spacing:-1px;
+  font-variant-numeric:tabular-nums}
+.val.warn{color:var(--amber)}
+.val.bad{color:var(--red)}
+.val.cool{color:var(--blue)}
+.val.over{color:var(--red)}
+.iconBtn{font-size:14px;padding:3px 8px;line-height:1}
+
+/* --- ซ้าย : ความเร็วตัวหนาใหญ่ + TOP/AVG + เวลา/โหมด + ปุ่ม BT --- */
+.spdBlock{display:flex;flex-direction:column;justify-content:center;gap:2px;flex:1 1 auto;min-height:0}
+.gLab{font-size:max(8px,2.4vmin);letter-spacing:3px;color:var(--dim);font-weight:700}
+.dspd{display:flex;align-items:baseline;gap:8px}
+.dspd .val{font-size:max(44px,20vmin);line-height:.95;font-weight:800;letter-spacing:-2px}
+.dspd i{font-style:normal;font-size:max(9px,3vmin);letter-spacing:4px;color:var(--acc);font-weight:700}
+.dmaxRow{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
+.dchip{background:var(--panel);border-radius:6px;padding:3px 8px;display:flex;
+  align-items:baseline;gap:6px}
+.dchip .gLab{letter-spacing:1.5px}
+.dchip .val{font-size:max(13px,4vmin)}
+.dtime{display:flex;gap:10px;align-items:center;margin-top:4px;font-family:var(--mono);
+  font-size:max(8px,2.6vmin);color:var(--dim)}
+.fab{width:34px;height:34px;border-radius:7px;border:1px solid var(--line);cursor:pointer;
+  background:var(--panel);color:var(--dim);flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center}
+.fab.on{background:rgba(255,107,26,.15);color:var(--acc);border-color:rgba(255,107,26,.55)}
+.fab svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round}
+.footHint{position:absolute;left:50%;bottom:3px;transform:translateX(-50%);
+  font-size:9.5px;color:#3d4552;white-space:nowrap;pointer-events:none}
+.ver{position:absolute;right:2px;bottom:3px;font-size:8.5px;color:#333a45;letter-spacing:1px}
+
+/* --- กลาง : มาตรวัด 4 ช่องแบบบล็อกเหลี่ยม (TPS/AFR/TEMP/MAP) --- */
+.gpad{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:8px;
+  flex:1 1 auto;min-height:0;min-width:0}
+.gt{background:var(--panel);border-radius:8px;padding:6px 9px;display:flex;flex-direction:column;
+  justify-content:center;gap:1px;min-height:0;overflow:hidden;position:relative}
+.gt .gLab{display:flex;justify-content:space-between;align-items:baseline}
+.gt .gLab em{font-style:normal;opacity:.6;letter-spacing:.5px}
+.gt .val{display:block;font-size:clamp(20px,5vmin,30px);line-height:1.05;font-weight:800}
+.gBar{display:block;width:100%;height:5px;margin-top:2px}
+.gTrack{fill:none;stroke:var(--panel2);stroke-width:5}
+.gFill{fill:none;stroke:var(--acc,#ff6b1a);stroke-width:5}
+.rng{display:flex;justify-content:space-between;font-size:8px;color:#4a5260;
+  font-family:var(--mono);margin-top:1px}
+
+/* --- ขวา : รายการค่าแบบเส้นคั่นบาง --- */
+.rows .r{flex:1 1 0;display:flex;align-items:center;justify-content:space-between;gap:6px;
+  border-bottom:1px solid var(--line);padding:0 2px;min-height:0;overflow:hidden}
+.rows .r:last-child{border-bottom:0}
+.rLab{font-size:max(8px,2.3vmin);letter-spacing:2px;color:var(--dim);font-weight:700;
+  white-space:nowrap}
+.rLab i{font-style:normal;font-size:.75em;opacity:.6;letter-spacing:0}
+.rows .r .val{font-size:max(12px,3.6vmin);text-align:right;font-weight:700}
+
+body.stale .spdBlock,body.stale .gpad,body.stale .rows,body.stale .hdZone
   {opacity:.35;filter:grayscale(.7)}
 
 /* ---------- footer / info ---------- */
 .info{margin-top:16px;font-size:11.5px;line-height:1.75;color:var(--dim);
   background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 13px}
 .info b{color:var(--text)}
-.info code{font-family:var(--mono);color:var(--cyan);background:#0a1620;padding:1px 5px;border-radius:5px;
+.info code{font-family:var(--mono);color:var(--acc);background:rgba(255,107,26,.10);padding:1px 5px;border-radius:5px;
   font-size:11px;word-break:break-all}
-.info h4{font-size:11px;letter-spacing:2px;color:var(--cyan);margin-bottom:6px}
+.info h4{font-size:11px;letter-spacing:2px;color:var(--acc);margin-bottom:6px}
+
+
 
 /* ---------- bottom sheet ---------- */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(3px);
   opacity:0;pointer-events:none;transition:.2s;z-index:40}
 .overlay.open{opacity:1;pointer-events:auto}
+/* แผงเชื่อมต่อ/ตั้งค่า : เต็มจอ (ทั้งแนวตั้ง-แนวนอน) */
 .sheet{
-  position:fixed;left:0;right:0;bottom:0;z-index:50;max-width:520px;margin:0 auto;
-  background:#0a111a;border:1px solid var(--line);border-bottom:0;border-radius:20px 20px 0 0;
-  padding:8px 16px calc(20px + env(safe-area-inset-bottom));
+  position:fixed;inset:0;z-index:50;margin:0;
+  background:#14181f;
+  padding:calc(8px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));
+  overflow-y:auto;overscroll-behavior:contain;
   transform:translateY(105%);transition:transform .25s cubic-bezier(.2,.8,.2,1)
 }
 .sheet.open{transform:none}
 @media (prefers-reduced-motion:reduce){ .sheet{transition:none} .pill .dot{animation:none} }
-.grab{width:44px;height:4px;border-radius:9px;background:#22303f;margin:6px auto 12px}
-.sheet h3{font-size:13px;letter-spacing:2px;color:var(--cyan);margin-bottom:10px}
+.grab{width:44px;height:4px;border-radius:9px;background:#2b2b31;margin:2px auto 10px}
+.sheet h3{font-size:14px;letter-spacing:2px;color:var(--text);font-weight:800;
+  margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.sheet h3::before{content:"";width:9px;height:9px;background:var(--acc)}
 .tabs{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto}
 .tabs button{
   flex:1 1 auto;font:inherit;font-size:12px;padding:9px 4px;border-radius:10px;cursor:pointer;
   background:transparent;border:1px solid var(--line);color:var(--dim);white-space:nowrap
 }
-.tabs button.active{background:#062b33;border-color:#0c5f6b;color:var(--cyan);font-weight:700}
-.pane{display:none}
+.tabs button.active{background:rgba(255,107,26,.12);border-color:rgba(255,107,26,.55);color:var(--acc);font-weight:800}
+.pane{display:none;max-width:640px;margin:0 auto}
 .pane.show{display:block}
+/* ช่องตั้งค่าสเกล/เกณฑ์สี : ใช้พื้นที่เต็มหน้าจอ (2 คอลัมน์บนจอกว้าง) */
+.pane#pane-set{max-width:none}
+@media (orientation:landscape){
+  .pane#pane-set.show{max-width:1000px;column-count:2;column-gap:20px}
+  .pane#pane-set .sub,.pane#pane-set .srow,.pane#pane-set .row,
+  .pane#pane-set .statusline{break-inside:avoid}
+}
+.sheet .srow{margin-bottom:9px}
+.sheet .srow input{padding:10px 8px;font-size:14px}
+.sheet label{font-size:12px;margin:12px 0 6px}
 label{display:block;font-size:11px;letter-spacing:1px;color:var(--dim);margin:10px 0 5px}
 input[type=text]{
   width:100%;font:inherit;font-family:var(--mono);font-size:13px;color:var(--text);
   background:#070d14;border:1px solid var(--line);border-radius:10px;padding:11px 12px;outline:none
 }
-input[type=text]:focus{border-color:#0c5f6b}
+input[type=text]:focus{border-color:#155e75}
 .row{display:flex;gap:8px;margin-top:14px}
 .row .btn{flex:1;padding:12px}
 .hint{font-size:11px;line-height:1.7;color:var(--dim);margin-top:10px}
@@ -173,12 +210,12 @@ input[type=text]:focus{border-color:#0c5f6b}
 
 /* ---------- toast ---------- */
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:60;
-  background:#0d1a24;border:1px solid #0c5f6b;color:var(--cyan);font-size:12px;
-  padding:9px 16px;border-radius:99px;opacity:0;pointer-events:none;max-width:92vw;text-align:center}
+  background:var(--panel2);border:1px solid var(--line);color:var(--acc);font-size:12px;font-weight:700;
+  padding:9px 16px;border-radius:6px;opacity:0;pointer-events:none;max-width:92vw;text-align:center}
 .toast.show{opacity:1}
 
 /* ---------- settings (สเกล / เกณฑ์สี) ---------- */
-.sub{font-size:11px;letter-spacing:2px;color:var(--cyan);margin:14px 0 8px;
+.sub{font-size:11px;letter-spacing:2px;color:var(--acc);margin:14px 0 8px;
   border-top:1px dashed var(--line);padding-top:12px}
 .sub:first-child{margin-top:2px;border-top:0;padding-top:0}
 .srow{display:grid;grid-template-columns:1.4fr 1fr;gap:6px;align-items:center;margin-bottom:6px}
@@ -186,7 +223,7 @@ input[type=text]:focus{border-color:#0c5f6b}
 .srow span{font-size:11px;color:var(--dim);letter-spacing:.3px;line-height:1.3}
 .srow input{width:100%;font:inherit;font-family:var(--mono);font-size:13px;color:var(--text);
   background:#070d14;border:1px solid var(--line);border-radius:8px;padding:8px 7px;outline:none}
-.srow input:focus{border-color:#0c5f6b}
+.srow input:focus{border-color:#155e75}
 input[type=number]{-moz-appearance:textfield}
 input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 input[type=color]{padding:2px;height:38px;cursor:pointer}
@@ -198,8 +235,7 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
   padding:8px 4px;border-radius:10px;cursor:pointer;
   background:var(--panel);border:1px solid var(--line);color:var(--dim)
 }
-.pagebar button.active{background:#062b33;border-color:#0c5f6b;color:var(--cyan);
-  box-shadow:inset 0 0 12px rgba(0,229,255,.12)}
+.pagebar button.active{background:var(--acc);border-color:var(--acc);color:#180a00;font-weight:800}
 .pager{
   display:flex;overflow-x:auto;overflow-y:hidden;
   scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;
@@ -229,21 +265,32 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
   text-align:right;white-space:nowrap}
 .pbox .pu{font-size:9px;color:#3f5165;min-width:24px;text-align:left}
 
-/* ---------- หน้า 3 : อ่าน/ลบโค้ด DTC ---------- */
-.dtc{padding:12px}
-.dtcHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.dtcTitle{font-size:12px;letter-spacing:2px;color:var(--cyan);font-weight:700}
-.dtcCount{font-family:var(--mono);font-size:11px;color:var(--dim)}
-.dtcList{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start;min-height:52px;
-  background:#070d14;border:1px dashed var(--line);border-radius:10px;padding:8px;
-  max-height:170px;overflow:auto}
-.dtcList .empty{font-size:11px;color:#3f5165}
-.dtcChip{display:inline-flex;align-items:center;gap:7px;background:#1a0d10;
-  border:1px solid #5a1a20;color:#ff6b6b;font-family:var(--mono);font-size:13px;
-  font-weight:700;padding:5px 8px;border-radius:7px}
-.dtcChip i{font-style:normal;font-size:11px;opacity:.65;cursor:pointer;padding:0 2px}
-.dtcRow{display:flex;gap:8px;margin-top:10px}
-.dtcRow .btn{flex:1;padding:12px}
+/* ---------- หน้า 3 : อ่าน/ลบโค้ด DTC (ยืดเต็มจอ) ---------- */
+.page#page2{overflow:hidden}
+.dtc{padding:10px;height:100%;display:flex;flex-direction:column;min-height:0}
+.dtcHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.dtcTitle{font-size:13px;letter-spacing:2px;color:var(--text);font-weight:800}
+.dtcCount{font-family:var(--mono);font-size:12px;color:var(--dim)}
+.dtcList{display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;min-height:52px;
+  background:#070d14;border:1px dashed var(--line);border-radius:10px;padding:10px;
+  flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain}
+.dtcList .empty{font-size:12px;color:#3f5165}
+.dtcChip{display:inline-flex;align-items:center;gap:9px;background:#1a0d10;
+  border:1px solid #5a1a20;color:#ff6b6b;font-family:var(--mono);font-size:16px;
+  font-weight:700;padding:8px 12px;border-radius:7px}
+.dtcChip i{font-style:normal;font-size:13px;opacity:.65;cursor:pointer;padding:0 3px}
+.dtcRow{display:flex;gap:10px;margin-top:10px;flex:0 0 auto}
+.dtcRow .btn{flex:1;padding:16px;font-size:15px}
+.dtc .cmdRow{margin-top:12px;flex:0 0 auto}
+.dtc .cmdRow .btn,.dtc label{font-size:13px}
+.dtc input[type=text]{padding:14px 12px;font-size:16px}
+.dtc .statusline{margin-top:10px;flex:0 0 auto}
+.dtc .dtcLog{flex:0 0 auto;max-height:22vh}
+.dtc .hint{display:none}
+/* จอกว้าง : คอลัมน์เดียวตรงกลาง ไม่ยืดเกินอ่าน */
+@media (orientation:landscape) and (min-width:700px){
+  .dtc{max-width:760px;margin:0 auto;width:100%}
+}
 .btn.danger{background:#2a0d10;border-color:#6d1a20;color:#ff6b6b}
 .btn.danger:active{background:#3a1116}
 .cmdRow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -255,62 +302,52 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .logline:last-child{border-bottom:0}
 
 /* ---------- landscape : มือถือติดแฮนด์ ---------- */
-.dash{display:block}
 @media (orientation:landscape){
   /* แถบบนชิดขอบจอ : brand ซ้าย / ปุ่มเล็ก ๆ รวมกับปุ่มเลือกหน้าชิดขวา */
-  .wrap{max-width:none;padding:4px 8px 6px;
+  .wrap{max-width:none;padding:4px 10px 6px;
     display:grid;grid-template-columns:minmax(0,1fr) auto;
     grid-template-rows:auto minmax(0,1fr);
     grid-template-areas:"head nav" "pager pager";column-gap:8px;row-gap:4px}
   header{grid-area:head;margin:0;gap:6px;min-width:0}
   .pagebar{grid-area:nav;margin:0;align-self:center;gap:4px}
-  .pagebar button{font-size:10px;padding:4px 8px;border-radius:7px;flex:0 0 auto}
+  .pagebar button{font-size:10px;padding:4px 9px;border-radius:99px;flex:0 0 auto}
   .pager{grid-area:pager}
-  .brand{font-size:11px;letter-spacing:1.5px}
-  .brand small{display:none}
-  .pill{font-size:9.5px;padding:3px 7px;gap:5px;min-width:0;overflow:hidden}
+  .brand{font-size:10px;letter-spacing:2px}
+  .pill{font-size:9.5px;padding:3px 8px;gap:5px;min-width:0;overflow:hidden}
   .pill .dot{width:6px;height:6px}
-  .btn{padding:4px 8px;font-size:10.5px;border-radius:7px}
-  .dash{display:flex;flex-direction:column;gap:6px;height:100%}
-  .dashRow{display:flex;gap:8px;align-items:stretch;flex:1 1 auto;min-height:0}
-  .grid{flex:1 1 auto;min-width:0;margin-top:0;gap:6px;align-content:stretch;
-    grid-template-columns:repeat(3,1fr)}
-  .tile{display:flex;flex-direction:column;justify-content:space-between}
-  .speedCard{display:flex;flex-direction:column;justify-content:space-between}
-  .tachCard{padding:5px 12px 3px}
-  .tachTop{margin-bottom:4px}
-  .tachNum b{font-size:26px;line-height:26px}
-  .rpmBar{height:13px}
-  .rpmScale{height:13px}
-  .rpmScale i b{top:6px;font-size:8px}
-  .speedCard{flex:0 0 30%;min-width:0;padding:5px 8px 6px}
-  .spdNum{font-size:54px;line-height:58px;letter-spacing:-2px}
-  .spdUnit{margin-top:-6px;letter-spacing:4px}
-  .mini{margin-top:4px;font-size:10px;gap:10px}
-  .speedBar{height:6px;margin:6px 0 3px}
-  .haz{height:4px;margin:0 0 2px}
-  .tile{padding:5px 7px 6px;border-radius:8px}
-  .tile .lab{font-size:10px;letter-spacing:1.5px}
-  .tile .un{font-size:8px}
-  .tile .val{font-size:24px;line-height:28px}
-  .tile .bar{height:5px;margin-top:3px}
-  .tile .rng{display:none}
+  .btn{padding:4px 10px;font-size:10.5px}
   .info{display:none}
-  .sheet{max-width:none;max-height:88vh;overflow-y:auto}
   .tabs button{font-size:11px;padding:7px 4px}
+  .hdZone{gap:2px}
+  .rpmBar{height:max(18px,5vmin)}
+  .rows{padding:2px 10px}
 }
-/* จอกว้างแนวนอน (มือถือตั้งแนวขวาง / แท็บเล็ต) : ให้ทุกค่าอยู่แถวเดียว */
-@media (orientation:landscape) and (min-width:700px){
-  .grid{grid-template-columns:repeat(6,1fr)}
-  .speedCard{flex:0 0 26%}
-  .spdNum{font-size:46px;line-height:50px}
-  .tile{padding:6px 7px 7px}
-  .tile .lab{font-size:9px;letter-spacing:1px}
-  .tile .val{font-size:26px;line-height:30px}
-}
-@media (max-width:370px){
-  .spdNum{font-size:60px;line-height:64px}
-  .tile .val{font-size:28px}
+/* จอแนวตั้ง : แถบ RPM บนสุด → ความเร็วเต็มความกว้าง → มาตรวัด / รายการค่า */
+@media (orientation:portrait){
+  /* แถบหัวจอแคบลงให้พอดีความกว้างมือถือ (ไม่ให้ปุ่มเชื่อมต่อเลยขอบ) */
+  header{gap:6px}
+  .brand{font-size:11px;letter-spacing:2px;min-width:0;white-space:nowrap}
+  .pill{font-size:9.5px;padding:4px 7px;gap:5px;min-width:0;overflow:hidden}
+  .pill #connText{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  header .btn{padding:7px 11px}
+  /* หน้า 2 : ตารางค่า — จอโทรศัพท์เป็น列表เต็มความกว้าง อ่านง่าย ไม่เบียด */
+  .plist{grid-template-columns:1fr}
+  .pbox{min-height:44px;padding:9px 12px;gap:10px}
+  .pbox .pk{font-size:12px;line-height:1.35;opacity:1}
+  .pbox .pv{font-size:18px}
+  .pbox .pu{font-size:10px;min-width:28px}
+  .dash2{grid-template-columns:1fr 1fr;
+    grid-template-rows:auto auto minmax(0,1fr);
+    grid-template-areas:"hd hd" "l l" "c r";height:auto;padding-bottom:0}
+  .gcenter{min-height:52vw}
+  .gleft{gap:8px}
+  .spdBlock{flex:0 0 auto}
+  .dspd .val{font-size:22vw}
+  .rows{justify-content:flex-start}
+  .rows .r{min-height:40px}
+  .footHint{position:static;transform:none;display:block;
+    text-align:center;margin-top:8px;grid-column:1/-1}
+  .ver{position:static;display:block;margin-top:4px;text-align:right;grid-column:1/-1}
 }
 </style>
 </head>
@@ -318,6 +355,7 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 <div class="wrap">
 
   <header>
+    <button type="button" class="btn ghost iconBtn" id="menuBtn" title="เมนู">☰</button>
     <div class="brand">SMART GAUGE<small>TELEMETRY / BLUETOOTH + WIFI</small></div>
     <div class="spacer"></div>
     <div class="pill" id="connPill"><span class="dot"></span><span id="connText">ไม่ได้เชื่อมต่อ</span></div>
@@ -334,37 +372,94 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
   <div class="pager" id="pager">
   <section class="page" id="page0">
 
-  <div class="dash">
-  <!-- ================= tach strip : RPM เต็มความกว้าง ================= -->
-  <section class="card tachCard">
-    <div class="tachTop">
-      <span class="tachNum"><b id="rpmVal">0</b><i>RPM</i></span>
-      <span class="tachRed">RED <b id="rpmMax">0</b></span>
+  <div class="dash2">
+    <!-- ============ แถบ Shift-light RPM เต็มความกว้าง ============ -->
+    <div class="hdZone">
+      <div class="shiftRow">
+        <span class="drpm"><span class="val" id="rpmVal">0</span><i>RPM</i></span>
+        <span class="drmax">MAX <b id="rpmMax">0</b></span>
+        <span class="clk" id="clk">--:--</span>
+        <span class="dmode" id="modeVal">–</span>
+      </div>
+      <div class="rpmBar" id="rpmBar"></div>
+      <div class="rpmScale" id="rpmScale"></div>
     </div>
-    <div class="rpmBar">
-      <div class="rpmRedzone" id="rpmRed"></div>
-      <div class="rpmFill" id="rpmArc"></div>
-    </div>
-    <div class="rpmScale" id="rpmTicks"></div>
-  </section>
 
-  <div class="dashRow">
-  <!-- ================= speed ================= -->
-  <section class="card speedCard">
-    <div class="spdHead">ความเร็ว</div>
-    <div class="spdNum" id="spdVal">0</div>
-    <div class="spdUnit">KM / H</div>
-    <div class="mini">
-      <span>AVG <b id="spdAvg">0</b></span>
-      <span>MAX <b class="max" id="spdMax">0</b></span>
+    <!-- ============ ซ้าย : ความเร็วตัวหนา + TOP/AVG + ปุ่ม BT ============ -->
+    <div class="gleft">
+      <div class="spdBlock">
+        <span class="gLab">ความเร็ว / SPEED</span>
+        <div class="dspd"><span class="val" id="spdVal">0</span><i>km/h</i></div>
+        <div class="dmaxRow">
+          <span class="dchip"><span class="gLab">TOP</span><span class="val" id="spdMax">0</span></span>
+          <span class="dchip"><span class="gLab">AVG</span><span class="val" id="spdAvg">0</span></span>
+          <span class="dchip"><span class="gLab">วันนี้</span><span id="dateTxt" style="font-family:var(--mono);font-size:max(8px,2.6vmin);color:var(--dim)"></span></span>
+        </div>
+        <div class="dtime">
+          <button class="fab" id="fabBle" type="button" title="เชื่อมต่อ Bluetooth">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <polyline points="6.5 6.5 17.5 17.5 12 22 12 2 17.5 6.5 6.5 17.5"/>
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
-    <div class="speedBar" id="spdBar"></div>
-    <div class="haz"></div>
-  </section>
 
-  <!-- ================= tiles ================= -->
-  <section class="grid" id="grid"></section>
-  </div>
+    <!-- ============ กลาง : มาตรวัด 4 ช่อง (TPS/AFR/TEMP/MAP) ============ -->
+    <div class="gcenter">
+      <div class="gpad">
+        <div class="gt" style="--acc:#ff6b1a">
+          <span class="gLab">TPS<em>%</em></span>
+          <span class="val" id="v_tps">–</span>
+          <svg class="gBar" viewBox="0 0 100 5" preserveAspectRatio="none" aria-hidden="true">
+            <path class="gTrack" pathLength="100" d="M0 2.5 H100"/>
+            <path class="gFill" pathLength="100" id="f_tps" d="M0 2.5 H100"/>
+          </svg>
+          <div class="rng"><span>0</span><span>100</span></div>
+        </div>
+        <div class="gt" style="--acc:#4d9fff">
+          <span class="gLab">AFR<em>λ</em></span>
+          <span class="val" id="v_afr">–</span>
+          <svg class="gBar" viewBox="0 0 100 5" preserveAspectRatio="none" aria-hidden="true">
+            <path class="gTrack" pathLength="100" d="M0 2.5 H100"/>
+            <path class="gFill" pathLength="100" id="f_afr" d="M0 2.5 H100"/>
+          </svg>
+          <div class="rng"><span>10</span><span>18</span></div>
+        </div>
+        <div class="gt" style="--acc:#ffb020">
+          <span class="gLab">TEMP<em>°C</em></span>
+          <span class="val" id="v_temp">–</span>
+          <svg class="gBar" viewBox="0 0 100 5" preserveAspectRatio="none" aria-hidden="true">
+            <path class="gTrack" pathLength="100" d="M0 2.5 H100"/>
+            <path class="gFill" pathLength="100" id="f_temp" d="M0 2.5 H100"/>
+          </svg>
+          <div class="rng"><span>0</span><span>120</span></div>
+        </div>
+        <div class="gt" style="--acc:#ff4d4d">
+          <span class="gLab">MAP<em>kPa</em></span>
+          <span class="val" id="mapVal">–</span>
+          <svg class="gBar" viewBox="0 0 100 5" preserveAspectRatio="none" aria-hidden="true">
+            <path class="gTrack" pathLength="100" d="M0 2.5 H100"/>
+            <path class="gFill" pathLength="100" id="f_map" d="M0 2.5 H100"/>
+          </svg>
+          <div class="rng"><span>0</span><span>400</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ขวา : รายการค่า ============ -->
+    <div class="grows rows">
+      <div class="r"><span class="rLab">INJ <i>(ms)</i></span><span class="val" id="v_inj">–</span></div>
+      <div class="r"><span class="rLab">IGN <i>(°)</i></span><span class="val" id="v_ign">–</span></div>
+      <div class="r"><span class="rLab">ISC <i>(%)</i></span><span class="val" id="r_iacv">–</span></div>
+      <div class="r"><span class="rLab">BAT <i>(V)</i></span><span class="val" id="v_bat">–</span></div>
+      <div class="r"><span class="rLab">IAT <i>(°C)</i></span><span class="val" id="r_iat">–</span></div>
+      <div class="r"><span class="rLab">TRIM <i>(%)</i></span><span class="val" id="r_trim">–</span></div>
+      <div class="r"><span class="rLab">O2 <i>(V)</i></span><span class="val" id="r_o2">–</span></div>
+    </div>
+
+    <span class="footHint">ปุ่มหน้าหลัง : ปิดแอปพลิเคชัน</span>
+    <span class="ver">v1.0</span>
   </div>
 
   <div class="info">
@@ -483,15 +578,15 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 /* ============================================================
    1. นิยามเมตริก (label / ช่วงวัด / สี / เงื่อนไขสีเตือน)
    ============================================================ */
-const GREEN='#00e676', AMBER='#ffb300', RED='#ff3d3d', CYAN='#00e5ff';
+const GREEN='#34d399', AMBER='#fbbf24', RED='#fb5c5c', CYAN='#22d3ee';
 
 const TILES = [
-  {key:'tps',  label:'TPS',  un:'%',     min:0,  max:100, dec:0, color:'#ff00ff', clamp:[0,100]},
-  {key:'afr',  label:'AFR',  un:'ratio', min:10, max:18,  dec:1, color:'#00e5ff', clamp:[0,30]},
-  {key:'temp', label:'TEMP', un:'°C',    min:0,  max:120, dec:0, color:'#ffb300', clamp:[-40,250]},
-  {key:'ign',  label:'IGN',  un:'°BTDC', min:0,  max:50,  dec:0, color:'#ff9600', clamp:[-10,90]},
-  {key:'bat',  label:'BAT',  un:'V',     min:10, max:15,  dec:1, color:'#c4ff00', clamp:[0,20]},
-  {key:'inj',  label:'INJ',  un:'ms',    min:0,  max:15,  dec:1, color:'#c400ff', clamp:[0,40]}
+  {key:'tps',  label:'TPS',  un:'%',     min:0,  max:100, dec:0, color:'#22d3ee', clamp:[0,100]},
+  {key:'afr',  label:'AFR',  un:'ratio', min:10, max:18,  dec:1, color:'#a78bfa', clamp:[0,30]},
+  {key:'temp', label:'TEMP', un:'°C',    min:0,  max:120, dec:0, color:'#fbbf24', clamp:[-40,250]},
+  {key:'ign',  label:'IGN',  un:'°BTDC', min:0,  max:50,  dec:0, color:'#fb923c', clamp:[-10,90]},
+  {key:'bat',  label:'BAT',  un:'V',     min:10, max:15,  dec:1, color:'#4ade80', clamp:[0,20]},
+  {key:'inj',  label:'INJ',  un:'ms',    min:0,  max:15,  dec:1, color:'#fb7185', clamp:[0,40]}
 ];
 const ALIASES = {
   rpm:  ['rpm','enginespeed','engine_speed','r'],
@@ -502,6 +597,7 @@ const ALIASES = {
   inj:  ['inj','lnj','injection','injector','pw','pulsewidth'],
   bat:  ['bat','battery','volt','voltage','vbat','vbat12'],
   temp: ['temp','ect','coolant','watertemp','enginetemp'],
+  map:  ['map','mapkpa','manifoldpressure','boostpressure'],
   iat:  ['iat','intakeairtemp','intaketemp','airstemp'],
   iacv: ['iacv','isv','idleaircontrol','iac'],
   mode: ['mode','enginemode','loopmode'],
@@ -516,22 +612,22 @@ const CSV_ORDER = ['rpm','afr','tps','speed','ign','inj','bat','temp'];
 
 /* หน้า 2 : รายการค่าทั้งหมด (เรียงตามภาพตัวอย่าง Parameter / Value) */
 const PARAMS = [
-  {key:'rpm',      label:'Rpm Engine',                  un:'rpm',   dec:0, st:'rpm',   color:'#00e676'},
-  {key:'tps',      label:'Trottle Position / TPS',      un:'%',     dec:0, st:'tps',   color:'#ff00ff'},
-  {key:'temp',     label:'Sensor ECT',                  un:'°C',    dec:0, st:'temp',  color:'#ffb300'},
-  {key:'bat',      label:'Battery Voltage',             un:'V',     dec:1, st:'bat',   color:'#c4ff00'},
-  {key:'inj',      label:'Injection / INJ',             un:'ms',    dec:1, st:'inj',   color:'#c400ff'},
-  {key:'ign',      label:'Ignition Timing / IGN',       un:'°BTDC', dec:0, st:'ign',   color:'#ff9600'},
-  {key:'iat',      label:'Sensor IAT',                  un:'°C',    dec:0,            color:'#00e5ff'},
-  {key:'speed',    label:'Speed Sensor',                un:'km/h',  dec:0, st:'speed', color:'#00e5ff'},
-  {key:'iacv',     label:'Sensor IACV',                 un:'%',     dec:0,            color:'#7c4dff'},
-  {key:'mode',     label:'Mode / โหมด',                 un:'',                 color:'#7c4dff'},
-  {key:'o2',       label:'Oxigen Sensor O2',            un:'V',     dec:2,            color:'#00e676'},
-  {key:'fueltrim', label:'Fueltrim / ตัวปรับเชื้อเพลิง', un:'%',    dec:1,            color:'#00e676'},
-  {key:'afr',      label:'Air-Fuel Ratio / A/F',        un:'λ',     dec:1, st:'afr',   color:'#00e5ff'},
-  {key:'fastidle', label:'Fast-Idle Sensor',            un:'',                 color:'#ffb300'},
-  {key:'stand',    label:'Stand Switch / ขาตั้ง',        un:'',                 color:'#ffb300'},
-  {key:'bank',     label:'Bank Angle / มุมเอียง',        un:'°',     dec:1,            color:'#ff3d3d'}
+  {key:'rpm',      label:'Rpm Engine',                  un:'rpm',   dec:0, st:'rpm',   color:'#34d399'},
+  {key:'tps',      label:'Trottle Position / TPS',      un:'%',     dec:0, st:'tps',   color:'#22d3ee'},
+  {key:'temp',     label:'Sensor ECT',                  un:'°C',    dec:0, st:'temp',  color:'#fbbf24'},
+  {key:'bat',      label:'Battery Voltage',             un:'V',     dec:1, st:'bat',   color:'#4ade80'},
+  {key:'inj',      label:'Injection / INJ',             un:'ms',    dec:1, st:'inj',   color:'#fb7185'},
+  {key:'ign',      label:'Ignition Timing / IGN',       un:'°BTDC', dec:0, st:'ign',   color:'#fb923c'},
+  {key:'iat',      label:'Sensor IAT',                  un:'°C',    dec:0,            color:'#60a5fa'},
+  {key:'speed',    label:'Speed Sensor',                un:'km/h',  dec:0, st:'speed', color:'#60a5fa'},
+  {key:'iacv',     label:'Sensor IACV',                 un:'%',     dec:0,            color:'#94a3b8'},
+  {key:'mode',     label:'Mode / โหมด',                 un:'',                 color:'#94a3b8'},
+  {key:'o2',       label:'Oxigen Sensor O2',            un:'V',     dec:2,            color:'#34d399'},
+  {key:'fueltrim', label:'Fueltrim / ตัวปรับเชื้อเพลิง', un:'%',    dec:1,            color:'#34d399'},
+  {key:'afr',      label:'Air-Fuel Ratio / A/F',        un:'λ',     dec:1, st:'afr',   color:'#a78bfa'},
+  {key:'fastidle', label:'Fast-Idle Sensor',            un:'',                 color:'#fbbf24'},
+  {key:'stand',    label:'Stand Switch / ขาตั้ง',        un:'',                 color:'#fbbf24'},
+  {key:'bank',     label:'Bank Angle / มุมเอียง',        un:'°',     dec:1,            color:'#fb5c5c'}
 ];
 
 function statusOf(key, v){
@@ -559,7 +655,7 @@ const DEFAULT_TUNE = {
         tempCool:60, tempWarn:88, tempBad:105,
         batBadLow:12.0, batWarnLow:12.6, batBadHigh:15.0,
         injWarn:10, ignWarn:45 },
-  accent: { afr:'#00e5ff', tps:'#ff00ff', temp:'#ffb300', bat:'#c4ff00', inj:'#c400ff', ign:'#ff9600' }
+  accent: { afr:'#a78bfa', tps:'#22d3ee', temp:'#fbbf24', bat:'#4ade80', inj:'#fb7185', ign:'#fb923c' }
 };
 const clone = o => JSON.parse(JSON.stringify(o));
 function mergeTune(saved){
@@ -574,7 +670,7 @@ let tune = clone(DEFAULT_TUNE);
 /* ============================================================
    2. สถานะข้อมูลรวม
    ============================================================ */
-const data = {rpm:0, speed:0, afr:14.7, tps:0, ign:0, inj:0, bat:12.6, temp:20,
+const data = {rpm:0, speed:0, afr:14.7, tps:0, ign:0, inj:0, bat:12.6, temp:20, map:null,
   iat:null, iacv:null, mode:null, o2:null, fueltrim:null, fastidle:null, stand:null, bank:null};
 let lastUpdate = 0, hadData = false, spdMax = 0, spdAvg = 0, rpmMax = 0;
 let mode = 'off';          // off | ble | wifi | demo
@@ -660,22 +756,14 @@ function noteConnected(){ connectedAt = performance.now(); lastUpdate = 0; hadDa
 /* ============================================================
    3. สร้างองค์ประกอบ UI
    ============================================================ */
-const grid = document.getElementById('grid');
-TILES.forEach(t=>{
-  const el = document.createElement('div');
-  el.className = 'tile';
-  el.style.setProperty('--acc', t.color);
-  el.innerHTML =
-    '<div class="top"><span class="lab">'+t.label+'</span><span class="un">'+t.un+'</span></div>'+
-    '<div class="val" id="v_'+t.key+'">–</div>'+
-    '<div class="bar" id="b_'+t.key+'"></div>'+
-    '<div class="rng"><span>'+t.min+'</span><span>'+t.max+'</span></div>';
-  grid.appendChild(el);
-  const bar = el.querySelector('.bar');
-  for (let i=0;i<12;i++) bar.appendChild(document.createElement('i'));
-});
-const spdBarEl = document.getElementById('spdBar');
-for (let i=0;i<20;i++) spdBarEl.appendChild(document.createElement('i'));
+/* ---- มาตรวัด SVG : เติมเส้นโค้ง + เข็มหน้าปัดกลาง ---- */
+function setArc(id, frac, color){
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.strokeDasharray = (clamp(frac,0,1) * 100).toFixed(1) + ' 100';
+  if (color) el.style.stroke = color;
+}
+
 
 /* หน้า 2 : สร้างช่องค่าเล็กๆ ตามรายการ PARAMS */
 const plistEl = document.getElementById('plist');
@@ -692,33 +780,57 @@ PARAMS.forEach(p=>{
   plistEl.appendChild(box);
 });
 
-/* ---- RPM bar geometry (แถบแนวนอนเต็มความกว้าง) ---- */
+/* ---- RPM แบบแท่ง LED segments + สเกลตัวเลขใต้แท่ง ---- */
 let RPM_MAX = tune.rpmMax, REDLINE = tune.redline, SPEED_MAX = tune.speedMax;
-const rpmArc = document.getElementById('rpmArc');
-const rpmRedEl = document.getElementById('rpmRed');
 const rpmValEl = document.getElementById('rpmVal');
 let rpmWasOver = false;
+const SEGS = 32;
+const rpmBarEl = document.getElementById('rpmBar');
+const rpmScaleEl = document.getElementById('rpmScale');
+let segRedFrom = 0;               // แท่งไหนขึ้นไปเป็นโซนแดง
 function updateRed(){
-  rpmRedEl.style.left = (clamp(REDLINE / RPM_MAX, 0, 1) * 100).toFixed(2) + '%';
+  segRedFrom = Math.round(clamp(REDLINE / RPM_MAX, 0, 1) * SEGS);
 }
-// scale ticks (สร้างใหม่ได้เมื่อเปลี่ยนสเกล RPM)
-const ticks = document.getElementById('rpmTicks');
+const segNodes = [];
 function buildTicks(){
-  ticks.textContent = '';
-  const step = Math.max(250, Math.round((RPM_MAX/8)/250)*250);
-  for (let v=0; v<=RPM_MAX+0.5; v+=step){
-    const big = Math.round(v/step) % 2 === 0;
-    const t = document.createElement('i');
-    t.className = (big ? 'big' : '') + (v >= REDLINE ? ' red' : '');
-    t.style.left = (v/RPM_MAX*100).toFixed(2) + '%';
-    if (big){
-      const b = document.createElement('b');
-      b.textContent = String(Math.round(v/1000));
-      if (v < RPM_MAX*0.02) b.style.transform = 'none';
-      else if (v > RPM_MAX*0.98) b.style.transform = 'translateX(-100%)';
-      t.appendChild(b);
+  if (!rpmBarEl) return;
+  rpmBarEl.textContent = '';
+  segNodes.length = 0;
+  for (let i = 0; i < SEGS; i++){
+    const s = document.createElement('i');
+    // โซนสี: <75% เขียว, 75-redline เหลือง, >=redline แดง
+    s.dataset.zone = '';
+    rpmBarEl.appendChild(s);
+    segNodes.push(s);
+  }
+  // สเกลตัวเลขใต้แท่ง (แบ่ง 4 ช่วง: 0 / ½ / ¾ / max x1000)
+  if (rpmScaleEl){
+    rpmScaleEl.textContent = '';
+    [0, 0.5, 0.75, 1].forEach(f=>{
+      const sp = document.createElement('span');
+      sp.style.left = (f * 100).toFixed(1) + '%';
+      sp.textContent = (Math.round(RPM_MAX * f / 100) / 10).toFixed(1).replace(/\.0$/, '');
+      rpmScaleEl.appendChild(sp);
+    });
+  }
+}
+function setSegs(frac){
+  const lit = Math.round(clamp(frac, 0, 1) * SEGS);
+  for (let i = 0; i < SEGS; i++){
+    const on = i < lit;
+    const zone = i >= segRedFrom ? 'red'
+      : i >= Math.round(SEGS * 0.75) ? 'amber' : 'green';
+    const s = segNodes[i];
+    if (!s) continue;
+    if (s.dataset.on !== (on ? '1' : '0')){
+      s.dataset.on = on ? '1' : '0';
+      s.classList.toggle('on', on);
     }
-    ticks.appendChild(t);
+    if (on && s.dataset.zone !== zone){
+      s.dataset.zone = zone;
+      s.style.setProperty('--seg', zone === 'red' ? '#fb5c5c'
+        : zone === 'amber' ? '#fbbf24' : '#34d399');
+    }
   }
 }
 // ใช้ค่าที่ตั้ง (หรือค่าเริ่มต้น) กับหน้าจอ
@@ -767,52 +879,54 @@ function render(now){
   else if ((mode === 'ble' || mode === 'wifi') && lastUpdate === 0 && now - connectedAt > 6000)
     setPill('warn', 'ยังไม่มีข้อมูล');
 
-  // ---- RPM ----
+  // ---- RPM / แท่ง LED กลางจอ ----
   put('rpmVal', String(Math.round(data.rpm)));
   rpmMax = Math.max(rpmMax, data.rpm);
   put('rpmMax', String(Math.round(rpmMax)));
-  const rp = clamp(data.rpm / RPM_MAX, 0, 1);
-  rpmArc.style.width = (rp*100).toFixed(2)+'%';
+  setSegs(data.rpm / RPM_MAX);
   const rpmOver = data.rpm > REDLINE;
   if (rpmOver !== rpmWasOver){
     rpmWasOver = rpmOver;
     rpmValEl.classList.toggle('over', rpmOver);
-    rpmArc.style.background = rpmOver
-      ? 'linear-gradient(90deg,#c22,#ff3d3d)'
-      : 'linear-gradient(90deg,#0891a8,#00e5ff)';
-    rpmArc.style.boxShadow = rpmOver
-      ? '0 0 14px rgba(255,61,61,.8)' : '0 0 12px rgba(0,229,255,.6)';
   }
 
-  // ---- SPEED ----
+  // ---- ความเร็ว / นาฬิกา / โหมด ----
   put('spdVal', String(Math.round(data.speed)));
   spdMax = Math.max(spdMax, data.speed);
   spdAvg += (data.speed - spdAvg) * 0.02;
   put('spdMax', String(Math.round(spdMax)));
   put('spdAvg', String(Math.round(spdAvg)));
-  const sl = Math.round(clamp(data.speed/SPEED_MAX,0,1) * 20);
-  [...spdBarEl.children].forEach((seg,i)=>{
-    const on = i < sl;
-    const col = i<12 ? CYAN : i<16 ? AMBER : RED;
-    const want = on ? col : '#132130';
-    if (seg.dataset.c !== want){ seg.dataset.c = want; seg.style.background = want;
-      seg.style.boxShadow = on ? '0 0 6px '+col : 'none'; }
-  });
+  const clock = new Date();
+  const p2 = n => (n < 10 ? '0' : '') + n;
+  put('clk', p2(clock.getHours()) + ':' + p2(clock.getMinutes()));
+  put('dateTxt', clock.getDate() + ' ' +
+    ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][clock.getMonth()] +
+    ' ' + clock.getFullYear());
+  put('modeVal', hadData && data.mode != null && data.mode !== '' ? String(data.mode) : '–');
 
-  // ---- tiles ----
+  // ---- มาตรวัด : TPS / AFR / TEMP (+ MAP) ----
+  const gaugeArcs = {tps:'f_tps', afr:'f_afr', temp:'f_temp'};
   TILES.forEach(t=>{
     const v = data[t.key], st = statusOf(t.key, v), sc = statusColor(st);
     put('v_'+t.key, fmt(v, t.dec));
     const vEl = document.getElementById('v_'+t.key);
-    const cls = st==='ok' ? 'val' : 'val '+st;
-    if (vEl.className !== cls) vEl.className = cls;
-    const lit = Math.round(clamp((v-t.min)/(t.max-t.min),0,1)*12);
-    const bar = document.getElementById('b_'+t.key);
-    [...bar.children].forEach((seg,i)=>{
-      const want = i < lit ? sc : '#152230';
-      if (seg.dataset.c !== want){ seg.dataset.c = want; seg.style.background = want; }
-    });
+    if (vEl){
+      const cls = st==='ok' ? 'val' : 'val '+st;
+      if (vEl.className !== cls) vEl.className = cls;
+    }
+    if (gaugeArcs[t.key]) setArc(gaugeArcs[t.key], (v - t.min)/(t.max - t.min), sc);
   });
+  const mv = data.map;
+  put('mapVal', mv == null || !hadData ? '–' : fmt(mv, 0));
+  setArc('f_map', mv == null ? 0 : mv/400, GREEN);
+
+  // ---- รายการค่าด้านขวา (ISC / IAT / TRIM / O2) ----
+  [['r_iacv','iacv',0], ['r_iat','iat',0], ['r_trim','fueltrim',1], ['r_o2','o2',2]]
+    .forEach(([id,k,dec])=>{
+      const v = data[k];
+      put(id, !hadData || v == null || v === '' ? '–'
+        : (typeof v === 'string' ? v : fmt(v, dec)));
+    });
 
   // ---- หน้า 2 : ตารางค่าทั้งหมด ----
   PARAMS.forEach(p=>{
@@ -840,6 +954,9 @@ const pill = $('connPill'), pillText = $('connText');
 function setPill(kind, text){
   pill.className = 'pill' + (kind==='on' ? ' on' : kind==='warn' ? ' warn' : kind==='err' ? ' err' : '');
   pillText.textContent = text;
+  // ปุ่มบลูทูธมุมซ้ายล่าง = สถานะการเชื่อมต่อ (เขียวเมื่อต่ออยู่)
+  const fab = document.getElementById('fabBle');
+  if (fab) fab.classList.toggle('on', kind === 'on');
 }
 function setStatus(id, text, cls){
   const el = $(id); el.textContent = text; el.className = 'statusline' + (cls ? ' '+cls : '');
@@ -1040,6 +1157,7 @@ function demoStart(){
       tps: tps,
       afr: 14.7 - (tps/100)*3.2 + 0.1*Math.sin(ph*3.1),
       temp: 22 + 70*Math.min(1, ph/50) + 2.5*Math.sin(ph*0.7),
+      map: 30 + 55*Math.pow(0.5 + 0.5*Math.sin(ph*0.55), 2) + 4*Math.sin(ph*2.3),
       bat: 13.7 - (tps/100)*0.9 + 0.2*Math.sin(ph*1.7),
       inj: 1.1 + (tps/100)*9.6,
       ign: clamp(36 - (rpm/8000)*15 - (tps/100)*8, 8, 42),
@@ -1081,6 +1199,9 @@ function openSheet(){ sheet.classList.add('open'); overlay.classList.add('open')
 function closeSheet(){ sheet.classList.remove('open'); overlay.classList.remove('open'); forceSheet(false); }
 $('openSheet').addEventListener('click', openSheet);
 overlay.addEventListener('click', closeSheet);
+// ปุ่ม ☰ บนแถบบน + ปุ่มบลูทูธมุมซ้ายล่าง = เปิดแผงเชื่อมต่อ/ตั้งค่า
+$('menuBtn').addEventListener('click', openSheet);
+$('fabBle').addEventListener('click', openSheet);
 
 document.querySelectorAll('.tabs button').forEach(b=>{
   b.addEventListener('click', ()=>{
