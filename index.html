@@ -2083,7 +2083,7 @@ requestWakeLock();
 async function checkRemoteStatus() {
   try {
     // ใช้รหัสสุ่มเวลา &t= เพื่อป้องกันแคช และดึงข้อมูลล่าสุดตลอดเวลา
-    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3P-f0E_4JL-rbIC9ywV0NH71jWJNPzihpknfBvONNDYbF9hb-Iw0TLEutEqd0TJPD80f7i1bhOc50/pub?gid=0&single=true&output=csv&t=" + new Date().getTime();
+   const csvUrl = "https://docs.google.com/spreadsheets/d/1Ku7Js51wrkXjXZENpWzzbXUIOzwqmt-P11qJyDu94/export?format=csv&t=" + new Date().getTime();
     
     const response = await fetch(csvUrl);
     const data = await response.text();
