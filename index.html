@@ -2087,9 +2087,32 @@ async function checkRemoteStatus() {
     const response = await fetch(csvUrl);
     const data = await response.text();
     
+    // พิมพ์ข้อมูลเช็คใน Console (กด F12 ดูได้)
+    console.log("CSV Data:", data);
+    
     if (data.includes("OFF")) {
-      document.getElementById("lockScreenOverlay").style.display = "flex";
-      document.getElementById("lockScreenOverlay").innerHTML = "<h2 style='color:red;'>ระบบถูกระงับการใช้งานชั่วคราว</h2>";
+      // สร้างหน้าจอบล็อกสีแดงขึ้นมาทับหน้าจอทันทีโดยไม่ต้องง้อ HTML เดิม
+      let overlay = document.getElementById("dynamicLockOverlay");
+      if (!overlay) {
+        overlay = document.createElement("div");
+        overlay.id = "dynamicLockOverlay";
+        overlay.style.position = "fixed";
+        overlay.style.top = "0";
+        overlay.style.left = "0";
+        overlay.style.width = "100%";
+        overlay.style.height = "100%";
+        overlay.style.backgroundColor = "rgba(0,0,0,0.95)";
+        overlay.style.zIndex = "999999";
+        overlay.style.display = "flex";
+        overlay.style.flexDirection = "column";
+        overlay.style.justifyContent = "center";
+        overlay.style.alignItems = "center";
+        overlay.style.color = "white";
+        overlay.style.fontFamily = "sans-serif";
+        overlay.innerHTML = "<h1 style='color:red; font-size:28px; margin-bottom:10px;'>❌ ระบบถูกระงับการใช้งาน</h1><p style='font-size:16px; color:#ccc;'>กรุณาติดต่อผู้ดูแลระบบ</p>";
+        document.body.appendChild(overlay);
+      }
+      overlay.style.display = "flex";
     }
   } catch (err) {
     console.error("Check status error:", err);
