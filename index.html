@@ -2082,15 +2082,30 @@ requestWakeLock();
 // ==========================================
 async function checkRemoteStatus() {
   try {
-    // ใช้รหัสสุ่มเวลา &t= เพื่อป้องกันแคช และดึงข้อมูลล่าสุดตลอดเวลา
-const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3P-f0E_4JL-rbIC9ywV0NH71jWJNPzihpknfBvoNNDYbF9hb-Iw0TLEutEqd0TJPD80f7i1bhOc5O/pub?output=csv&t=" + new Date().getTime();
-    
+    // 1. ดึงรหัสเครื่องจากลิงก์ เช่น ?id=device001 (ถ้าไม่มีให้ตั้งค่าเริ่มต้นเป็น default)
+    const urlParams = new URLSearchParams(window.location.search);
+    const myDeviceId = urlParams.get('id') || 'default';
+
+    // 2. ดึงข้อมูล CSV จาก Google Sheet
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3P-f0E_4JL-rbIC9ywV0NH71jWJNPzihpknfBvoNNDYbF9hb-Iw0TLEutEqd0TJPD80f7i1bhOc5O/pub?output=csv&t=" + new Date().getTime();
     const response = await fetch(csvUrl);
     const data = await response.text();
     
-    // ตรวจจับคำว่า OFF ทั้งพิมพ์ใหญ่และเล็ก
-    if (data.toUpperCase().includes("OFF")) {
-      let overlay = document.getElementById("dynamicLockOverlay");
+    // 3. แปลงข้อมูล CSV เป็นบรรทัดเพื่อค้นหารหัสเครื่องและสถานะ
+    const rows = data.split("\n");
+    let isLocked = false;
+
+    for (let row of rows) {
+      // สมมติข้อมูลในชีทคั่นด้วยคอมมา เช่น device002,OFF
+      if (row.includes(myDeviceId) && row.toUpperCase().includes("OFF")) {
+        isLocked = true;
+        break;
+      }
+    }
+
+    // 4. สั่งแสดงหรือซ่อนหน้าจอล็อกตามผลลัพธ์ของเครื่องนั้นๆ
+    let overlay = document.getElementById("dynamicLockOverlay");
+    if (isLocked) {
       if (!overlay) {
         overlay = document.createElement("div");
         overlay.id = "dynamicLockOverlay";
@@ -2107,13 +2122,11 @@ const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3P-f0E_4JL-rbI
         overlay.style.alignItems = "center";
         overlay.style.color = "white";
         overlay.style.fontFamily = "sans-serif";
-        overlay.innerHTML = "<h1 style='color:red; font-size:28px; margin-bottom:10px;'>❌ ระบบถูกระงับการใช้งาน</h1><p style='font-size:16px; color:#ccc;'>กรุณาติดต่อผู้ดูแลระบบ</p>";
+        overlay.innerHTML = "<h1 style='color:red; font-size:28px; margin-bottom:10px;'>❌ อุปกรณ์นี้ถูกระงับการใช้งาน</h1><p style='font-size:16px; color:#ccc;'>กรุณาติดต่อผู้ดูแลระบบ</p>";
         document.body.appendChild(overlay);
       }
       overlay.style.display = "flex";
     } else {
-      // ถ้าในชีตเปลี่ยนกลับเป็น ON หน้าจอล็อกจะหายไปเองอัตโนมัติ
-      let overlay = document.getElementById("dynamicLockOverlay");
       if (overlay) {
         overlay.style.display = "none";
       }
@@ -2123,11 +2136,8 @@ const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3P-f0E_4JL-rbI
   }
 }
 
-// เช็คสถานะทันทีที่เปิดเว็บ
 window.addEventListener("DOMContentLoaded", () => {
   checkRemoteStatus();
-  
-  // ตั้งเวลาให้ระบบวิ่งไปเช็ค Google Sheet ทุกๆ 4 วินาที (4000 มิลลิวินาที) แบบอัตโนมัติโดยไม่ต้องรีเฟรช
   setInterval(checkRemoteStatus, 4000);
 });
 
