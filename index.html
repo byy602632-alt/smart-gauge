@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -2082,28 +2083,34 @@ requestWakeLock();
 // ==========================================
 async function checkRemoteStatus() {
   try {
-    // 1. ดึงรหัสเครื่องจากลิงก์ เช่น ?id=device001 (ถ้าไม่มีให้ตั้งค่าเริ่มต้นเป็น default)
+    // 1. ดึงรหัสเครื่องจาก URL (?id=device002)
     const urlParams = new URLSearchParams(window.location.search);
     const myDeviceId = urlParams.get('id') || 'default';
 
-    // 2. ดึงข้อมูล CSV จาก Google Sheet
+    // 2. ลิงก์ CSV Google Sheet ของคุณ
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3P-f0E_4JL-rbIC9ywV0NH71jWJNPzihpknfBvoNNDYbF9hb-Iw0TLEutEqd0TJPD80f7i1bhOc5O/pub?output=csv&t=" + new Date().getTime();
+    
     const response = await fetch(csvUrl);
     const data = await response.text();
     
-    // 3. แปลงข้อมูล CSV เป็นบรรทัดเพื่อค้นหารหัสเครื่องและสถานะ
-    const rows = data.split("\n");
+    // 3. แยกบรรทัดเช็ค ID กับ Status
+    const rows = data.split(/\r?\n/);
     let isLocked = false;
 
     for (let row of rows) {
-      // สมมติข้อมูลในชีทคั่นด้วยคอมมา เช่น device002,OFF
-      if (row.includes(myDeviceId) && row.toUpperCase().includes("OFF")) {
-        isLocked = true;
+      if (!row.trim()) continue;
+      const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+      
+      // ถ้าช่องแรกเป็น Device ID และช่องสองเป็น OFF
+      if (cols[0] && cols[0] === myDeviceId) {
+        if (cols[1] && cols[1].toUpperCase() === "OFF") {
+          isLocked = true;
+        }
         break;
       }
     }
 
-    // 4. สั่งแสดงหรือซ่อนหน้าจอล็อกตามผลลัพธ์ของเครื่องนั้นๆ
+    // 4. แสดงหรือซ่อนหน้าจอล็อก
     let overlay = document.getElementById("dynamicLockOverlay");
     if (isLocked) {
       if (!overlay) {
