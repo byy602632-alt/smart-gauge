@@ -2058,8 +2058,26 @@ setPill = function(kind, text){
 };
 
 lsSetPage(0);
-lsPill.className = pill.className;
-lsConnText.textContent = pillText.textContent;
+  lsPill.className = pill.className;
+  lsConnText.textContent = pillText.textContent;
+
+  // --- เพิ่มฟังก์ชันล็อกหน้าจอไม่ให้ดับตรงนี้ ---
+  let wakeLock = null;
+  async function requestWakeLock() {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLock = await navigator.wakeLock.request('screen');
+        document.addEventListener('visibilitychange', async () => {
+          if (wakeLock !== null && document.visibilityState === 'visible') {
+            wakeLock = await navigator.wakeLock.request('screen');
+          }
+        });
+      }
+    } catch (err) {
+      console.error(`${err.name}, ${err.message}`);
+    }
+  }
+  requestWakeLock();
 </script>
 </body>
 </html>
