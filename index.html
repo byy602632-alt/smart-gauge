@@ -2061,46 +2061,45 @@ lsSetPage(0);
   lsPill.className = pill.className;
   lsConnText.textContent = pillText.textContent;
 
-<!-- โค้ดเดิมของคุณก่อนหน้านี้... -->
+
 
     // --- ฟังก์ชันล็อกหน้าจอไม่ให้ดับเดิม ---
-    let wakeLock = null;
-    async function requestWakeLock() {
-      try {
-        if ('wakeLock' in navigator) {
-          wakeLock = await navigator.wakeLock.request('screen');
-        }
-      } catch (err) {
-        console.error(`${err.name}, ${err.message}`);
-      }
+let wakeLock = null;
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
     }
-    requestWakeLock();
+  } catch (err) {
+    console.error(`${err.name}, ${err.message}`);
+  }
+}
+requestWakeLock();
 
 
-    // ==========================================
-    // วางโค้ดเช็คสวิตช์ Google Sheet ต่อตรงนี้ได้เลยครับ
-    // ==========================================
-    async function checkRemoteStatus() {
-      try {
-        // อย่าลืมเปลี่ยนลิงก์ในอัญประกาศเป็นลิงก์ CSV จาก Google Sheet ของคุณนะครับ
-        const csvUrl = "ใส่_URL_ไฟล์_CSV_ของคุณตรงนี้"; 
-        
-        const response = await fetch(csvUrl);
-        const data = await response.text();
-        
-        if (data.includes("OFF")) {
-          document.getElementById("lockScreenOverlay").style.display = "flex";
-          document.getElementById("lockScreenOverlay").innerHTML = "<h2 style='color:red;'>ระบบถูกระงับการใช้งานชั่วคราว</h2>";
-        }
-      } catch (err) {
-        console.error("Check status error:", err);
-      }
+// ==========================================
+// สวิตช์เปิด-ปิดจาก Google Sheet
+// ==========================================
+async function checkRemoteStatus() {
+  try {
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3P-f0E_4JL-rbIC9ywV0NH71jWJNPzihpknfBvONNDYbF9hb-Iw0TLEutEqd0TJPD80f7i1bhOc50/pub?gid=0&single=true&output=csv";
+    
+    const response = await fetch(csvUrl);
+    const data = await response.text();
+    
+    if (data.includes("OFF")) {
+      document.getElementById("lockScreenOverlay").style.display = "flex";
+      document.getElementById("lockScreenOverlay").innerHTML = "<h2 style='color:red;'>ระบบถูกระงับการใช้งานชั่วคราว</h2>";
     }
+  } catch (err) {
+    console.error("Check status error:", err);
+  }
+}
 
-    window.addEventListener("DOMContentLoaded", () => {
-      checkRemoteStatus();
-    });
+window.addEventListener("DOMContentLoaded", () => {
+  checkRemoteStatus();
+});
 
-  </script>
+</script>
 </body>
 </html>
