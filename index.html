@@ -838,19 +838,31 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
 
 <script>
 'use strict';
-
-// ฟังก์ชันเชื่อมต่อ Bluetooth Low Energy กับ ESP32 (เพิ่ม Alert เช็กข้อผิดพลาด)
+// ฟังก์ชันเชื่อมต่อ Bluetooth Low Energy กับ ESP32
 async function connectBluetooth() {
   if (!navigator.bluetooth) {
     alert("เบราว์เซอร์ในแอปนี้ไม่รองรับ Web Bluetooth");
     return;
   }
   try {
+    const svcUUID = document.getElementById('svcUUID').value.trim();
+    const chrUUID = document.getElementById('chrUUID').value.trim();
+    
     const device = await navigator.bluetooth.requestDevice({
       acceptAllDevices: true,
-      optionalServices: ['0000ffe0-0000-1000-8000-00805f9b34fb']
+      optionalServices: [svcUUID]
     });
+    
     const server = await device.gatt.connect();
+    const service = await server.getPrimaryService(svcUUID);
+    bleChar = await service.getCharacteristic(chrUUID);
+    
+    await bleChar.startNotifications();
+    bleChar.addEventListener('characteristicvaluechanged', onBleValue);
+    
+    noteConnected();
+    saveCfg();
+    setPill('on', (device.name || 'BLE').slice(0, 14));
     alert('เชื่อมต่อสำเร็จกับ: ' + (device.name || 'ESP32'));
   } catch (error) {
     console.error('BLE Error:', error);
