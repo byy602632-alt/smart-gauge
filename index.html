@@ -2061,22 +2061,46 @@ lsSetPage(0);
   lsPill.className = pill.className;
   lsConnText.textContent = pillText.textContent;
 
-  // --- เพิ่มฟังก์ชันล็อกหน้าจอไม่ให้ดับตรงนี้ ---
-  let wakeLock = null;
-  async function requestWakeLock() {
-    try {
-      if ('wakeLock' in navigator) {
-        wakeLock = await navigator.wakeLock.request('screen');
-        document.addEventListener('visibilitychange', async () => {
-          if (wakeLock !== null && document.visibilityState === 'visible') {
-            wakeLock = await navigator.wakeLock.request('screen');
-          }
-        });
+<!-- โค้ดเดิมของคุณก่อนหน้านี้... -->
+
+    // --- ฟังก์ชันล็อกหน้าจอไม่ให้ดับเดิม ---
+    let wakeLock = null;
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
+        }
+      } catch (err) {
+        console.error(`${err.name}, ${err.message}`);
       }
-    } catch (err) {
-      console.error(`${err.name}, ${err.message}`);
     }
-  requestWakeLock();
-</script>
+    requestWakeLock();
+
+
+    // ==========================================
+    // วางโค้ดเช็คสวิตช์ Google Sheet ต่อตรงนี้ได้เลยครับ
+    // ==========================================
+    async function checkRemoteStatus() {
+      try {
+        // อย่าลืมเปลี่ยนลิงก์ในอัญประกาศเป็นลิงก์ CSV จาก Google Sheet ของคุณนะครับ
+        const csvUrl = "ใส่_URL_ไฟล์_CSV_ของคุณตรงนี้"; 
+        
+        const response = await fetch(csvUrl);
+        const data = await response.text();
+        
+        if (data.includes("OFF")) {
+          document.getElementById("lockScreenOverlay").style.display = "flex";
+          document.getElementById("lockScreenOverlay").innerHTML = "<h2 style='color:red;'>ระบบถูกระงับการใช้งานชั่วคราว</h2>";
+        }
+      } catch (err) {
+        console.error("Check status error:", err);
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      checkRemoteStatus();
+    });
+
+  </script>
 </body>
 </html>
