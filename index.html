@@ -143,20 +143,27 @@ body.stale .spdBlock,body.stale .gpad,body.stale .rows,body.stale .hdZone
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(3px);
   opacity:0;pointer-events:none;transition:.2s;z-index:40}
 .overlay.open{opacity:1;pointer-events:auto}
+
+/* ---------- แก้ไขระบบ SHEET Scroll ให้ครอบคลุมทุกอุปกรณ์ ---------- */
 .sheet{
-  position:fixed;inset:0;z-index:50;margin:0;
+  position:fixed;
+  left:0; right:0; bottom:0;
+  max-height:88vh; max-height:88dvh;
+  z-index:50; margin:0 auto; max-width:820px;
   background:#14181f;
-  padding:calc(8px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));
-  overflow-y:auto;overscroll-behavior:contain;
-  transform:translateY(105%);transition:transform .25s cubic-bezier(.2,.8,.2,1)
+  border-top-left-radius:16px; border-top-right-radius:16px;
+  border:1px solid var(--line);
+  padding:calc(12px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+  overflow-y:auto !important;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  transform:translateY(100%); transition:transform .25s cubic-bezier(.2,.8,.2,1)
 }
-.sheet.open{transform:none}
+.sheet.open{transform:translateY(0)}
 @media (prefers-reduced-motion:reduce){ .sheet{transition:none} .pill .dot{animation:none} }
 .grab{width:44px;height:4px;border-radius:9px;background:#2b2b31;margin:2px auto 10px;
-  position:relative;touch-action:none;cursor:grab}
+  position:relative;cursor:grab}
 .grab:active{cursor:grabbing}
-.grab::after{content:"";position:absolute;left:-60px;right:-60px;top:-14px;bottom:-18px}
-.sheet h3{touch-action:none}
 .sheet h3{font-size:14px;letter-spacing:2px;color:var(--text);font-weight:800;
   margin-bottom:10px;display:flex;align-items:center;gap:8px}
 .sheet h3::before{content:"";width:9px;height:9px;background:var(--acc)}
@@ -169,11 +176,13 @@ body.stale .spdBlock,body.stale .gpad,body.stale .rows,body.stale .hdZone
 .pane{display:none;max-width:640px;margin:0 auto}
 .pane.show{display:block}
 .pane#pane-set{max-width:none}
-@media (orientation:landscape){
-  .pane#pane-set.show{max-width:1000px;column-count:2;column-gap:20px}
-  .pane#pane-set .sub,.pane#pane-set .srow,.pane#pane-set .row,
-  .pane#pane-set .statusline{break-inside:avoid}
+
+/* ปรับแต่งส่วนจัดคอลัมน์การตั้งค่า ให้เลื่อน Scroll ง่าย */
+.pane#pane-set.show{
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px;
 }
+.pane#pane-set .sub-group{ display:flex; flex-direction:column; gap:6px; }
+
 .sheet .srow{margin-bottom:9px}
 .sheet .srow input{padding:10px 8px;font-size:14px}
 .sheet label{font-size:12px;margin:12px 0 6px}
@@ -183,12 +192,12 @@ input[type=text]{
   background:#070d14;border:1px solid var(--line);border-radius:10px;padding:11px 12px;outline:none
 }
 input[type=text]:focus{border-color:#155e75}
-.row{display:flex;gap:8px;margin-top:14px}
+.row{display:flex;gap:8px;margin-top:14px;grid-column:1/-1}
 .row .btn{flex:1;padding:12px}
 .hint{font-size:11px;line-height:1.7;color:var(--dim);margin-top:10px}
 .hint b{color:var(--amber)}
 .statusline{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin-top:12px;
-  min-height:16px;word-break:break-all}
+  min-height:16px;word-break:break-all;grid-column:1/-1}
 .statusline.ok{color:var(--green)} .statusline.err{color:var(--red)}
 
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:60;
@@ -372,7 +381,6 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .lsScale span:first-child{transform:none}
 .lsScale span:last-child{transform:translateX(-100%)}
 
-/* ซ่อนแถบ RPM เฉพาะเมื่ออยู่หน้า DTC (หน้า 3) ในโหมดแนวนอน */
 .lsApp.lsDtcMode .lsRpm {
   display: none !important;
 }
@@ -759,12 +767,18 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
   </div>
 
   <div class="pane" id="pane-set">
-    <div class="sub">สเกลมาตรวัด</div>
-    <div id="scaleRows"></div>
-    <div class="sub">เกณฑ์สีเตือน</div>
-    <div id="thRows"></div>
-    <div class="sub">สีประจำช่อง</div>
-    <div id="colorRows"></div>
+    <div class="sub-group">
+      <div class="sub">สเกลมาตรวัด</div>
+      <div id="scaleRows"></div>
+    </div>
+    <div class="sub-group">
+      <div class="sub">เกณฑ์สีเตือน</div>
+      <div id="thRows"></div>
+    </div>
+    <div class="sub-group">
+      <div class="sub">สีประจำช่อง</div>
+      <div id="colorRows"></div>
+    </div>
     <div class="row">
       <button class="btn ghost" id="tuneReset">คืนค่าเริ่มต้น</button>
       <button class="btn" id="tuneClose">เสร็จ</button>
@@ -854,13 +868,6 @@ const DEFAULT_TUNE = {
   accent: { afr:'#a78bfa', tps:'#22d3ee', temp:'#fbbf24', bat:'#4ade80', inj:'#fb7185', ign:'#fb923c' }
 };
 const clone = o => JSON.parse(JSON.stringify(o));
-function mergeTune(saved){
-  const base = clone(DEFAULT_TUNE);
-  if (!saved || typeof saved !== 'object') return base;
-  ['rpmMax','redline','speedMax'].forEach(k=>{ if (Number.isFinite(Number(saved[k]))) base[k] = Number(saved[k]); });
-  ['scale','th','accent'].forEach(g=>{ if (saved[g]) Object.assign(base[g], saved[g]); });
-  return base;
-}
 let tune = clone(DEFAULT_TUNE);
 
 const data = {rpm:0, speed:0, afr:14.7, tps:0, ign:0, inj:0, bat:12.6, temp:20, map:null,
@@ -1130,7 +1137,6 @@ function setStatus(id, text, cls){
 let bleDevice = null, bleChar = null, bleLineBuf = '';
 let ws = null, wsTimer = null, wsShouldRun = false;
 
-const NATIVE_BLE = !!window.GaugeBle;
 function updateBleSupport(){
   const el = $('bleSupport');
   if (window.GaugeBle){
@@ -1293,9 +1299,47 @@ $('wsDisconnect').addEventListener('click', ()=>{ wsShouldRun=false; stopAll(); 
 $('demoStart').addEventListener('click', demoStart);
 $('demoStop').addEventListener('click', demoStop);
 
+/* ฟังก์ชันเรนเดอร์ UI ตั้งค่าสเกล เตือน และสี */
+function renderTuneUI() {
+  const scaleRows = $('scaleRows'), thRows = $('thRows'), colorRows = $('colorRows');
+  if (!scaleRows || !thRows || !colorRows) return;
+  scaleRows.innerHTML = ''; thRows.innerHTML = ''; colorRows.innerHTML = '';
+
+  TILES.forEach(t => {
+    const s = tune.scale[t.key] || [t.min, t.max];
+    const div = document.createElement('div'); div.className = 'srow two';
+    div.innerHTML = `<span>${t.label} (${t.un})</span>
+      <input type="number" value="${s[0]}" onchange="tune.scale['${t.key}'][0]=+this.value;applyTune();">
+      <input type="number" value="${s[1]}" onchange="tune.scale['${t.key}'][1]=+this.value;applyTune();">`;
+    scaleRows.appendChild(div);
+
+    const cDiv = document.createElement('div'); cDiv.className = 'srow';
+    cDiv.innerHTML = `<span>สี ${t.label}</span>
+      <input type="color" value="${tune.accent[t.key] || t.color}" onchange="tune.accent['${t.key}']=this.value;applyTune();">`;
+    colorRows.appendChild(cDiv);
+  });
+
+  const thDefs = [
+    { k: 'rpmWarn', label: 'RPM เตือน' },
+    { k: 'rpmBad', label: 'RPM เรดไลน์' },
+    { k: 'spdWarn', label: 'ความเร็วเตือน' },
+    { k: 'tempWarn', label: 'ความร้อนเตือน' },
+    { k: 'tempBad', label: 'ความร้อนวิกฤต' }
+  ];
+  thDefs.forEach(td => {
+    const div = document.createElement('div'); div.className = 'srow';
+    div.innerHTML = `<span>${td.label}</span>
+      <input type="number" value="${tune.th[td.k]}" onchange="tune.th['${td.k}']=+this.value;applyTune();">`;
+    thRows.appendChild(div);
+  });
+}
+renderTuneUI();
+
+$('tuneReset').addEventListener('click', () => { tune = clone(DEFAULT_TUNE); applyTune(); renderTuneUI(); });$('tuneClose').addEventListener('click', closeSheet);
+
 function readStore(){ try{ return JSON.parse(localStorage.getItem('gauge_cfg') || '{}') || {}; }catch(e){ return {}; } }
 function writeStore(patch){ const o = Object.assign(readStore(), patch); try{ localStorage.setItem('gauge_cfg', JSON.stringify(o)); }catch(e){} return o; }
-function saveCfg(){ writeStore({ svc: $('svcUUID').value, chr: $('chrUUID').value, ws: $('wsURL').value }); }
+function saveCfg(){ writeStore({ svc: $('svcUUID').value, chr: $('chrUUID').value, ws:$('wsURL').value }); }
 function loadCfg(){
   const c = readStore();
   if (c.svc) $('svcUUID').value = c.svc;
@@ -1319,7 +1363,7 @@ function addDtc(code){
   dtcSet.add(c); renderDtc();
 }
 function renderDtc(){
-  const box = $('dtcList'), cnt = $('dtcCount');
+  const box = $('dtcList'), cnt =$('dtcCount');
   if (!box) return;
   box.textContent = '';
   if (cnt) cnt.textContent = dtcSet.size + ' โค้ด';
@@ -1357,7 +1401,7 @@ async function sendRaw(cmd){
   }
 }
 async function runCmd(kind){
-  const cmd = (kind === 'read' ? $('cmdRead') : $('cmdClear')).value.trim();
+  const cmd = (kind === 'read' ? $('cmdRead') :$('cmdClear')).value.trim();
   if (kind === 'clear') pendingClear = true;
   await sendRaw(cmd);
   if (mode === 'demo'){
@@ -1367,8 +1411,7 @@ async function runCmd(kind){
     }, 500);
   }
 }
-$('dtcReadBtn').addEventListener('click', ()=> runCmd('read'));
-$('dtcClearBtn').addEventListener('click', ()=> runCmd('clear'));
+$('dtcReadBtn').addEventListener('click', ()=> runCmd('read'));$('dtcClearBtn').addEventListener('click', ()=> runCmd('clear'));
 
 const pagerEl = $('pager');
 const pageEls = [...pagerEl.querySelectorAll('.page')];
@@ -1382,7 +1425,7 @@ function setPage(i){
 barBtns.forEach((b,i)=> b.addEventListener('click', ()=> setPage(i)));
 
 const lsApp = $('lsApp');
-const lsPill = $('lsConnPill'), lsConnText = $('lsConnText');
+const lsPill = $('lsConnPill'), lsConnText =$('lsConnText');
 const lsPagerEl = $('lsPager');
 const lsPages = [...lsPagerEl.querySelectorAll('.lsPage')];
 const lsTabEls = [...document.querySelectorAll('.lsTab')];
@@ -1397,8 +1440,7 @@ function lsSetPage(i){
   lsPagerEl.scrollLeft = lsPage * lsPagerEl.clientWidth;
 }
 lsTabEls.forEach(b => b.addEventListener('click', ()=> lsSetPage(Number(b.dataset.page))));
-$('lsMenuBtn').addEventListener('click', ()=> lsSetPage(lsPage === 2 ? 0 : 2));
-$('lsConnBtn').addEventListener('click', ()=>{
+$('lsMenuBtn').addEventListener('click', ()=> lsSetPage(lsPage === 2 ? 0 : 2));$('lsConnBtn').addEventListener('click', ()=>{
   if (mode === 'off') openSheet();
   else stopAll();
 });
