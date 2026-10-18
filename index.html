@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -839,7 +838,7 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
 
 <script>
 'use strict';
-// ฟังก์ชันเชื่อมต่อ Bluetooth Low Energy กับ ESP32
+// ฟังก์ชันเชื่อมต่อ Bluetooth Low Energy กับ ESP32 ที่ปรับปรุงใหม่ให้เลือกอุปกรณ์ได้ง่ายขึ้น
 async function connectBluetooth() {
   if (!navigator.bluetooth) {
     alert("เบราว์เซอร์ในแอปนี้ไม่รองรับ Web Bluetooth");
@@ -849,9 +848,16 @@ async function connectBluetooth() {
     const svcUUID = document.getElementById('svcUUID').value.trim();
     const chrUUID = document.getElementById('chrUUID').value.trim();
     
+    // เปลี่ยนมาใช้ acceptAllDevices: false ร่วมกับ optionalServices หรือเพิ่มตัวเลือกเพื่อให้เบราว์เซอร์เปิดหน้าต่างสแกนได้สะดวก
     const device = await navigator.bluetooth.requestDevice({
-      acceptAllDevices: true,
+      filters: [{ services: [svcUUID] }],
       optionalServices: [svcUUID]
+    }).catch(async () => {
+      // เผื่อกรณีหาบริการไม่เจอ ให้ลองดึงอุปกรณ์ทั้งหมดที่จับคู่หรือใกล้เคียง
+      return await navigator.bluetooth.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: [svcUUID]
+      });
     });
     
     const server = await device.gatt.connect();
@@ -1334,44 +1340,11 @@ async function bleConnect(){
     catch(err){ setPill('err','ล้มเหลว'); setStatus('bleStatus','ผิดพลาด: '+err.message,'err'); }
     return;
   }
-  if (!navigator.bluetooth){
-    updateBleSupport();
-    setStatus('bleStatus', !window.isSecureContext
-      ? 'ต้องเปิดผ่าน HTTPS หรือ localhost จึงจะใช้ Bluetooth ได้'
-      : 'เบราว์เซอร์นี้ไม่รองรับ Web Bluetooth', 'err');
-    return;
-  }
-  stopAll();
-  mode = 'ble'; setPill('warn','กำลังสแกน…');
-  setStatus('bleStatus','กำลังรอการเลือกอุปกรณ์…');
-  try {
-    const svc = $('svcUUID').value.trim();
-    const chr = $('chrUUID').value.trim();
-    bleDevice = await navigator.bluetooth.requestDevice({
-      acceptAllDevices: true,
-      optionalServices: [svc]
-    });
-    setStatus('bleStatus','เชื่อมต่อ '+bleDevice.name+' …');
-    bleDevice.addEventListener('gattserverdisconnected', ()=>{
-      bleChar = null;
-      setPill('err','Bluetooth หลุด');
-      setStatus('bleStatus','การเชื่อมต่อถูกตัด','err');
-    });
-    const server = await bleDevice.gatt.connect();
-    const service = await server.getPrimaryService(svc);
-    bleChar = await service.getCharacteristic(chr);
-    await bleChar.startNotifications();
-    bleChar.addEventListener('characteristicvaluechanged', onBleValue);
-    bleLineBuf = '';
-    mode = 'ble'; setPill('on', (bleDevice.name || 'BLE').slice(0,14));
-    noteConnected();
-    setStatus('bleStatus','✅ รับข้อมูลจาก '+(bleDevice.name||'อุปกรณ์'),'ok');
-    saveCfg();
-  } catch(err){
-    setPill('err','ล้มเหลว');
-    setStatus('bleStatus', 'ผิดพลาด: ' + (err && err.message ? err.message : err), 'err');
-  }
+  
+  // เรียกใช้งานฟังก์ชัน connectBluetooth() ที่ปรับปรุงใหม่
+  await connectBluetooth();
 }
+
 function onBleValue(ev){ ingestBleText(new TextDecoder().decode(ev.target.value)); }
 function ingestBleText(text){
   bleLineBuf += text;
@@ -1798,7 +1771,7 @@ async function sendRaw(cmd){
   throw new Error('ยังไม่ได้เชื่อมต่ออุปกรณ์ — กด “เชื่อมต่อ” ก่อน');
 }
 async function runCmd(kind){
-  const cmd = (kind === 'read' ? $('cmdRead') : $('cmdClear')).value.trim();
+  const cmd = (kind === 'read' ? $('cmdRead' ) : $('cmdClear')).value.trim();
   if (!cmd){ setStatus('dtcStatus','กรุณาใส่คำสั่ง','err'); return; }
   logLine('>> ' + cmd + (kind === 'read' ? '  (อ่านโค้ด)' : '  (ล้างโค้ด)'));
   setStatus('dtcStatus','กำลังส่งคำสั่ง…');
