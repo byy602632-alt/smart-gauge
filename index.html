@@ -72,7 +72,10 @@ header{display:flex;align-items:center;gap:9px;margin-bottom:6px}
 .drpm .val{font-size:max(22px,9vmin);line-height:1;font-weight:800;letter-spacing:-1px;
   font-variant-numeric:tabular-nums;transition:color .15s}
 .drpm i{font-style:normal;font-size:max(8px,2.6vmin);letter-spacing:4px;color:var(--dim);font-weight:700}
-.shiftRow .clk{margin-left:auto;font-family:var(--mono);font-size:max(8px,2.6vmin);color:var(--dim)}
+
+/* ปรับขนาดเวลาโหมดแนวตั้งให้ใหญ่ชัดเจนขึ้น */
+.shiftRow .clk{margin-left:auto;font-family:var(--mono);font-size:max(14px,4vmin);font-weight:800;color:var(--text)}
+
 .drmax{font-size:max(7px,2.2vmin);color:var(--dim);letter-spacing:1px;font-weight:700}
 .drmax b{font-family:var(--mono);color:var(--red);font-weight:700}
 .dmode{font-size:max(9px,3vmin);font-weight:800;color:var(--acc);letter-spacing:2px}
@@ -346,7 +349,10 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .lsBars{display:flex;flex-direction:column;gap:max(2px,.7vmin);width:max(12px,3.4vmin)}
 .lsBars i{display:block;height:max(2px,.7vmin);background:currentColor;border-radius:1px}
 .lsSpacer{flex:1 1 auto;min-width:4px}
-.lsClock{font-family:var(--mono);font-size:max(9px,2.7vmin);color:var(--dim);letter-spacing:1px}
+
+/* ขยายขนาดเวลาด้านบนโหมดแนวนอน */
+.lsClock{font-family:var(--mono);font-size:max(14px,3.8vmin);font-weight:800;color:var(--text);letter-spacing:1px}
+
 .lsTabs{display:flex;gap:4px;flex:0 0 auto}
 .lsTab{font-size:max(8px,2.2vmin);font-weight:800;letter-spacing:.5px;color:var(--dim);
   background:var(--panel);border:1px solid var(--line);border-radius:5px;cursor:pointer;
@@ -388,7 +394,7 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .lsPage{flex:0 0 100%;min-width:100%;scroll-snap-align:start;display:flex;min-height:0;min-width:0}
 .lsApp.lsParams .lsRpm{height:0;padding:0;border-width:0;overflow:hidden}
 .lsGrid{flex:1 1 auto;display:grid;gap:5px;min-height:0;min-width:0;
-  grid-template-columns:minmax(0,1.02fr) minmax(0,1.32fr) minmax(0,.82fr)}
+  grid-template-columns:minmax(0,1.15fr) minmax(0,1.32fr) minmax(0,.82fr)}
 .lsPanel{background:var(--panel);border:1px solid var(--line);border-radius:8px;
   position:relative;overflow:hidden;min-height:0;min-width:0}
 .lsPanel::before,.lsTile::before,.lsRows::before{content:"";position:absolute;left:0;top:0;
@@ -403,14 +409,18 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
   min-width:3ch;text-align:right}
 .lsSpdUnit{align-self:flex-end;padding-bottom:max(4px,1.6vmin);
   font-size:max(8px,3vmin);letter-spacing:3px;font-weight:800;color:var(--acc)}
+
 .lsChips{display:flex;gap:5px;min-width:0}
+
+/* แก้ไขบั๊กวันที่ตกขอบ/ถูกบังตัวอักษรปี */
 .lsChip{flex:1 1 0;min-width:0;background:var(--panel2);border-radius:6px;
-  padding:2px max(6px,1.6vmin);display:flex;flex-direction:column;gap:1px}
-.lsChip s{text-decoration:none;font-size:max(6px,1.9vmin);letter-spacing:1.5px;color:var(--dim);font-weight:800}
-.lsChip b{font-family:var(--mono);font-size:max(11px,4vmin);color:#fff;font-weight:700;
-  line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden}
-.lsChip b i{font-style:normal;font-size:.62em;color:var(--dim);letter-spacing:1px}
-.lsChip .lsDate{font-size:max(9px,3vmin)}
+  padding:2px max(5px,1.2vmin);display:flex;flex-direction:column;gap:1px;overflow:hidden}
+.lsChip s{text-decoration:none;font-size:max(6px,1.9vmin);letter-spacing:1px;color:var(--dim);font-weight:800}
+.lsChip b{font-family:var(--mono);font-size:max(10px,3.2vmin);color:#fff;font-weight:700;
+  line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lsChip b i{font-style:normal;font-size:.62em;color:var(--dim);letter-spacing:0.5px}
+.lsChip .lsDate{font-size:max(8.5px,2.5vmin);letter-spacing:0px}
+
 .lsTiles{display:grid;gap:5px;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;min-height:0}
 .lsTile{background:var(--panel);border:1px solid var(--line);border-radius:8px;
   padding:4px max(7px,2vmin) 5px;display:flex;flex-direction:column;justify-content:center;
@@ -453,7 +463,7 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
   line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
 .lsPu{font-size:max(7px,2vmin);color:var(--dim);min-width:2.4em;letter-spacing:.5px}
 .lsDtcSlot{flex:1 1 auto;display:flex;min-height:0;min-width:0}
-@media (orientation:landscape) and (min-width:600px){
+@media (orientation:landscape) and (min-width:700px){
   .lsDtcSlot .dtc{max-width:none;margin:0;width:100%;padding:6px 8px}
   .lsDtcSlot .dtcRow{margin-top:8px}
   .lsDtcSlot .dtcRow .btn{padding:8px 12px;font-size:12px}
@@ -694,7 +704,7 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
           <div class="lsRow"><span class="lsRLab">IGN <i>(°)</i></span><span class="lsRVal" id="ls_r_ign">–</span></div>
           <div class="lsRow"><span class="lsRLab">ISC <i>(%)</i></span><span class="lsRVal" id="ls_r_iacv">–</span></div>
           <div class="lsRow"><span class="lsRLab">BAT <i>(V)</i></span><span class="lsRVal" id="ls_r_bat">–</span></div>
-          <div class="lsRow"><span class="lsRLab">IAT <i>(°C)</i></span><span class="lsRVal" id="ls_r_iat">–</span></div>
+          <div class="lsRow"><span class="lsRLab">IAT <i>(°C)</i></span><span class="lsRVal" id="r_iat">–</span></div>
           <div class="lsRow"><span class="lsRLab">TRIM <i>(%)</i></span><span class="lsRVal" id="ls_r_fueltrim">–</span></div>
           <div class="lsRow"><span class="lsRLab">O2 <i>(V)</i></span><span class="lsRVal" id="ls_r_o2">–</span></div>
         </div>
@@ -1074,7 +1084,7 @@ function render(now){
   put('spdMax', String(Math.round(spdMax)));
   put('spdAvg', String(Math.round(spdAvg)));
 
-  // ----- แก้ไขการอัปเดต เวลา และ วันที่ ให้รองรับทั้งแนวตั้งและแนวนอน -----
+  // อัปเดตเวลาและวันที่
   const clock = new Date();
   const p2 = n => (n < 10 ? '0' : '') + n;
   const timeStr = p2(clock.getHours()) + ':' + p2(clock.getMinutes());
@@ -1086,7 +1096,6 @@ function render(now){
     ' ' + clock.getFullYear();
   put('dateTxt', dateStr);
   put('lsDate', dateStr);
-  // ------------------------------------------------------------------
 
   put('modeVal', hadData && data.mode != null && data.mode !== '' ? String(data.mode) : '–');
 
@@ -1304,6 +1313,33 @@ $('wsConnect').addEventListener('click', wsConnect);
 $('wsDisconnect').addEventListener('click', ()=>{ wsShouldRun=false; stopAll(); });
 $('demoStart').addEventListener('click', demoStart);
 $('demoStop').addEventListener('click', demoStop);
+
+// ฟังก์ชันเปิดโหมดเต็มจอ + ล็อกแนวนอน
+async function toggleFullScreen() {
+  try {
+    if (!document.fullscreenElement) {
+      if (document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen();
+      } else if (document.documentElement.webkitRequestFullscreen) {
+        await document.documentElement.webkitRequestFullscreen();
+      }
+      if (screen.orientation && screen.orientation.lock) {
+        await screen.orientation.lock('landscape').catch(() => {});
+      }
+    } else {
+      if (document.exitFullscreen) {
+        await document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        await document.webkitExitFullscreen();
+      }
+    }
+  } catch (err) {
+    console.error("Fullscreen error:", err);
+  }
+}
+
+$('fsBtn').addEventListener('click', toggleFullScreen);
+$('lsFsBtn').addEventListener('click', toggleFullScreen);
 
 function renderTuneUI() {
   const scaleRows = $('scaleRows'), thRows = $('thRows'), colorRows = $('colorRows');
