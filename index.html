@@ -1073,12 +1073,21 @@ function render(now){
   spdAvg += (data.speed - spdAvg) * 0.02;
   put('spdMax', String(Math.round(spdMax)));
   put('spdAvg', String(Math.round(spdAvg)));
+
+  // ----- แก้ไขการอัปเดต เวลา และ วันที่ ให้รองรับทั้งแนวตั้งและแนวนอน -----
   const clock = new Date();
   const p2 = n => (n < 10 ? '0' : '') + n;
-  put('clk', p2(clock.getHours()) + ':' + p2(clock.getMinutes()));
-  put('dateTxt', clock.getDate() + ' ' +
+  const timeStr = p2(clock.getHours()) + ':' + p2(clock.getMinutes());
+  put('clk', timeStr);
+  put('lsClock', timeStr);
+
+  const dateStr = clock.getDate() + ' ' +
     ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][clock.getMonth()] +
-    ' ' + clock.getFullYear());
+    ' ' + clock.getFullYear();
+  put('dateTxt', dateStr);
+  put('lsDate', dateStr);
+  // ------------------------------------------------------------------
+
   put('modeVal', hadData && data.mode != null && data.mode !== '' ? String(data.mode) : '–');
 
   const gaugeArcs = {tps:'f_tps', afr:'f_afr', temp:'f_temp'};
