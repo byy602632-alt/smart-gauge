@@ -144,7 +144,6 @@ body.stale .spdBlock,body.stale .gpad,body.stale .rows,body.stale .hdZone
   opacity:0;pointer-events:none;transition:.2s;z-index:40}
 .overlay.open{opacity:1;pointer-events:auto}
 
-/* ---------- แก้ไขระบบ SHEET Scroll ให้ครอบคลุมทุกอุปกรณ์ ---------- */
 .sheet{
   position:fixed;
   left:0; right:0; bottom:0;
@@ -176,8 +175,6 @@ body.stale .spdBlock,body.stale .gpad,body.stale .rows,body.stale .hdZone
 .pane{display:none;max-width:640px;margin:0 auto}
 .pane.show{display:block}
 .pane#pane-set{max-width:none}
-
-/* ปรับแต่งส่วนจัดคอลัมน์การตั้งค่า ให้เลื่อน Scroll ง่าย */
 .pane#pane-set.show{
   display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px;
 }
@@ -609,12 +606,12 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
         <button type="button" class="btn danger" id="dtcClearBtn">ลบโค้ด DTC</button>
       </div>
       <div class="cmdRow">
-        <div><label>คำสั่งอ่าน</label><input type="text" id="cmdRead" value="03" spellcheck="false"></div>
-        <div><label>คำสั่งลบ</label><input type="text" id="cmdClear" value="04" spellcheck="false"></div>
+        <div><label>คำสั่งอ่าน</label><input type="text" id="cmdRead" value="18 00 FF" spellcheck="false"></div>
+        <div><label>คำสั่งลบ</label><input type="text" id="cmdClear" value="14 FF FF" spellcheck="false"></div>
       </div>
       <div class="statusline" id="dtcStatus"></div>
       <div class="dtcLog" id="dtcLog"></div>
-      <div class="hint">คำสั่งมาตรฐาน OBD‑II/UDS: <b>03</b> = อ่านโค้ด, <b>04</b> = ล้างความจำ ECU</div>
+      <div class="hint">คำสั่ง K-Line KWP2000: <b>18 00 FF</b> = อ่านโค้ด, <b>14 FF FF</b> = ล้างโค้ด</div>
     </div>
   </section>
   </div>
@@ -1299,7 +1296,6 @@ $('wsDisconnect').addEventListener('click', ()=>{ wsShouldRun=false; stopAll(); 
 $('demoStart').addEventListener('click', demoStart);
 $('demoStop').addEventListener('click', demoStop);
 
-/* ฟังก์ชันเรนเดอร์ UI ตั้งค่าสเกล เตือน และสี */
 function renderTuneUI() {
   const scaleRows = $('scaleRows'), thRows = $('thRows'), colorRows = $('colorRows');
   if (!scaleRows || !thRows || !colorRows) return;
@@ -1339,12 +1335,14 @@ $('tuneReset').addEventListener('click', () => { tune = clone(DEFAULT_TUNE); app
 
 function readStore(){ try{ return JSON.parse(localStorage.getItem('gauge_cfg') || '{}') || {}; }catch(e){ return {}; } }
 function writeStore(patch){ const o = Object.assign(readStore(), patch); try{ localStorage.setItem('gauge_cfg', JSON.stringify(o)); }catch(e){} return o; }
-function saveCfg(){ writeStore({ svc: $('svcUUID').value, chr: $('chrUUID').value, ws:$('wsURL').value }); }
+function saveCfg(){ writeStore({ svc: $('svcUUID').value, chr: $('chrUUID').value, ws:$('wsURL').value, cmdRead: $('cmdRead').value, cmdClear:$('cmdClear').value }); }
 function loadCfg(){
   const c = readStore();
   if (c.svc) $('svcUUID').value = c.svc;
   if (c.chr) $('chrUUID').value = c.chr;
   if (c.ws)  $('wsURL').value  = c.ws;
+  if (c.cmdRead) $('cmdRead').value = c.cmdRead;
+  if (c.cmdClear) $('cmdClear').value = c.cmdClear;
 }
 loadCfg();
 
@@ -1403,6 +1401,7 @@ async function sendRaw(cmd){
 async function runCmd(kind){
   const cmd = (kind === 'read' ? $('cmdRead') :$('cmdClear')).value.trim();
   if (kind === 'clear') pendingClear = true;
+  saveCfg();
   await sendRaw(cmd);
   if (mode === 'demo'){
     setTimeout(()=>{
