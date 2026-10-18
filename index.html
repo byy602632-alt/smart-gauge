@@ -72,10 +72,7 @@ header{display:flex;align-items:center;gap:9px;margin-bottom:6px}
 .drpm .val{font-size:max(22px,9vmin);line-height:1;font-weight:800;letter-spacing:-1px;
   font-variant-numeric:tabular-nums;transition:color .15s}
 .drpm i{font-style:normal;font-size:max(8px,2.6vmin);letter-spacing:4px;color:var(--dim);font-weight:700}
-
-/* ปรับขนาดเวลาโหมดแนวตั้งให้ใหญ่ชัดเจนขึ้น */
-.shiftRow .clk{margin-left:auto;font-family:var(--mono);font-size:max(14px,4vmin);font-weight:800;color:var(--text)}
-
+.shiftRow .clk{margin-left:auto;font-family:var(--mono);font-size:max(8px,2.6vmin);color:var(--dim)}
 .drmax{font-size:max(7px,2.2vmin);color:var(--dim);letter-spacing:1px;font-weight:700}
 .drmax b{font-family:var(--mono);color:var(--red);font-weight:700}
 .dmode{font-size:max(9px,3vmin);font-weight:800;color:var(--acc);letter-spacing:2px}
@@ -143,29 +140,30 @@ header{display:flex;align-items:center;gap:9px;margin-bottom:6px}
 body.stale .spdBlock,body.stale .gpad,body.stale .rows,body.stale .hdZone
   {opacity:.35;filter:grayscale(.7)}
 
+.info{margin-top:16px;font-size:11.5px;line-height:1.75;color:var(--dim);
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 13px}
+.info b{color:var(--text)}
+.info code{font-family:var(--mono);color:var(--acc);background:rgba(255,107,26,.10);padding:1px 5px;border-radius:5px;
+  font-size:11px;word-break:break-all}
+.info h4{font-size:11px;letter-spacing:2px;color:var(--acc);margin-bottom:6px}
+
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(3px);
   opacity:0;pointer-events:none;transition:.2s;z-index:40}
 .overlay.open{opacity:1;pointer-events:auto}
-
 .sheet{
-  position:fixed;
-  left:0; right:0; bottom:0;
-  max-height:88vh; max-height:88dvh;
-  z-index:50; margin:0 auto; max-width:820px;
+  position:fixed;inset:0;z-index:50;margin:0;
   background:#14181f;
-  border-top-left-radius:16px; border-top-right-radius:16px;
-  border:1px solid var(--line);
-  padding:calc(12px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
-  overflow-y:auto !important;
-  -webkit-overflow-scrolling:touch;
-  overscroll-behavior:contain;
-  transform:translateY(100%); transition:transform .25s cubic-bezier(.2,.8,.2,1)
+  padding:calc(8px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));
+  overflow-y:auto;overscroll-behavior:contain;
+  transform:translateY(105%);transition:transform .25s cubic-bezier(.2,.8,.2,1)
 }
-.sheet.open{transform:translateY(0)}
+.sheet.open{transform:none}
 @media (prefers-reduced-motion:reduce){ .sheet{transition:none} .pill .dot{animation:none} }
 .grab{width:44px;height:4px;border-radius:9px;background:#2b2b31;margin:2px auto 10px;
-  position:relative;cursor:grab}
+  position:relative;touch-action:none;cursor:grab}
 .grab:active{cursor:grabbing}
+.grab::after{content:"";position:absolute;left:-60px;right:-60px;top:-14px;bottom:-18px}
+.sheet h3{touch-action:none}
 .sheet h3{font-size:14px;letter-spacing:2px;color:var(--text);font-weight:800;
   margin-bottom:10px;display:flex;align-items:center;gap:8px}
 .sheet h3::before{content:"";width:9px;height:9px;background:var(--acc)}
@@ -178,11 +176,11 @@ body.stale .spdBlock,body.stale .gpad,body.stale .rows,body.stale .hdZone
 .pane{display:none;max-width:640px;margin:0 auto}
 .pane.show{display:block}
 .pane#pane-set{max-width:none}
-.pane#pane-set.show{
-  display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px;
+@media (orientation:landscape){
+  .pane#pane-set.show{max-width:1000px;column-count:2;column-gap:20px}
+  .pane#pane-set .sub,.pane#pane-set .srow,.pane#pane-set .row,
+  .pane#pane-set .statusline{break-inside:avoid}
 }
-.pane#pane-set .sub-group{ display:flex; flex-direction:column; gap:6px; }
-
 .sheet .srow{margin-bottom:9px}
 .sheet .srow input{padding:10px 8px;font-size:14px}
 .sheet label{font-size:12px;margin:12px 0 6px}
@@ -192,12 +190,12 @@ input[type=text]{
   background:#070d14;border:1px solid var(--line);border-radius:10px;padding:11px 12px;outline:none
 }
 input[type=text]:focus{border-color:#155e75}
-.row{display:flex;gap:8px;margin-top:14px;grid-column:1/-1}
+.row{display:flex;gap:8px;margin-top:14px}
 .row .btn{flex:1;padding:12px}
 .hint{font-size:11px;line-height:1.7;color:var(--dim);margin-top:10px}
 .hint b{color:var(--amber)}
 .statusline{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin-top:12px;
-  min-height:16px;word-break:break-all;grid-column:1/-1}
+  min-height:16px;word-break:break-all}
 .statusline.ok{color:var(--green)} .statusline.err{color:var(--red)}
 
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:60;
@@ -349,10 +347,7 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .lsBars{display:flex;flex-direction:column;gap:max(2px,.7vmin);width:max(12px,3.4vmin)}
 .lsBars i{display:block;height:max(2px,.7vmin);background:currentColor;border-radius:1px}
 .lsSpacer{flex:1 1 auto;min-width:4px}
-
-/* ขยายขนาดเวลาด้านบนโหมดแนวนอน */
-.lsClock{font-family:var(--mono);font-size:max(14px,3.8vmin);font-weight:800;color:var(--text);letter-spacing:1px}
-
+.lsClock{font-family:var(--mono);font-size:max(9px,2.7vmin);color:var(--dim);letter-spacing:1px}
 .lsTabs{display:flex;gap:4px;flex:0 0 auto}
 .lsTab{font-size:max(8px,2.2vmin);font-weight:800;letter-spacing:.5px;color:var(--dim);
   background:var(--panel);border:1px solid var(--line);border-radius:5px;cursor:pointer;
@@ -360,7 +355,7 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .lsTab.active{color:var(--acc);border-color:rgba(255,107,26,.55);background:rgba(255,107,26,.1)}
 
 .lsRpm{background:var(--panel);border:1px solid var(--line);border-radius:8px;
-  padding:4px 9px 3px;position:relative;overflow:hidden;flex:0 0 auto}
+  padding:4px 9px 3px;position:relative;overflow:hidden;flex:0 0 auto;transition:all .2s ease-in-out}
 .lsRpm::before{content:"";position:absolute;left:0;top:0;height:2px;width:34px;background:var(--acc)}
 .lsRpmHead{display:flex;align-items:baseline;gap:max(7px,2vmin);margin-bottom:2px}
 .lsRpmVal{font-family:var(--mono);font-weight:800;color:#fff;font-size:max(15px,6vmin);
@@ -384,17 +379,18 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .lsScale span:first-child{transform:none}
 .lsScale span:last-child{transform:translateX(-100%)}
 
-.lsApp.lsDtcMode .lsRpm {
-  display: none !important;
-}
-
 .lsPager{display:flex;min-height:0;min-width:0;overflow-x:auto;overflow-y:hidden;
   scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex:1 1 auto}
 .lsPager::-webkit-scrollbar{display:none}
 .lsPage{flex:0 0 100%;min-width:100%;scroll-snap-align:start;display:flex;min-height:0;min-width:0}
-.lsApp.lsParams .lsRpm{height:0;padding:0;border-width:0;overflow:hidden}
+
+/* ซ่อนแถบ RPM สำหรับทุกหน้ายกเว้นหน้าแรก (lsPage0) */
+.lsApp:not(.lsPage0) .lsRpm, .lsApp.lsParams .lsRpm, .lsApp.lsDtc .lsRpm {
+  height: 0; padding: 0; border-width: 0; overflow: hidden; margin: 0; opacity: 0;
+}
+
 .lsGrid{flex:1 1 auto;display:grid;gap:5px;min-height:0;min-width:0;
-  grid-template-columns:minmax(0,1.15fr) minmax(0,1.32fr) minmax(0,.82fr)}
+  grid-template-columns:minmax(0,1.02fr) minmax(0,1.32fr) minmax(0,.82fr)}
 .lsPanel{background:var(--panel);border:1px solid var(--line);border-radius:8px;
   position:relative;overflow:hidden;min-height:0;min-width:0}
 .lsPanel::before,.lsTile::before,.lsRows::before{content:"";position:absolute;left:0;top:0;
@@ -409,18 +405,14 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
   min-width:3ch;text-align:right}
 .lsSpdUnit{align-self:flex-end;padding-bottom:max(4px,1.6vmin);
   font-size:max(8px,3vmin);letter-spacing:3px;font-weight:800;color:var(--acc)}
-
 .lsChips{display:flex;gap:5px;min-width:0}
-
-/* แก้ไขบั๊กวันที่ตกขอบ/ถูกบังตัวอักษรปี */
 .lsChip{flex:1 1 0;min-width:0;background:var(--panel2);border-radius:6px;
-  padding:2px max(5px,1.2vmin);display:flex;flex-direction:column;gap:1px;overflow:hidden}
-.lsChip s{text-decoration:none;font-size:max(6px,1.9vmin);letter-spacing:1px;color:var(--dim);font-weight:800}
-.lsChip b{font-family:var(--mono);font-size:max(10px,3.2vmin);color:#fff;font-weight:700;
-  line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lsChip b i{font-style:normal;font-size:.62em;color:var(--dim);letter-spacing:0.5px}
-.lsChip .lsDate{font-size:max(8.5px,2.5vmin);letter-spacing:0px}
-
+  padding:2px max(6px,1.6vmin);display:flex;flex-direction:column;gap:1px}
+.lsChip s{text-decoration:none;font-size:max(6px,1.9vmin);letter-spacing:1.5px;color:var(--dim);font-weight:800}
+.lsChip b{font-family:var(--mono);font-size:max(11px,4vmin);color:#fff;font-weight:700;
+  line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden}
+.lsChip b i{font-style:normal;font-size:.62em;color:var(--dim);letter-spacing:1px}
+.lsChip .lsDate{font-size:max(9px,3vmin)}
 .lsTiles{display:grid;gap:5px;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;min-height:0}
 .lsTile{background:var(--panel);border:1px solid var(--line);border-radius:8px;
   padding:4px max(7px,2vmin) 5px;display:flex;flex-direction:column;justify-content:center;
@@ -451,6 +443,7 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .lsRVal.warn{color:var(--amber)}
 .lsRVal.bad{color:var(--red)}
 .lsRVal.cool{color:var(--blue)}
+
 .lsPtable{flex:1 1 auto;display:flex;flex-direction:column;min-height:0;min-width:0;padding:1px}
 .lsPgrid{flex:1 1 auto;display:grid;gap:5px;min-height:0;min-width:0;
   grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr))}
@@ -462,8 +455,9 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .lsPv{font-family:var(--mono);font-size:max(13px,5vmin);font-weight:700;color:#fff;
   line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
 .lsPu{font-size:max(7px,2vmin);color:var(--dim);min-width:2.4em;letter-spacing:.5px}
+
 .lsDtcSlot{flex:1 1 auto;display:flex;min-height:0;min-width:0}
-@media (orientation:landscape) and (min-width:700px){
+@media (orientation:landscape) and (min-width:600px){
   .lsDtcSlot .dtc{max-width:none;margin:0;width:100%;padding:6px 8px}
   .lsDtcSlot .dtcRow{margin-top:8px}
   .lsDtcSlot .dtcRow .btn{padding:8px 12px;font-size:12px}
@@ -476,6 +470,7 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .lsFoot b{color:#4d5766;font-weight:700}
 .lsFootMid{letter-spacing:.5px}
 @media (max-width:720px){ .lsClock{display:none} .lsFootMid{display:none} .lsApp .pill{max-width:24vw;text-overflow:ellipsis} }
+
 .lsRedAlert{display:none;position:fixed;inset:0;z-index:35;pointer-events:none;
   background:rgba(255,38,38,.34);
   box-shadow:inset 0 0 110px rgba(255,45,45,.85), inset 0 0 14px rgba(255,70,70,.95);
@@ -488,6 +483,7 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
 </head>
 <body>
 <div class="wrap">
+
   <header>
     <button type="button" class="btn ghost iconBtn" id="menuBtn" title="เมนู">☰</button>
     <div class="brand">SMART GAUGE<small>TELEMETRY / BLUETOOTH + WIFI</small></div>
@@ -505,6 +501,7 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
 
   <div class="pager" id="pager">
   <section class="page" id="page0">
+
   <div class="dash2">
     <div class="hdZone">
       <div class="shiftRow">
@@ -593,7 +590,12 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
 
   <div class="info">
     <h4>โปรโตคอลข้อมูล</h4>
-    อุปกรณ์ส่งข้อความเป็น <b>บรรทัดเดียวต่อแพ็กเก็จ</b> (จบด้วย <code>\n</code>)...
+    อุปกรณ์ส่งข้อความเป็น <b>บรรทัดเดียวต่อแพ็กเก็จ</b> (จบด้วย <code>\n</code>) รูปแบบใดก็ได้:<br>
+    JSON: <code>{"rpm":3200,"speed":78,"afr":13.4,"tps":44,"ign":22,"inj":5.1,"bat":13.8,"temp":92}</code><br>
+    CSV (ตามลำดับ): <code>3200,13.4,44,78,22,5.1,13.8,92</code><br>
+    หรือ key=value: <code>rpm=3200&amp;afr=13.4&amp;tps=44&amp;speed=78</code><br>
+    ชื่อที่รองรับ: <code>speed/spd</code>, <code>ign/lgn</code>, <code>inj/lnj</code>,
+    <code>bat/volt</code>, <code>temp/ect</code>
   </div>
   </section>
 
@@ -616,18 +618,21 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
         <button type="button" class="btn danger" id="dtcClearBtn">ลบโค้ด DTC</button>
       </div>
       <div class="cmdRow">
-        <div><label>คำสั่งอ่าน</label><input type="text" id="cmdRead" value="18 00 FF" spellcheck="false"></div>
-        <div><label>คำสั่งลบ</label><input type="text" id="cmdClear" value="14 FF FF" spellcheck="false"></div>
+        <div><label>คำสั่งอ่าน</label><input type="text" id="cmdRead" value="03" spellcheck="false"></div>
+        <div><label>คำสั่งลบ</label><input type="text" id="cmdClear" value="04" spellcheck="false"></div>
       </div>
       <div class="statusline" id="dtcStatus"></div>
       <div class="dtcLog" id="dtcLog"></div>
-      <div class="hint">คำสั่ง K-Line KWP2000: <b>18 00 FF</b> = อ่านโค้ด, <b>14 FF FF</b> = ล้างโค้ด</div>
+      <div class="hint">คำสั่งมาตรฐาน OBD‑II/UDS: <b>03</b> = อ่านโค้ด,
+        <b>04</b> = ล้างความจำ ECU (บางอุปกรณ์ใช้ <b>CLR</b> หรือ <b>ATCLR</b>)
+        — ส่งผ่านช่องทางที่เชื่อมต่ออยู่ (BLE / Wi‑Fi) ต้องกด “เชื่อมต่อ” ก่อนใช้งาน</div>
     </div>
   </section>
+
   </div>
 </div>
 
-<div class="lsApp" id="lsApp">
+<div class="lsApp lsPage0" id="lsApp">
   <header class="lsHead">
     <button type="button" class="btn ghost lsMenu" id="lsMenuBtn" title="หน้าอ่าน/ลบโค้ด DTC">
       <span class="lsBars" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -704,7 +709,7 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
           <div class="lsRow"><span class="lsRLab">IGN <i>(°)</i></span><span class="lsRVal" id="ls_r_ign">–</span></div>
           <div class="lsRow"><span class="lsRLab">ISC <i>(%)</i></span><span class="lsRVal" id="ls_r_iacv">–</span></div>
           <div class="lsRow"><span class="lsRLab">BAT <i>(V)</i></span><span class="lsRVal" id="ls_r_bat">–</span></div>
-          <div class="lsRow"><span class="lsRLab">IAT <i>(°C)</i></span><span class="lsRVal" id="r_iat">–</span></div>
+          <div class="lsRow"><span class="lsRLab">IAT <i>(°C)</i></span><span class="lsRVal" id="ls_r_iat">–</span></div>
           <div class="lsRow"><span class="lsRLab">TRIM <i>(%)</i></span><span class="lsRVal" id="ls_r_fueltrim">–</span></div>
           <div class="lsRow"><span class="lsRLab">O2 <i>(V)</i></span><span class="lsRVal" id="ls_r_o2">–</span></div>
         </div>
@@ -752,6 +757,8 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
       <button class="btn" id="bleConnect">สแกน + เชื่อมต่อ</button>
       <button class="btn ghost" id="bleDisconnect">ตัดการเชื่อมต่อ</button>
     </div>
+    <div class="hint">ค่าเริ่มต้นคือของ module <b>HM-10 / JDY-08</b> ถ้าใช้ ESP32 ให้ใส่ UUID
+      ที่ประกาศในสเก็ตช์ของคุณ (เช่น <code>4fafc201-1fb5-459f-85fe-9ff9b9d8</code>)</div>
     <div class="statusline" id="bleStatus"></div>
   </div>
 
@@ -762,10 +769,13 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
       <button class="btn" id="wsConnect">เชื่อมต่อ Wi‑Fi</button>
       <button class="btn ghost" id="wsDisconnect">ตัดการเชื่อมต่อ</button>
     </div>
+    <div class="hint">ใส่ IP ของ ESP32 เช่น <code>ws://192.168.1.37/ws</code> — หน้าเว็บต้องเปิดผ่าน
+      <b>HTTPS</b> จึงจะต่อ <code>wss://</code> ได้</div>
     <div class="statusline" id="wsStatus"></div>
   </div>
 
   <div class="pane" id="pane-demo">
+    <div class="hint">โหมดข้อมูลจำลอง ใช้ดูหน้าจอ/ตรวจสีเตือนโดยไม่ต้องมีอุปกรณ์จริง</div>
     <div class="row">
       <button class="btn" id="demoStart">เริ่ม Demo</button>
       <button class="btn ghost" id="demoStop">หยุด</button>
@@ -774,18 +784,12 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
   </div>
 
   <div class="pane" id="pane-set">
-    <div class="sub-group">
-      <div class="sub">สเกลมาตรวัด</div>
-      <div id="scaleRows"></div>
-    </div>
-    <div class="sub-group">
-      <div class="sub">เกณฑ์สีเตือน</div>
-      <div id="thRows"></div>
-    </div>
-    <div class="sub-group">
-      <div class="sub">สีประจำช่อง</div>
-      <div id="colorRows"></div>
-    </div>
+    <div class="sub">สเกลมาตรวัด</div>
+    <div id="scaleRows"></div>
+    <div class="sub">เกณฑ์สีเตือน</div>
+    <div id="thRows"></div>
+    <div class="sub">สีประจำช่อง</div>
+    <div id="colorRows"></div>
     <div class="row">
       <button class="btn ghost" id="tuneReset">คืนค่าเริ่มต้น</button>
       <button class="btn" id="tuneClose">เสร็จ</button>
@@ -798,7 +802,39 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
 
 <script>
 'use strict';
+async function connectBluetooth() {
+  if (!navigator.bluetooth) {
+    alert("เบราว์เซอร์ในแอปนี้ไม่รองรับ Web Bluetooth");
+    return;
+  }
+  try {
+    const svcUUID = document.getElementById('svcUUID').value.trim();
+    const chrUUID = document.getElementById('chrUUID').value.trim();
+    
+    const device = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true,
+      optionalServices: [svcUUID]
+    });
+    
+    const server = await device.gatt.connect();
+    const service = await server.getPrimaryService(svcUUID);
+    bleChar = await service.getCharacteristic(chrUUID);
+    
+    await bleChar.startNotifications();
+    bleChar.addEventListener('characteristicvaluechanged', onBleValue);
+    
+    noteConnected();
+    saveCfg();
+    setPill('on', (device.name || 'BLE').slice(0, 14));
+    alert('เชื่อมต่อสำเร็จกับ: ' + (device.name || 'ESP32'));
+  } catch (error) {
+    console.error('BLE Error:', error);
+    alert('เชื่อมต่อไม่สำเร็จ: ' + (error.message || error));
+  }
+}
+
 const GREEN='#34d399', AMBER='#fbbf24', RED='#fb5c5c', CYAN='#22d3ee';
+
 const TILES = [
   {key:'tps',  label:'TPS',  un:'%',     min:0,  max:100, dec:0, color:'#22d3ee', clamp:[0,100]},
   {key:'afr',  label:'AFR',  un:'ratio', min:10, max:18,  dec:1, color:'#a78bfa', clamp:[0,30]},
@@ -875,6 +911,13 @@ const DEFAULT_TUNE = {
   accent: { afr:'#a78bfa', tps:'#22d3ee', temp:'#fbbf24', bat:'#4ade80', inj:'#fb7185', ign:'#fb923c' }
 };
 const clone = o => JSON.parse(JSON.stringify(o));
+function mergeTune(saved){
+  const base = clone(DEFAULT_TUNE);
+  if (!saved || typeof saved !== 'object') return base;
+  ['rpmMax','redline','speedMax'].forEach(k=>{ if (Number.isFinite(Number(saved[k]))) base[k] = Number(saved[k]); });
+  ['scale','th','accent'].forEach(g=>{ if (saved[g]) Object.assign(base[g], saved[g]); });
+  return base;
+}
 let tune = clone(DEFAULT_TUNE);
 
 const data = {rpm:0, speed:0, afr:14.7, tps:0, ign:0, inj:0, bat:12.6, temp:20, map:null,
@@ -918,7 +961,6 @@ function fmtParam(p){
   if (!Number.isFinite(v)) return '-';
   return fmt(v, p.dec);
 }
-
 let csvHeader = null;
 function ingestCSV(parts){
   const vals = parts.map(p => Number(String(p).trim())).filter(v => Number.isFinite(v));
@@ -931,7 +973,6 @@ function ingestCSV(parts){
   }
   return ingestObject(obj);
 }
-
 function ingest(text){
   const t = String(text).trim();
   if (!t) return 0;
@@ -1067,6 +1108,10 @@ function render(now){
   lastFrame = now;
   const live = lastUpdate > 0 && (now - lastUpdate) < 2500;
   document.body.classList.toggle('stale', hadData && !live);
+  if (mode === 'demo'){ }
+  else if ((mode === 'ble' || mode === 'wifi') && hadData && !live) setPill('err', 'ข้อมูลค้าง');
+  else if ((mode === 'ble' || mode === 'wifi') && lastUpdate === 0 && now - connectedAt > 6000)
+    setPill('warn', 'ยังไม่มีข้อมูล');
 
   put('rpmVal', String(Math.round(data.rpm)));
   rpmMax = Math.max(rpmMax, data.rpm);
@@ -1083,20 +1128,12 @@ function render(now){
   spdAvg += (data.speed - spdAvg) * 0.02;
   put('spdMax', String(Math.round(spdMax)));
   put('spdAvg', String(Math.round(spdAvg)));
-
-  // อัปเดตเวลาและวันที่
   const clock = new Date();
   const p2 = n => (n < 10 ? '0' : '') + n;
-  const timeStr = p2(clock.getHours()) + ':' + p2(clock.getMinutes());
-  put('clk', timeStr);
-  put('lsClock', timeStr);
-
-  const dateStr = clock.getDate() + ' ' +
+  put('clk', p2(clock.getHours()) + ':' + p2(clock.getMinutes()));
+  put('dateTxt', clock.getDate() + ' ' +
     ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][clock.getMonth()] +
-    ' ' + clock.getFullYear();
-  put('dateTxt', dateStr);
-  put('lsDate', dateStr);
-
+    ' ' + clock.getFullYear());
   put('modeVal', hadData && data.mode != null && data.mode !== '' ? String(data.mode) : '–');
 
   const gaugeArcs = {tps:'f_tps', afr:'f_afr', temp:'f_temp'};
@@ -1152,17 +1189,26 @@ function setStatus(id, text, cls){
 let bleDevice = null, bleChar = null, bleLineBuf = '';
 let ws = null, wsTimer = null, wsShouldRun = false;
 
+const NATIVE_BLE = !!window.GaugeBle;
 function updateBleSupport(){
   const el = $('bleSupport');
   if (window.GaugeBle){
-    el.innerHTML = window.GaugeBle.isSupported() ? '✅ แอป Android' : '⚠️ ไม่รองรับ';
+    el.innerHTML = window.GaugeBle.isSupported()
+      ? '✅ แอป Android — กดปุ่มด้านล่างเพื่อสแกนและเลือกอุปกรณ์จากลิสต์'
+      : '⚠️ อุปกรณ์นี้<b>ไม่รองรับ Bluetooth LE</b> — ใช้แท็บ Wi‑Fi แทน';
     return;
   }
   if (navigator.bluetooth){
-    el.innerHTML = '✅ รองรับ Web Bluetooth';
+    el.innerHTML = '✅ เบราว์เซอร์นี้รองรับ <b>Web Bluetooth</b> — กดปุ่มด้านล่างแล้วเลือกอุปกรณ์จากลิสต์';
     return;
   }
-  el.innerHTML = '⚠️ ไม่รองรับ Web Bluetooth';
+  if (!window.isSecureContext){
+    el.innerHTML = '⚠️ Web Bluetooth ใช้ได้เฉพาะบน <b>HTTPS หรือ localhost</b> เท่านั้น '
+      + '(ตอนนี้เปิดผ่าน <code>' + location.protocol + '</code> ที่ <code>' + location.host + '</code>) '
+      + '— หรือใช้แท็บ Wi‑Fi ไปก่อน';
+    return;
+  }
+  el.innerHTML = '⚠️ เบราว์เซอร์นี้<b>ไม่รองรับ Web Bluetooth</b> (เช่น iOS Safari) — ใช้แท็บ Wi‑Fi แทน';
 }
 updateBleSupport();
 
@@ -1174,13 +1220,19 @@ window.__gaugeBleStatus = function(state, extra){
     bleChar = { native: true };
     setPill('on', extra.slice(0,14) || 'BLE');
     noteConnected(); saveCfg();
-    setStatus('bleStatus','✅ เชื่อมต่อแล้ว','ok');
+    setStatus('bleStatus','✅ รับข้อมูลจาก '+(extra||'อุปกรณ์'),'ok');
     return;
   }
+  if (state === 'cancelled'){ setPill('','ไม่ได้เชื่อมต่อ'); setStatus('bleStatus','ยกเลิกการเลือกอุปกรณ์'); return; }
   if (state === 'disconnected'){
     bleChar = null;
-    if (mode === 'ble'){ setPill('err','Bluetooth หลุด'); setStatus('bleStatus','ตัดการเชื่อมต่อ','err'); }
+    if (mode === 'ble'){ setPill('err','Bluetooth หลุด'); setStatus('bleStatus','การเชื่อมต่อถูกตัด','err'); }
     return;
+  }
+  if (state === 'error'){
+    bleChar = null;
+    setPill('err','ล้มเหลว');
+    setStatus('bleStatus', extra || 'ผิดพลาด', 'err');
   }
 };
 
@@ -1194,26 +1246,44 @@ function stopAll(keepMode){
   if (wsTimer){ clearTimeout(wsTimer); wsTimer = null; }
   if (ws){ try{ ws.onclose = null; ws.close(); }catch(e){} ws = null; }
   if (demoTimer){ clearInterval(demoTimer); demoTimer = null; }
-  if (!keepMode){ mode = 'off'; document.body.classList.remove('stale'); setPill('', 'ไม่ได้เชื่อมต่อ'); }
+  if (!keepMode){ mode = 'off'; document.body.classList.remove('stale');
+    setPill('', 'ไม่ได้เชื่อมต่อ'); }
 }
 
 async function bleConnect(){
   if (window.GaugeBle){
-    if (!window.GaugeBle.isSupported()){ setStatus('bleStatus','ไม่รองรับ','err'); return; }
+    if (!window.GaugeBle.isSupported()){ setStatus('bleStatus','อุปกรณ์นี้ไม่รองรับ Bluetooth LE','err'); return; }
     stopAll();
     mode = 'ble'; setPill('warn','กำลังสแกน…');
-    setStatus('bleStatus','กำลังสแกน…');
+    setStatus('bleStatus','กำลังสแกนอุปกรณ์…');
     bleLineBuf = '';
     try { window.GaugeBle.connect($('svcUUID').value.trim(), $('chrUUID').value.trim()); }
-    catch(err){ setPill('err','ล้มเหลว'); setStatus('bleStatus','ผิดพลาด','err'); }
+    catch(err){ setPill('err','ล้มเหลว'); setStatus('bleStatus','ผิดพลาด: '+err.message,'err'); }
+    return;
+  }
+  if (!navigator.bluetooth){
+    updateBleSupport();
+    setStatus('bleStatus', !window.isSecureContext
+      ? 'ต้องเปิดผ่าน HTTPS หรือ localhost จึงจะใช้ Bluetooth ได้'
+      : 'เบราว์เซอร์นี้ไม่รองรับ Web Bluetooth', 'err');
     return;
   }
   stopAll();
   mode = 'ble'; setPill('warn','กำลังสแกน…');
+  setStatus('bleStatus','กำลังรอการเลือกอุปกรณ์…');
   try {
     const svc = $('svcUUID').value.trim();
     const chr = $('chrUUID').value.trim();
-    bleDevice = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: [svc] });
+    bleDevice = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true,
+      optionalServices: [svc]
+    });
+    setStatus('bleStatus','เชื่อมต่อ '+bleDevice.name+' …');
+    bleDevice.addEventListener('gattserverdisconnected', ()=>{
+      bleChar = null;
+      setPill('err','Bluetooth หลุด');
+      setStatus('bleStatus','การเชื่อมต่อถูกตัด','err');
+    });
     const server = await bleDevice.gatt.connect();
     const service = await server.getPrimaryService(svc);
     bleChar = await service.getCharacteristic(chr);
@@ -1222,11 +1292,11 @@ async function bleConnect(){
     bleLineBuf = '';
     mode = 'ble'; setPill('on', (bleDevice.name || 'BLE').slice(0,14));
     noteConnected();
-    setStatus('bleStatus','✅ เชื่อมต่อแล้ว','ok');
+    setStatus('bleStatus','✅ รับข้อมูลจาก '+(bleDevice.name||'อุปกรณ์'),'ok');
     saveCfg();
   } catch(err){
     setPill('err','ล้มเหลว');
-    setStatus('bleStatus', 'ผิดพลาด', 'err');
+    setStatus('bleStatus', 'ผิดพลาด: ' + (err && err.message ? err.message : err), 'err');
   }
 }
 function onBleValue(ev){ ingestBleText(new TextDecoder().decode(ev.target.value)); }
@@ -1260,14 +1330,23 @@ function wsConnect(){
 }
 function openWs(url, attempt){
   if (!wsShouldRun) return;
-  setPill('warn','กำลังต่อ…');
-  try { ws = new WebSocket(url); } catch(err){ return; }
-  ws.onopen = ()=>{ setPill('on','Wi‑Fi'); noteConnected(); };
+  setPill('warn','กำลังต่อ Wi‑Fi…');
+  setStatus('wsStatus','กำลังเชื่อมต่อ '+url+' …');
+  try { ws = new WebSocket(url); }
+  catch(err){ setStatus('wsStatus','URL ไม่ถูกต้อง: '+err.message,'err'); setPill('err','ผิดพลาด'); return; }
+  ws.onopen = ()=>{
+    setPill('on','Wi‑Fi');
+    noteConnected();
+    setStatus('wsStatus','✅ เชื่อมต่อแล้ว: '+url,'ok');
+  };
   ws.onmessage = ev => ingest(typeof ev.data === 'string' ? ev.data : '');
+  ws.onerror = ()=> setStatus('wsStatus','เกิดข้อผิดพลาดในการเชื่อมต่อ','err');
   ws.onclose = ()=>{
     ws = null;
     if (!wsShouldRun) return;
     const wait = Math.min(8000, 1500 * (attempt+1));
+    setPill('warn','Wi‑Fi ตัด…');
+    setStatus('wsStatus','การเชื่อมต่อขาด — ลองใหม่ใน '+(wait/1000)+' วิ …','err');
     wsTimer = setTimeout(()=> openWs(url, attempt+1), wait);
   };
 }
@@ -1276,28 +1355,98 @@ let demoTimer = null;
 function demoStart(){
   stopAll();
   mode = 'demo'; setPill('on','DEMO');
+  setStatus('demoStatus','กำลังจำลองข้อมูล…','ok');
   const t0 = performance.now();
   let rpm = 1200, spd = 0, tps = 20;
   demoTimer = setInterval(()=>{
     const ph = (performance.now() - t0)/1000;
-    rpm += ((1200 + 6100 * Math.pow(0.5 + 0.5*Math.sin(ph*0.55), 2)) - rpm) * 0.1;
-    spd += ((118 * (0.5 + 0.5*Math.sin(ph*0.13 - 1.4))) - spd) * 0.08;
-    tps = clamp(tps + ((15 + 70*Math.pow(0.5 + 0.5*Math.sin(ph*0.55), 2)) - tps)*0.15, 0, 100);
-    ingestObject({rpm, speed: spd, tps, afr: 14.7, temp: 85, map: 50, bat: 13.8, inj: 2.5, ign: 20});
+    const rT = 1200 + 6100 * Math.pow(0.5 + 0.5*Math.sin(ph*0.55), 2);
+    rpm += (rT - rpm) * 0.1;
+    const sT = 118 * (0.5 + 0.5*Math.sin(ph*0.13 - 1.4));
+    spd += (sT - spd) * 0.08;
+    const tT = 15 + 70*Math.pow(0.5 + 0.5*Math.sin(ph*0.55), 2);
+    tps = clamp(tps + (tT - tps)*0.15, 0, 100);
+    ingestObject({
+      rpm: rpm,
+      speed: spd,
+      tps: tps,
+      afr: 14.7 - (tps/100)*3.2 + 0.1*Math.sin(ph*3.1),
+      temp: 22 + 70*Math.min(1, ph/50) + 2.5*Math.sin(ph*0.7),
+      map: 30 + 55*Math.pow(0.5 + 0.5*Math.sin(ph*0.55), 2) + 4*Math.sin(ph*2.3),
+      bat: 13.7 - (tps/100)*0.9 + 0.2*Math.sin(ph*1.7),
+      inj: 1.1 + (tps/100)*9.6,
+      ign: clamp(36 - (rpm/8000)*15 - (tps/100)*8, 8, 42),
+      iat: 26 + (tps/100)*13 + 1.4*Math.sin(ph*0.9),
+      iacv: clamp(22 + 34*(1 - Math.min(1, rpm/2600)) + 5*Math.sin(ph*2.1), 0, 100),
+      mode: rpm < 1700 ? 'IDLE' : 'LOOP',
+      o2: (0.15 + 0.75*(0.5 + 0.5*Math.sin(ph*4.3))).toFixed(2),
+      fueltrim: 3.1*Math.sin(ph*0.37),
+      fastidle: ph < 15 ? 'ON' : 'OFF',
+      stand: spd < 2 ? 'ON' : 'OFF',
+      bank: 1.6*Math.sin(ph*1.2)
+    });
   }, 100);
 }
 function demoStop(){
   if (demoTimer){ clearInterval(demoTimer); demoTimer = null; }
   mode = 'off'; setPill('', 'ไม่ได้เชื่อมต่อ');
+  setStatus('demoStatus','');
 }
 
 const sheet = $('sheet'), overlay = $('overlay');
-function openSheet(){ sheet.classList.add('open'); overlay.classList.add('open'); }
-function closeSheet(){ sheet.classList.remove('open'); overlay.classList.remove('open'); }
+function sheetOnScreen(){ const r = sheet.getBoundingClientRect(); return r.top < innerHeight - 4 && r.bottom > 4; }
+function forceSheet(open){
+  setTimeout(()=>{
+    if (sheet.classList.contains('open') !== open) return;
+    if (sheetOnScreen() === open) return;
+    sheet.style.transition = 'none';
+    sheet.style.transform = open ? 'none' : 'translateY(105%)';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      sheet.style.transition = ''; sheet.style.transform = '';
+    }));
+  }, 380);
+}
+function openSheet(){ sheet.classList.add('open'); overlay.classList.add('open'); forceSheet(true); }
+function closeSheet(){ sheet.classList.remove('open'); overlay.classList.remove('open'); forceSheet(false); }
 $('openSheet').addEventListener('click', openSheet);
 overlay.addEventListener('click', closeSheet);
 $('menuBtn').addEventListener('click', openSheet);
 $('fabBle').addEventListener('click', openSheet);
+
+(function(){
+  const zones = [sheet.querySelector('.grab'), sheet.querySelector('h3')].filter(Boolean);
+  let dragging = false, startY = 0, dy = 0;
+  function dragStart(e){
+    if (!sheet.classList.contains('open')) return;
+    dragging = true; startY = e.clientY; dy = 0;
+    sheet.style.transition = 'none';
+    try{ e.currentTarget.setPointerCapture(e.pointerId); }catch(err){}
+  }
+  function dragMove(e){
+    if (!dragging) return;
+    dy = Math.max(0, e.clientY - startY);
+    sheet.style.transform = 'translateY(' + dy + 'px)';
+    sheet.style.opacity = String(Math.max(.35, 1 - dy / 320));
+  }
+  function dragEnd(){
+    if (!dragging) return;
+    dragging = false;
+    sheet.style.transition = ''; sheet.style.opacity = '';
+    if (dy > 70){
+      sheet.style.transition = 'none'; sheet.style.transform = '';
+      requestAnimationFrame(()=>{ sheet.style.transition = ''; closeSheet(); });
+    } else {
+      sheet.style.transform = '';
+    }
+    dy = 0;
+  }
+  zones.forEach(z=>{
+    z.addEventListener('pointerdown', dragStart);
+    z.addEventListener('pointermove', dragMove);
+    z.addEventListener('pointerup', dragEnd);
+    z.addEventListener('pointercancel', dragEnd);
+  });
+})();
 
 document.querySelectorAll('.tabs button').forEach(b=>{
   b.addEventListener('click', ()=>{
@@ -1308,168 +1457,349 @@ document.querySelectorAll('.tabs button').forEach(b=>{
   });
 });
 $('bleConnect').addEventListener('click', bleConnect);
-$('bleDisconnect').addEventListener('click', stopAll);
+$('bleDisconnect').addEventListener('click', ()=>{ stopAll(); setStatus('bleStatus','ตัดการเชื่อมต่อแล้ว'); });
 $('wsConnect').addEventListener('click', wsConnect);
-$('wsDisconnect').addEventListener('click', ()=>{ wsShouldRun=false; stopAll(); });
+$('wsDisconnect').addEventListener('click', ()=>{ wsShouldRun=false; stopAll(); setStatus('wsStatus','ตัดการเชื่อมต่อแล้ว'); });
 $('demoStart').addEventListener('click', demoStart);
-$('demoStop').addEventListener('click', demoStop);
-
-// ฟังก์ชันเปิดโหมดเต็มจอ + ล็อกแนวนอน
-async function toggleFullScreen() {
-  try {
-    if (!document.fullscreenElement) {
-      if (document.documentElement.requestFullscreen) {
-        await document.documentElement.requestFullscreen();
-      } else if (document.documentElement.webkitRequestFullscreen) {
-        await document.documentElement.webkitRequestFullscreen();
-      }
-      if (screen.orientation && screen.orientation.lock) {
-        await screen.orientation.lock('landscape').catch(() => {});
-      }
-    } else {
-      if (document.exitFullscreen) {
-        await document.exitFullscreen();
-      } else if (document.webkitExitFullscreen) {
-        await document.webkitExitFullscreen();
-      }
-    }
-  } catch (err) {
-    console.error("Fullscreen error:", err);
-  }
-}
-
-$('fsBtn').addEventListener('click', toggleFullScreen);
-$('lsFsBtn').addEventListener('click', toggleFullScreen);
-
-function renderTuneUI() {
-  const scaleRows = $('scaleRows'), thRows = $('thRows'), colorRows = $('colorRows');
-  if (!scaleRows || !thRows || !colorRows) return;
-  scaleRows.innerHTML = ''; thRows.innerHTML = ''; colorRows.innerHTML = '';
-
-  TILES.forEach(t => {
-    const s = tune.scale[t.key] || [t.min, t.max];
-    const div = document.createElement('div'); div.className = 'srow two';
-    div.innerHTML = `<span>${t.label} (${t.un})</span>
-      <input type="number" value="${s[0]}" onchange="tune.scale['${t.key}'][0]=+this.value;applyTune();">
-      <input type="number" value="${s[1]}" onchange="tune.scale['${t.key}'][1]=+this.value;applyTune();">`;
-    scaleRows.appendChild(div);
-
-    const cDiv = document.createElement('div'); cDiv.className = 'srow';
-    cDiv.innerHTML = `<span>สี ${t.label}</span>
-      <input type="color" value="${tune.accent[t.key] || t.color}" onchange="tune.accent['${t.key}']=this.value;applyTune();">`;
-    colorRows.appendChild(cDiv);
-  });
-
-  const thDefs = [
-    { k: 'rpmWarn', label: 'RPM เตือน' },
-    { k: 'rpmBad', label: 'RPM เรดไลน์' },
-    { k: 'spdWarn', label: 'ความเร็วเตือน' },
-    { k: 'tempWarn', label: 'ความร้อนเตือน' },
-    { k: 'tempBad', label: 'ความร้อนวิกฤต' }
-  ];
-  thDefs.forEach(td => {
-    const div = document.createElement('div'); div.className = 'srow';
-    div.innerHTML = `<span>${td.label}</span>
-      <input type="number" value="${tune.th[td.k]}" onchange="tune.th['${td.k}']=+this.value;applyTune();">`;
-    thRows.appendChild(div);
-  });
-}
-renderTuneUI();
-
-$('tuneReset').addEventListener('click', () => { tune = clone(DEFAULT_TUNE); applyTune(); renderTuneUI(); });$('tuneClose').addEventListener('click', closeSheet);
+$('demoStop').addEventListener('click', ()=>{ demoStop(); setStatus('demoStatus','หยุดแล้ว'); });
 
 function readStore(){ try{ return JSON.parse(localStorage.getItem('gauge_cfg') || '{}') || {}; }catch(e){ return {}; } }
 function writeStore(patch){ const o = Object.assign(readStore(), patch); try{ localStorage.setItem('gauge_cfg', JSON.stringify(o)); }catch(e){} return o; }
-function saveCfg(){ writeStore({ svc: $('svcUUID').value, chr: $('chrUUID').value, ws:$('wsURL').value, cmdRead: $('cmdRead').value, cmdClear:$('cmdClear').value }); }
+function saveCfg(){ writeStore({ svc: $('svcUUID').value, chr: $('chrUUID').value, ws: $('wsURL').value,
+  dcR: $('cmdRead').value, dcC: $('cmdClear').value }); }
+function saveTune(){ writeStore({ tune: tune }); }
 function loadCfg(){
   const c = readStore();
   if (c.svc) $('svcUUID').value = c.svc;
   if (c.chr) $('chrUUID').value = c.chr;
   if (c.ws)  $('wsURL').value  = c.ws;
-  if (c.cmdRead) $('cmdRead').value = c.cmdRead;
-  if (c.cmdClear) $('cmdClear').value = c.cmdClear;
+  if (c.dcR) $('cmdRead').value = c.dcR;
+  if (c.dcC) $('cmdClear').value = c.dcC;
+  if (c.tune) tune = mergeTune(c.tune);
 }
-loadCfg();
+['svcUUID','chrUUID','wsURL','cmdRead','cmdClear'].forEach(id=> $(id).addEventListener('change', saveCfg));
+
+const SCALE_FIELDS = [
+  {k:'rpmMax',   label:'RPM สูงสุด',       step:100},
+  {k:'redline',  label:'REDLINE',          step:100},
+  {k:'speedMax', label:'ความเร็วสูงสุด',   step:10}
+];
+const TH_FIELDS = [
+  {k:'rpmWarn',   label:'RPM เตือน',        step:100},
+  {k:'rpmBad',    label:'RPM แดง',          step:100},
+  {k:'spdWarn',   label:'ความเร็วเตือน',    step:5},
+  {k:'afrLow',    label:'AFR แดงต่ำกว่า',   step:0.1},
+  {k:'afrHigh',   label:'AFR เหลืองสูงกว่า', step:0.1},
+  {k:'tpsWarn',   label:'TPS เตือน %',      step:1},
+  {k:'tempCool',  label:'TEMP สีฟ้าต่ำกว่า', step:1},
+  {k:'tempWarn',  label:'TEMP เหลืองเกิน',  step:1},
+  {k:'tempBad',   label:'TEMP แดงเกิน',     step:1},
+  {k:'batBadLow', label:'BAT แดงต่ำกว่า',   step:0.1},
+  {k:'batWarnLow',label:'BAT เหลืองต่ำกว่า', step:0.1},
+  {k:'batBadHigh',label:'BAT แดงสูงกว่า',   step:0.1},
+  {k:'injWarn',   label:'INJ เตือน',        step:0.5},
+  {k:'ignWarn',   label:'IGN เตือน',        step:1}
+];
+
+function validTune(t){
+  if (!(t.rpmMax > 500 && t.redline > 0 && t.redline < t.rpmMax))
+    return 'REDLINE ต้องอยู่ระหว่าง 0 ถึง RPM สูงสุด';
+  if (!(t.speedMax > 0)) return 'ความเร็วสูงสุดต้องมากกว่า 0';
+  for (const k in t.scale){
+    const s = t.scale[k];
+    if (!(Number(s[0]) < Number(s[1]))) return 'ช่วงวัดต้องน้อยกว่ามากกว่า (min < max)';
+  }
+  const th = t.th;
+  if (!(th.rpmWarn < th.rpmBad)) return 'เกณฑ์ RPM: ต้องเตือน < แดง';
+  if (!(th.afrLow < th.afrHigh)) return 'เกณฑ์ AFR: ต้องแดงต่ำ < เหลืองสูง';
+  if (!(th.tempCool < th.tempWarn && th.tempWarn < th.tempBad))
+    return 'เกณฑ์ TEMP: ต้องเรียงฟ้า < เหลือง < แดง';
+  if (!(th.batBadLow < th.batWarnLow && th.batWarnLow < th.batBadHigh))
+    return 'เกณฑ์ BAT: ต้องเรียงแดงต่ำ < เหลือง < แดงสูง';
+  if (!(th.tpsWarn >= 0 && th.tpsWarn <= 100)) return 'TPS เตือน ต้องอยู่ระหว่าง 0–100';
+  for (const k in t.accent){ if (!/^#[0-9a-f]{6}$/i.test(String(t.accent[k]))) return 'ค่าสีไม่ถูกต้อง'; }
+  return null;
+}
+let tuneSnapshot = clone(DEFAULT_TUNE);
+function tuneChanged(msg){
+  const err = validTune(tune);
+  if (err){
+    tune = clone(tuneSnapshot);
+    toast(err); buildSettings(); setStatus('tuneStatus', err, 'err');
+    return;
+  }
+  tuneSnapshot = clone(tune);
+  applyTune(); saveTune();
+  setStatus('tuneStatus', msg || 'บันทึกแล้ว', 'ok');
+}
+function numInput(value, step, on){
+  const i = document.createElement('input');
+  i.type = 'number'; i.step = step; i.value = value;
+  i.addEventListener('change', ()=>{
+    const v = parseFloat(i.value);
+    if (Number.isFinite(v)) on(v);
+    else { toast('ใส่ตัวเลขเท่านั้น'); buildSettings(); }
+  });
+  return i;
+}
+function rowOne(label, val, step, on){
+  const d = document.createElement('div'); d.className = 'srow';
+  const s = document.createElement('span'); s.textContent = label;
+  d.appendChild(s); d.appendChild(numInput(val, step, on));
+  return d;
+}
+function rowTwo(label, a, b, step, on){
+  const d = document.createElement('div'); d.className = 'srow two';
+  const s = document.createElement('span'); s.textContent = label;
+  const ia = numInput(a, step, v=>on(v, parseFloat(ib.value)));
+  const ib = numInput(b, step, v=>on(parseFloat(ia.value), v));
+  d.appendChild(s); d.appendChild(ia); d.appendChild(ib);
+  return d;
+}
+function rowColor(label, val, on){
+  const d = document.createElement('div'); d.className = 'srow';
+  const s = document.createElement('span'); s.textContent = label;
+  const i = document.createElement('input'); i.type = 'color'; i.value = val;
+  i.addEventListener('input', ()=>on(i.value));
+  d.appendChild(s); d.appendChild(i);
+  return d;
+}
+function buildSettings(){
+  const sc = $('scaleRows'), th = $('thRows'), co = $('colorRows');
+  sc.textContent = ''; th.textContent = ''; co.textContent = '';
+  SCALE_FIELDS.forEach(f=> sc.appendChild(
+    rowOne(f.label, tune[f.k], f.step, v=>{ tune[f.k] = v; tuneChanged(); })));
+  TILES.forEach(t=>{
+    const s = tune.scale[t.key];
+    sc.appendChild(rowTwo(t.label+' (min–max)', s[0], s[1], t.dec ? 0.1 : 1,
+      (a,b)=>{ tune.scale[t.key] = [a,b]; tuneChanged(); }));
+  });
+  TH_FIELDS.forEach(f=> th.appendChild(
+    rowOne(f.label, tune.th[f.k], f.step, v=>{ tune.th[f.k] = v; tuneChanged(); })));
+  TILES.forEach(t=> co.appendChild(
+    rowColor(t.label, tune.accent[t.key], v=>{ tune.accent[t.key] = v; tuneChanged(); })));
+}
+$('tuneReset').addEventListener('click', ()=>{
+  tune = clone(DEFAULT_TUNE); tuneSnapshot = clone(tune);
+  applyTune(); saveTune(); buildSettings();
+  setStatus('tuneStatus', 'คืนค่าเริ่มต้นแล้ว', 'ok');
+  toast('คืนค่าเริ่มต้นแล้ว');
+});
+$('tuneClose').addEventListener('click', closeSheet);
+
+function lockLandscape(){
+  try{
+    if (screen.orientation && screen.orientation.lock)
+      screen.orientation.lock('landscape')
+        .catch(()=> toast('เบราว์เซอร์นี้ไม่รองรับการล็อกทิศทาง'));
+  }catch(e){ }
+}
+$('fsBtn').addEventListener('click', ()=>{
+  if (document.fullscreenElement){
+    document.exitFullscreen()
+      .then(()=> toast('ออกจากโหมดเต็มจอ'))
+      .catch(err=> toast('ออกจากโหมดเต็มจอไม่สำเร็จ: '+(err && err.message ? err.message : err)));
+    return;
+  }
+  let settled = false, p;
+  try { p = document.documentElement.requestFullscreen(); }
+  catch(err){ toast('เต็มจอไม่สำเร็จ: '+(err && err.message ? err.message : err)); return; }
+  if (!p || !p.then){ toast('เบราว์เซอร์นี้ไม่รองรับโหมดเต็มจอ'); return; }
+  p.then(()=>{
+    settled = true; $('fsBtn').textContent = '✕';
+    toast('เข้าโหมดเต็มจอแล้ว — หมุนเครื่องเป็นแนวนอนได้เลย');
+    lockLandscape();
+  }).catch(err=>{
+    settled = true;
+    toast('เต็มจอไม่สำเร็จ: '+(err && err.message ? err.message : err));
+  });
+  setTimeout(()=>{ if (!settled) toast('กำลังเข้าโหมดเต็มจอ…'); }, 900);
+});
+document.addEventListener('fullscreenchange', ()=>{
+  $('fsBtn').textContent = document.fullscreenElement ? '✕' : '⛶';
+});
+
+// --- ฟังก์ชันขยายเต็มจออัตโนมัติเมื่อแตะหน้าจอครั้งแรก ---
+function autoFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(err => {
+      console.log("Auto fullscreen prevented or not supported:", err);
+    });
+  }
+}
+document.addEventListener('click', autoFullscreen, { once: true });
+document.addEventListener('touchstart', autoFullscreen, { once: true });
 
 const toastEl = $('toast');
+let toastTimer = null;
 function toast(msg){
   toastEl.textContent = msg;
   toastEl.classList.add('show');
-  setTimeout(()=> toastEl.classList.remove('show'), 2400);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> toastEl.classList.remove('show'), 2400);
 }
 
 const dtcSet = new Set();
 let pendingClear = false;
+
 function addDtc(code){
   const c = String(code).toUpperCase().trim();
   if (!/^[PBCU][0-9A-F]{4}$/.test(c) || dtcSet.has(c)) return;
-  dtcSet.add(c); renderDtc();
+  dtcSet.add(c); renderDtc(); logLine('<< ' + c);
 }
 function renderDtc(){
-  const box = $('dtcList'), cnt =$('dtcCount');
+  const box = $('dtcList'), cnt = $('dtcCount');
   if (!box) return;
   box.textContent = '';
   if (cnt) cnt.textContent = dtcSet.size + ' โค้ด';
   if (!dtcSet.size){
-    const s = document.createElement('span'); s.className = 'empty';
-    s.textContent = 'ไม่พบโค้ดข้อผิดพลาด';
+    const s = document.createElement('span');
+    s.className = 'empty';
+    s.textContent = 'ไม่พบโค้ดข้อผิดพลาด (หรือยังไม่ได้อ่านจากอุปกรณ์)';
     box.appendChild(s);
     return;
   }
   [...dtcSet].sort().forEach(code=>{
     const chip = document.createElement('span'); chip.className = 'dtcChip';
     const b = document.createElement('b'); b.textContent = code;
-    const x = document.createElement('i'); x.textContent = '✕';
+    const x = document.createElement('i'); x.textContent = '✕'; x.title = 'นำออกจากรายการ';
     x.addEventListener('click', ()=>{ dtcSet.delete(code); renderDtc(); });
     chip.appendChild(b); chip.appendChild(x); box.appendChild(chip);
   });
 }
-function clearDtc(){ dtcSet.clear(); renderDtc(); }
+function clearDtc(){
+  const n = dtcSet.size;
+  dtcSet.clear(); renderDtc();
+  logLine('ล้างโค้ดทั้งหมดแล้ว (' + n + ' โค้ด)');
+}
 function collectDtcLine(t){
   const codes = t.match(/\b[PBCU][0-9A-F]{4}\b/gi);
   if (!codes) return 0;
+  const byWord = /\b(dtc|fault|trouble|code)/i.test(t);
+  const bare = t.replace(/\b[PBCU][0-9A-F]{4}\b/gi,'').replace(/[\s,;|:[\]"']+/g,'') === '';
+  if (!byWord && !bare) return 0;
   codes.forEach(addDtc);
   return codes.length;
 }
-
+function logLine(msg){
+  const el = $('dtcLog'); if (!el) return;
+  const d = document.createElement('div'); d.className = 'logline';
+  d.textContent = new Date().toTimeString().slice(0,8) + '  ' + msg;
+  el.prepend(d);
+  while (el.children.length > 40) el.removeChild(el.lastChild);
+}
 async function sendRaw(cmd){
-  const s = String(cmd || '').trim();
-  if (!s) return;
-  const payload = s + '\n';
-  if (mode === 'ble' && bleChar){
-    if (window.GaugeBle) { window.GaugeBle.write(payload); return; }
-    await bleChar.writeValue(new TextEncoder().encode(payload));
-  } else if (mode === 'wifi' && ws){
-    ws.send(payload);
+  const s = String(cmd == null ? '' : cmd).trim();
+  if (!s) throw new Error('คำสั่งว่าง');
+  const payload = /\n$/.test(s) ? s : s + '\n';
+  if (mode === 'demo') return;
+  if (mode === 'ble'){
+    if (window.GaugeBle){
+      if (!window.GaugeBle.isConnected()) throw new Error('Bluetooth ยังไม่ได้เชื่อมต่อ');
+      window.GaugeBle.write(payload);
+      return;
+    }
+    if (!bleChar) throw new Error('Bluetooth ยังไม่ได้เชื่อมต่อ');
+    const buf = new TextEncoder().encode(payload);
+    if (bleChar.writeValue){
+      try { await bleChar.writeValue(buf); return; }
+      catch(e){ if (!bleChar.writeValueWithoutResponse) throw e; }
+    }
+    if (bleChar.writeValueWithoutResponse){ await bleChar.writeValueWithoutResponse(buf); return; }
+    throw new Error('Characteristic นี้ไม่รองรับการส่งคำสั่ง');
   }
+  if (mode === 'wifi'){
+    if (!ws || ws.readyState !== 1) throw new Error('Wi‑Fi ยังไม่ได้เชื่อมต่อ');
+    ws.send(payload); return;
+  }
+  throw new Error('ยังไม่ได้เชื่อมต่ออุปกรณ์ — กด “เชื่อมต่อ” ก่อน');
 }
 async function runCmd(kind){
-  const cmd = (kind === 'read' ? $('cmdRead') :$('cmdClear')).value.trim();
+  const cmd = (kind === 'read' ? $('cmdRead') : $('cmdClear')).value.trim();
+  if (!cmd){ setStatus('dtcStatus','กรุณาใส่คำสั่ง','err'); return; }
+  logLine('>> ' + cmd + (kind === 'read' ? '  (อ่านโค้ด)' : '  (ล้างโค้ด)'));
+  setStatus('dtcStatus','กำลังส่งคำสั่ง…');
   if (kind === 'clear') pendingClear = true;
-  saveCfg();
-  await sendRaw(cmd);
-  if (mode === 'demo'){
-    setTimeout(()=>{
-      if (kind === 'read') ['P0130','P0301'].forEach(addDtc);
-      else clearDtc();
-    }, 500);
+  try {
+    await sendRaw(cmd);
+    setStatus('dtcStatus','ส่งคำสั่งแล้ว — รออุปกรณ์ตอบ…','ok');
+    if (mode === 'demo'){
+      setTimeout(()=>{
+        if (kind === 'read'){
+          ['P0130','P0301','P0420'].forEach(addDtc);
+          setStatus('dtcStatus','อ่านได้ ' + dtcSet.size + ' โค้ด (โหมดจำลอง)','ok');
+        } else {
+          clearDtc(); pendingClear = false;
+          setStatus('dtcStatus','ล้างโค้ด DTC แล้ว (โหมดจำลอง)','ok');
+        }
+      }, 700);
+    }
+  } catch(err){
+    pendingClear = false;
+    const m = err && err.message ? err.message : String(err);
+    setStatus('dtcStatus','ส่งไม่สำเร็จ: ' + m,'err');
+    logLine('!! ' + m);
   }
 }
-$('dtcReadBtn').addEventListener('click', ()=> runCmd('read'));$('dtcClearBtn').addEventListener('click', ()=> runCmd('clear'));
+let clearArm = 0, clearArmTimer = null;
+$('dtcReadBtn').addEventListener('click', ()=> runCmd('read'));
+$('dtcClearBtn').addEventListener('click', ()=>{
+  const btn = $('dtcClearBtn'), now = Date.now();
+  if (clearArm < now){
+    clearArm = now + 4000;
+    btn.textContent = 'แตะอีกครั้งเพื่อยืนยัน';
+    setStatus('dtcStatus','กดยืนยันอีกครั้งภายใน 4 วินาทีเพื่อล้างความจำ ECU');
+    clearTimeout(clearArmTimer);
+    clearArmTimer = setTimeout(()=>{
+      clearArm = 0; btn.textContent = 'ลบโค้ด DTC';
+      if (/ยืนยัน/.test($('dtcStatus').textContent)) setStatus('dtcStatus','');
+    }, 4100);
+    return;
+  }
+  clearTimeout(clearArmTimer);
+  clearArm = 0; btn.textContent = 'ลบโค้ด DTC';
+  runCmd('clear');
+});
 
 const pagerEl = $('pager');
 const pageEls = [...pagerEl.querySelectorAll('.page')];
 const barBtns = [...$('pagebar').querySelectorAll('button')];
 let curPage = 0;
-function setPage(i){
+function updateBar(){ barBtns.forEach((b,i)=> b.classList.toggle('active', i === curPage)); }
+function setPage(i, smooth){
   curPage = Math.max(0, Math.min(pageEls.length - 1, i|0));
-  barBtns.forEach((b,idx)=> b.classList.toggle('active', idx === curPage));
-  pagerEl.scrollTo({left: curPage * pagerEl.clientWidth, behavior: 'smooth'});
+  updateBar();
+  pagerEl.scrollTo({left: curPage * pagerEl.clientWidth, behavior: smooth ? 'smooth' : 'auto'});
 }
-barBtns.forEach((b,i)=> b.addEventListener('click', ()=> setPage(i)));
+barBtns.forEach((b,i)=> b.addEventListener('click', ()=> setPage(i, true)));
+let barTimer = null;
+pagerEl.addEventListener('scroll', ()=>{
+  clearTimeout(barTimer);
+  barTimer = setTimeout(()=>{
+    const w = pagerEl.clientWidth || 1;
+    curPage = Math.max(0, Math.min(pageEls.length - 1, Math.round(pagerEl.scrollLeft / w)));
+    updateBar();
+  }, 80);
+});
+window.addEventListener('resize', ()=> setPage(curPage, false));
+document.addEventListener('keydown', e=>{
+  if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+  if (e.key === 'ArrowRight') setPage(curPage + 1, true);
+  if (e.key === 'ArrowLeft')  setPage(curPage - 1, true);
+});
+
+renderDtc();
+setPage(0, false);
+
+loadCfg();
+tuneSnapshot = clone(tune);
+applyTune();
+buildSettings();
+
+setPill('', 'ไม่ได้เชื่อมต่อ');
 
 const lsApp = $('lsApp');
-const lsPill = $('lsConnPill'), lsConnText =$('lsConnText');
+const lsPill = $('lsConnPill'), lsConnText = $('lsConnText');
 const lsPagerEl = $('lsPager');
 const lsPages = [...lsPagerEl.querySelectorAll('.lsPage')];
 const lsTabEls = [...document.querySelectorAll('.lsTab')];
@@ -1478,15 +1808,36 @@ let lsPage = 0;
 function lsSetPage(i){
   lsPage = Math.max(0, Math.min(lsPages.length - 1, i|0));
   lsTabEls.forEach(b => b.classList.toggle('active', Number(b.dataset.page) === lsPage));
+  lsApp.classList.toggle('lsPage0', lsPage === 0);
   lsApp.classList.toggle('lsParams', lsPage === 1);
-  lsApp.classList.toggle('lsDtcMode', lsPage === 2);
+  lsApp.classList.toggle('lsDtc', lsPage === 2);
   $('lsMenuBtn').classList.toggle('acc', lsPage === 2);
   lsPagerEl.scrollLeft = lsPage * lsPagerEl.clientWidth;
 }
 lsTabEls.forEach(b => b.addEventListener('click', ()=> lsSetPage(Number(b.dataset.page))));
-$('lsMenuBtn').addEventListener('click', ()=> lsSetPage(lsPage === 2 ? 0 : 2));$('lsConnBtn').addEventListener('click', ()=>{
+lsPagerEl.addEventListener('scroll', ()=>{
+  const w = lsPagerEl.clientWidth || 1;
+  const i = Math.max(0, Math.min(lsPages.length - 1, Math.round(lsPagerEl.scrollLeft / w)));
+  if (i !== lsPage){ 
+    lsPage = i; 
+    lsTabEls.forEach(b => b.classList.toggle('active', Number(b.dataset.page) === i));
+    lsApp.classList.toggle('lsPage0', i === 0);
+    lsApp.classList.toggle('lsParams', i === 1);
+    lsApp.classList.toggle('lsDtc', i === 2);
+    $('lsMenuBtn').classList.toggle('acc', i === 2); 
+  }
+});
+$('lsMenuBtn').addEventListener('click', ()=> lsSetPage(lsPage === 2 ? 0 : 2));
+$('lsFsBtn').addEventListener('click', ()=> $('fsBtn').click());
+$('lsConnBtn').addEventListener('click', ()=>{
   if (mode === 'off') openSheet();
-  else stopAll();
+  else { stopAll(); toast('ตัดการเชื่อมต่อแล้ว'); }
+});
+document.addEventListener('keydown', e=>{
+  if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+  if (getComputedStyle(lsApp).display === 'none') return;
+  if (e.key === 'ArrowRight') lsSetPage(lsPage + 1);
+  if (e.key === 'ArrowLeft')  lsSetPage(lsPage - 1);
 });
 
 const LS_SEG = 36, lsBarEl = $('lsBar'), lsSegs = [], lsSegOn = [];
@@ -1496,6 +1847,19 @@ for (let i = 0; i < LS_SEG; i++){
   s.style.setProperty('--segc', f < .60 ? GREEN : f < .82 ? AMBER : RED);
   if (f >= .82) s.classList.add('segRed');
   lsBarEl.appendChild(s); lsSegs.push(s); lsSegOn.push(false);
+}
+let lsScaleMax = 0;
+function lsBuildScale(){
+  if (RPM_MAX === lsScaleMax) return;
+  lsScaleMax = RPM_MAX;
+  const box = $('lsScale'); box.textContent = '';
+  for (let i = 0; i <= 4; i++){
+    const v = Math.round(RPM_MAX * i / 4 / 1000);
+    const s = document.createElement('span');
+    s.textContent = v;
+    s.style.left = (i / 4 * 100) + '%';
+    box.appendChild(s);
+  }
 }
 
 const lsPgrid = $('lsPgrid');
@@ -1519,20 +1883,101 @@ function placeDtc(){
 }
 window.addEventListener('resize', placeDtc);
 window.addEventListener('orientationchange', placeDtc);
+const lsMq = matchMedia('(orientation:landscape) and (min-width:600px)');
+if (lsMq.addEventListener) lsMq.addEventListener('change', placeDtc);
+else if (lsMq.addListener) lsMq.addListener(placeDtc);
 placeDtc();
 
-const _renderBase = render;
-render = function(now){
-  _renderBase(now);
-  if (getComputedStyle(lsApp).display !== 'none'){
-    put('lsRpmVal', String(Math.round(data.rpm)));
-    put('lsSpd', hadData ? String(Math.round(data.speed)) : '–');
+function lsPaint(id, txt, cls){
+  const el = $(id); if (!el) return;
+  put(id, txt);
+  const c = cls || '';
+  if (el.dataset.c !== c){ el.dataset.c = c; el.className = el.className.replace(/\s*(warn|bad|cool)\b/g,'') + (c ? ' ' + c : ''); }
+}
+function lsRender(now){
+  if (getComputedStyle(lsApp).display === 'none'){
+    document.body.classList.remove('lsRed');
+    return;
   }
+  const live = lastUpdate > 0 && (now - lastUpdate) < 2500;
+  const has = hadData && live;
+
+  lsBuildScale();
+  const rst = statusOf('rpm', data.rpm);
+  lsPaint('lsRpmVal', String(Math.round(data.rpm)), rst === 'ok' ? '' : rst);
+  put('lsRpmMaxV', String(Math.round(rpmMax)));
+  put('lsRedV', String(REDLINE));
+  const lit = Math.round(clamp(data.rpm / RPM_MAX, 0, 1) * LS_SEG);
+  for (let i = 0; i < LS_SEG; i++){
+    const on = has && i < lit;
+    if (lsSegOn[i] !== on){ lsSegOn[i] = on; lsSegs[i].classList.toggle('on', on); }
+  }
+  const hot = has && data.rpm >= REDLINE;
+  if (lsBarEl.classList.contains('hot') !== hot) lsBarEl.classList.toggle('hot', hot);
+  const shEl = $('lsShift');
+  if (shEl.classList.contains('hot') !== hot) shEl.classList.toggle('hot', hot);
+  document.body.classList.toggle('lsRed', hot);
+
+  lsPaint('lsSpd', has ? String(Math.round(data.speed)) : '–');
+  put('lsSpdMax', String(Math.round(spdMax)));
+  put('lsSpdAvg', String(Math.round(spdAvg)));
+  const d = new Date(), p2 = n => (n < 10 ? '0' : '') + n;
+  put('lsClock', p2(d.getHours()) + ':' + p2(d.getMinutes()));
+  put('lsDate', d.getDate() + ' ' +
+    ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][d.getMonth()]);
+
+  [['tps',0,100,0],['afr',10,18,1],['temp',0,120,0],['map',0,400,0]].forEach(([k,mn,mx,dec])=>{
+    const v = data[k], st = statusOf(k, v);
+    lsPaint('ls_v_'+k, has && v != null ? fmt(v, dec) : '–', st === 'ok' ? '' : st);
+    const f = $('ls_f_'+k);
+    if (f) f.style.width = (has && v != null ? clamp((v - mn) / (mx - mn), 0, 1) * 100 : 0).toFixed(1) + '%';
+  });
+
+  [['inj',1],['ign',0],['iacv',0],['bat',1],['iat',0],['fueltrim',1],['o2',2]].forEach(([k,dec])=>{
+    const v = data[k];
+    let txt = '–', st = 'ok';
+    if (has && v != null && v !== ''){
+      txt = typeof v === 'string' ? v : fmt(v, dec);
+      st = statusOf(k, typeof v === 'string' ? NaN : v);
+    }
+    lsPaint('ls_r_'+k, txt, st === 'ok' ? '' : st);
+  });
+
+  PARAMS.forEach(p=>{
+    put('lspv_'+p.key, fmtParam(p));
+    const el = $('lspv_' + p.key); if (!el) return;
+    let col = GREEN;
+    const v = data[p.key];
+    if (hadData && p.st && typeof v === 'number' && Number.isFinite(v))
+      col = statusColor(statusOf(p.st, v));
+    if (el.dataset.c !== col){ el.dataset.c = col; el.style.color = col; }
+  });
+
+  put('lsConnBtn', mode === 'off' ? 'เชื่อมต่อ' : 'ตัดการเชื่อมต่อ');
+}
+
+const _renderBase = render;
+render = function(now){ _renderBase(now); lsRender(now); };
+const _setPillBase = setPill;
+setPill = function(kind, text){
+  _setPillBase(kind, text);
+  lsPill.className = pill.className;
+  lsConnText.textContent = text;
 };
+
+lsSetPage(0);
+lsPill.className = pill.className;
+lsConnText.textContent = pillText.textContent;
 
 let wakeLock = null;
 async function requestWakeLock() {
-  try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+    }
+  } catch (err) {
+    console.error(`${err.name}, ${err.message}`);
+  }
 }
 requestWakeLock();
 
@@ -1543,13 +1988,15 @@ async function checkRemoteStatus() {
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3P-f0E_4JL-rbIC9ywV0NH71jWJNPzihpknfBvoNNDYbF9hb-Iw0TLEutEqd0TJPD80f7i1bhOc5O/pub?output=csv&t=" + new Date().getTime();
     
     const response = await fetch(csvUrl);
-    const dataText = await response.text();
-    const rows = dataText.split(/\r?\n/);
+    const data = await response.text();
+    
+    const rows = data.split(/\r?\n/);
     let isLocked = false;
 
     for (let row of rows) {
       if (!row.trim()) continue;
       const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+      
       if (cols[0] && cols[0] === myDeviceId) {
         if (cols[1] && cols[1].toUpperCase() === "OFF") {
           isLocked = true;
@@ -1576,7 +2023,7 @@ async function checkRemoteStatus() {
         overlay.style.alignItems = "center";
         overlay.style.color = "white";
         overlay.style.fontFamily = "sans-serif";
-        overlay.innerHTML = "<h1 style='color:red; font-size:28px; margin-bottom:10px;'>❌ อุปกรณ์นี้ถูกระงับการใช้งาน</h1><p style='font-size:16px; color:#ccc;'>กรุณาติดต่อผู้ดูแลระบบ</p>";
+        overlay.innerHTML = "<h1 style='color:red; font-size:28px; margin-bottom:10px;'>❌ ฮั่นแน่ชอบเร่งเครื่องหรอ!!!</h1><p style='font-size:16px; color:#ccc;'>กรุณาติดต่อผู้ดูแลระบบ</p>";
         document.body.appendChild(overlay);
       }
       overlay.style.display = "flex";
