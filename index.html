@@ -151,11 +151,20 @@ body.stale .spdBlock,body.stale .gpad,body.stale .rows,body.stale .hdZone
   opacity:0;pointer-events:none;transition:.2s;z-index:40}
 .overlay.open{opacity:1;pointer-events:auto}
 .sheet{
-  position:fixed;inset:0;z-index:50;margin:0;
-  background:#14181f;
-  padding:calc(8px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));
-  overflow-y:auto;overscroll-behavior:contain;
-  transform:translateY(105%);transition:transform .25s cubic-bezier(.2,.8,.2,1)
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 50;
+  margin: 0 auto;
+  max-width: 600px;
+  height: 55vh; /* กำหนดให้สูงครึ่งจอ */
+  background: #14181f;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  padding: calc(8px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  transform: translateY(105%);
+  transition: transform .25s cubic-bezier(.2,.8,.2,1);
 }
 .sheet.open{transform:none}
 @media (prefers-reduced-motion:reduce){ .sheet{transition:none} .pill .dot{animation:none} }
@@ -347,7 +356,7 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .lsBars{display:flex;flex-direction:column;gap:max(2px,.7vmin);width:max(12px,3.4vmin)}
 .lsBars i{display:block;height:max(2px,.7vmin);background:currentColor;border-radius:1px}
 .lsSpacer{flex:1 1 auto;min-width:4px}
-.lsClock{font-family:var(--mono);font-size:max(9px,2.7vmin);color:var(--dim);letter-spacing:1px}
+.lsClock{font-family: var(--mono);font-size: max(11px, 3.4vmin);font-weight: 800;color: #fff;letter-spacing: 1px;}
 .lsTabs{display:flex;gap:4px;flex:0 0 auto}
 .lsTab{font-size:max(8px,2.2vmin);font-weight:800;letter-spacing:.5px;color:var(--dim);
   background:var(--panel);border:1px solid var(--line);border-radius:5px;cursor:pointer;
@@ -742,7 +751,6 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
   <h3>เชื่อมต่ออุปกรณ์</h3>
   <div class="tabs">
     <button class="active" data-tab="ble">BLE</button>
-    <button data-tab="wifi">Wi‑Fi</button>
     <button data-tab="demo">Demo</button>
     <button data-tab="set">ตั้งค่า</button>
   </div>
@@ -761,20 +769,7 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
       ที่ประกาศในสเก็ตช์ของคุณ (เช่น <code>4fafc201-1fb5-459f-85fe-9ff9b9d8</code>)</div>
     <div class="statusline" id="bleStatus"></div>
   </div>
-
-  <div class="pane" id="pane-wifi">
-    <label>WebSocket URL</label>
-    <input type="text" id="wsURL" value="ws://192.168.4.1/ws">
-    <div class="row">
-      <button class="btn" id="wsConnect">เชื่อมต่อ Wi‑Fi</button>
-      <button class="btn ghost" id="wsDisconnect">ตัดการเชื่อมต่อ</button>
-    </div>
-    <div class="hint">ใส่ IP ของ ESP32 เช่น <code>ws://192.168.1.37/ws</code> — หน้าเว็บต้องเปิดผ่าน
-      <b>HTTPS</b> จึงจะต่อ <code>wss://</code> ได้</div>
-    <div class="statusline" id="wsStatus"></div>
-  </div>
-
-  <div class="pane" id="pane-demo">
+ <div class="pane" id="pane-demo">
     <div class="hint">โหมดข้อมูลจำลอง ใช้ดูหน้าจอ/ตรวจสีเตือนโดยไม่ต้องมีอุปกรณ์จริง</div>
     <div class="row">
       <button class="btn" id="demoStart">เริ่ม Demo</button>
@@ -1198,7 +1193,7 @@ function render(now){
   const p2 = n => (n < 10 ? '0' : '') + n;
   put('clk', p2(clock.getHours()) + ':' + p2(clock.getMinutes()));
   put('dateTxt', clock.getDate() + ' ' +
-    ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][clock.getMonth()] +
+    ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][clock.getMonth()] +
     ' ' + clock.getFullYear());
   put('modeVal', hadData && data.mode != null && data.mode !== '' ? String(data.mode) : '–');
 
@@ -1524,7 +1519,6 @@ document.querySelectorAll('.tabs button').forEach(b=>{
 });
 $('bleConnect').addEventListener('click', bleConnect);
 $('bleDisconnect').addEventListener('click', ()=>{ stopAll(); setStatus('bleStatus','ตัดการเชื่อมต่อแล้ว'); });
-$('wsConnect').addEventListener('click', wsConnect);
 $('wsDisconnect').addEventListener('click', ()=>{ wsShouldRun=false; stopAll(); setStatus('wsStatus','ตัดการเชื่อมต่อแล้ว'); });
 $('demoStart').addEventListener('click', demoStart);
 $('demoStop').addEventListener('click', ()=>{ demoStop(); setStatus('demoStatus','หยุดแล้ว'); });
@@ -1685,15 +1679,6 @@ document.addEventListener('fullscreenchange', ()=>{
   $('fsBtn').textContent = document.fullscreenElement ? '✕' : '⛶';
 });
 
-function autoFullscreen() {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().catch(err => {
-      console.log("Auto fullscreen prevented or not supported:", err);
-    });
-  }
-}
-document.addEventListener('click', autoFullscreen, { once: true });
-document.addEventListener('touchstart', autoFullscreen, { once: true });
 
 const toastEl = $('toast');
 let toastTimer = null;
@@ -2033,8 +2018,10 @@ function lsRender(now){
   put('lsSpdAvg', String(Math.round(spdAvg)));
   const d = new Date(), p2 = n => (n < 10 ? '0' : '') + n;
   put('lsClock', p2(d.getHours()) + ':' + p2(d.getMinutes()));
+  // แสดงผล วัน เดือน ปี (เช่น 20 ต.ค. 2026)
   put('lsDate', d.getDate() + ' ' +
-    ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][d.getMonth()]);
+    ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][d.getMonth()] +
+    ' ' + d.getFullYear());
 
   [['tps',0,100,0],['afr',10,18,1],['temp',0,120,0],['map',0,400,0]].forEach(([k,mn,mx,dec])=>{
     const v = data[k], st = statusOf(k, v);
