@@ -293,9 +293,19 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .btn.danger{background:#2a0d10;border-color:#6d1a20;color:#ff6b6b}
 .btn.danger:active{background:#3a1116}
 .cmdRow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.dtcLog{margin-top:10px;background:#070d14;border:1px solid var(--line);border-radius:10px;
-  padding:7px 10px;max-height:120px;overflow:auto;font-family:var(--mono);font-size:11px;
-  color:var(--dim);display:none}
+.dtcLog{
+  margin-top:10px;
+  background:#070d14;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:7px 10px;
+  height:110px;
+  max-height:110px;
+  flex: 0 0 110px;
+  overflow-y:auto;
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--dim);display:none;}
 .dtcLog:not(:empty){display:block}
 .logline{padding:3px 0;border-bottom:1px solid #101a25;word-break:break-all}
 .logline:last-child{border-bottom:0}
@@ -1744,7 +1754,8 @@ function logLine(msg){
   const d = document.createElement('div'); d.className = 'logline';
   d.textContent = new Date().toTimeString().slice(0,8) + '  ' + msg;
   el.prepend(d);
-  while (el.children.length > 40) el.removeChild(el.lastChild);
+  while (el.children.length > 20) el.removeChild(el.lastChild);
+  el.scrollTop = 0;
 }
 async function sendRaw(cmd){
   const s = String(cmd == null ? '' : cmd).trim();
