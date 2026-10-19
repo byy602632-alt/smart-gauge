@@ -976,12 +976,12 @@ function ingestCSV(parts){
 function ingest(text){
   const t = String(text).trim();
   if (!t) return 0;
+  markLive();
   if (pendingClear && /\b(ok|okay|done|success|cleared)\b/i.test(t)){
     pendingClear = false; clearDtc();
     setStatus('dtcStatus','ล้างโค้ด DTC แล้ว','ok');
   }
   const dtcHit = collectDtcLine(t);
-  if (dtcHit > 0) markLive(); // ต่ออายุสถานะการเชื่อมต่อเมื่อได้รับข้อความ DTC กลับมา
   if (t[0]==='{'){
     try { return ingestObject(JSON.parse(t)) + dtcHit; } catch(e){ return dtcHit; }
   }
@@ -993,15 +993,14 @@ function ingest(text){
     return ingestObject(obj) + dtcHit;
   }
   if (/^[0-9eE+\-.,\s]+$/.test(t)) return ingestCSV(t.split(',')) + dtcHit;
-  if (/^[a-z_,\s]+$|NO FAULT CODES/i.test(t)){
-    if (!/^[a-z_,\s]+$/i.test(t)) return dtcHit;
+  if (/^[a-z_,\s]+$/i.test(t)){
     csvHeader = t.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
     return dtcHit;
   }
   return dtcHit;
 }
 function markLive(){ lastUpdate = performance.now(); hadData = true; }
-function noteConnected(){ connectedAt = performance.now(); lastUpdate = 0; hadData = false; }
+function noteConnected(){ connectedAt = performance.now(); lastUpdate = performance.now(); hadData = true; }
 
 function setArc(id, frac, color){
   const el = document.getElementById(id);
@@ -1108,13 +1107,20 @@ function scheduleRender(){
 function frame(t){ rafPending = false; render(t); scheduleRender(); }
 function render(now){
   lastFrame = now;
-  // เพิ่มเวลา Timeout เป็น 6 วินาที (จากเดิม 2.5 วินาที) เพื่อป้องกันขึ้นข้อมูลค้างเวลาบอร์ดกำลังส่งข้อมูล DTC
-  const live = lastUpdate > 0 && (now - lastUpdate) < 6000;
+  const isDtcTab = (curPage === 2 || lsPage === 2);
+  const timeoutLimit = isDtcTab ? 30000 : 8000;
+  const live = lastUpdate > 0 && (now - lastUpdate) < timeoutLimit;
+  
   document.body.classList.toggle('stale', hadData && !live);
   if (mode === 'demo'){ }
   else if ((mode === 'ble' || mode === 'wifi') && hadData && !live) setPill('err', 'ข้อมูลค้าง');
-  else if ((mode === 'ble' || mode === 'wifi') && lastUpdate === 0 && now - connectedAt > 6000)
+  else if ((mode === 'ble' || mode === 'wifi') && lastUpdate === 0 && now - connectedAt > timeoutLimit)
     setPill('warn', 'ยังไม่มีข้อมูล');
+  else if ((mode === 'ble' || mode === 'wifi') && live) {
+    if (mode === 'ble' && bleDevice) setPill('on', (bleDevice.name || 'BLE').slice(0, 14));
+    else if (mode === 'ble') setPill('on', 'BLE');
+    else if (mode === 'wifi') setPill('on', 'Wi‑Fi');
+  }
 
   put('rpmVal', String(Math.round(data.rpm)));
   rpmMax = Math.max(rpmMax, data.rpm);
@@ -1622,7 +1628,6 @@ document.addEventListener('fullscreenchange', ()=>{
   $('fsBtn').textContent = document.fullscreenElement ? '✕' : '⛶';
 });
 
-// --- ฟังก์ชันขยายเต็มจออัตโนมัติเมื่อแตะหน้าจอครั้งแรก ---
 function autoFullscreen() {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen().catch(err => {
@@ -1676,7 +1681,7 @@ function clearDtc(){
   logLine('ล้างโค้ดทั้งหมดแล้ว (' + n + ' โค้ด)');
 }
 function collectDtcLine(t){
-  if (/NO FAULT CODES/i.test(t)){
+  if (/NO FAULT CODES|OK|CLEARED/i.test(t)){
     dtcSet.clear();
     renderDtc();
     logLine('<< ' + t);
@@ -1724,14 +1729,21 @@ async function sendRaw(cmd){
   throw new Error('ยังไม่ได้เชื่อมต่ออุปกรณ์ — กด “เชื่อมต่อ” ก่อน');
 }
 async function runCmd(kind){
-  const cmd = (kind === 'read' ? $('cmdRead') : $('cmdClear')).value.trim();
+  const cmd = (kind === 'read' ? $('cmdRead' ) : $('cmdClear')).value.trim();
   if (!cmd){ setStatus('dtcStatus','กรุณาใส่คำสั่ง','err'); return; }
+  
+  markLive();
   logLine('>> ' + cmd + (kind === 'read' ? '  (อ่านโค้ด)' : '  (ล้างโค้ด)'));
   setStatus('dtcStatus','กำลังส่งคำสั่ง…');
-  if (kind === 'clear') pendingClear = true;
+  
+  if (kind === 'clear') {
+    pendingClear = true;
+    clearDtc();
+  }
+  
   try {
     await sendRaw(cmd);
-    setStatus('dtcStatus','ส่งคำสั่งแล้ว — รออุปกรณ์ตอบ…','ok');
+    setStatus('dtcStatus', kind === 'clear' ? 'ส่งคำสั่งลบโค้ดแล้ว' : 'ส่งคำสั่งแล้ว — รออุปกรณ์ตอบ…', 'ok');
     if (mode === 'demo'){
       setTimeout(()=>{
         if (kind === 'read'){
@@ -1833,7 +1845,7 @@ lsPagerEl.addEventListener('scroll', ()=>{
     lsApp.classList.toggle('lsPage0', i === 0);
     lsApp.classList.toggle('lsParams', i === 1);
     lsApp.classList.toggle('lsDtc', i === 2);
-    $('lsMenuBtn').classList.toggle('acc', lsPage === 2); 
+    $('lsMenuBtn').classList.toggle('acc', i === 2); 
   }
 });
 $('lsMenuBtn').addEventListener('click', ()=> lsSetPage(lsPage === 2 ? 0 : 2));
@@ -1908,7 +1920,9 @@ function lsRender(now){
     document.body.classList.remove('lsRed');
     return;
   }
-  const live = lastUpdate > 0 && (now - lastUpdate) < 6000;
+  const isDtcTab = (curPage === 2 || lsPage === 2);
+  const timeoutLimit = isDtcTab ? 30000 : 8000;
+  const live = lastUpdate > 0 && (now - lastUpdate) < timeoutLimit;
   const has = hadData && live;
 
   lsBuildScale();
@@ -2008,7 +2022,7 @@ async function checkRemoteStatus() {
       
       if (cols[0] && cols[0] === myDeviceId) {
         if (cols[1] && cols[1].toUpperCase() === "OFF") {
-          isLocked = type = true;
+          isLocked = true;
         }
         break;
       }
@@ -2028,7 +2042,7 @@ async function checkRemoteStatus() {
         overlay.style.zIndex = "999999";
         overlay.style.display = "flex";
         overlay.style.flexDirection = "column";
-        overlay.style.justifyContent, "center";
+        overlay.style.justifyContent = "center";
         overlay.style.alignItems = "center";
         overlay.style.color = "white";
         overlay.style.fontFamily = "sans-serif";
