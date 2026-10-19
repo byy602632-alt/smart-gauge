@@ -1708,9 +1708,23 @@ const dtcSet = new Set();
 let pendingClear = false;
 
 function addDtc(code){
-  const c = String(code).toUpperCase().trim();
+  let c = String(code).toUpperCase().trim();
+  
+  // แปลงรหัส P-Code หรือตัวเลข ให้กลายเป็นรูปแบบ Code XX (เช่น P0001 -> Code 01)
+  if (c.startsWith('P')) {
+    let num = c.replace(/[^0-9]/g, '');
+    if (num.length > 0) {
+      let parsedNum = parseInt(num, 10);
+      c = 'Code ' + ('0' + parsedNum).slice(-2);
+    }
+  } else if (/^\d{1,2}$/.test(c)) {
+    c = 'Code ' + ('0' + parseInt(c, 10)).slice(-2);
+  }
+
   if (dtcSet.has(c)) return;
-  dtcSet.add(c); renderDtc(); logLine('<< ' + c);
+  dtcSet.add(c); 
+  renderDtc(); 
+  logLine('<< ' + c);
 }
 
 // ฟังก์ชันเรนเดอร์ DTC แสดงรหัสพร้อมคำอธิบายภาษาไทย/อังกฤษ
