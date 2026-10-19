@@ -266,36 +266,42 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 
 .page#page2{overflow:hidden}
 .dtc{padding:10px;height:100%;display:flex;flex-direction:column;min-height:0}
-.dtcHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.dtcHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex:0 0 auto}
 .dtcTitle{font-size:13px;letter-spacing:2px;color:var(--text);font-weight:800}
 .dtcCount{font-family:var(--mono);font-size:12px;color:var(--dim)}
-.dtcList{display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;min-height:52px;
+
+/* จออ่านโค้ด ขยายเต็มพื้นที่ด้านบน */
+.dtcList{display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;
   background:#070d14;border:1px dashed var(--line);border-radius:10px;padding:10px;
-  flex:0 0 auto;max-height:120px;overflow:auto;overscroll-behavior:contain}
+  flex:1 1 auto;min-height:100px;overflow-y:auto;overscroll-behavior:contain}
 .dtcList .empty{font-size:12px;color:#3f5165}
 .dtcChip{display:inline-flex;align-items:center;gap:9px;background:#1a0d10;
   border:1px solid #5a1a20;color:#ff6b6b;font-family:var(--mono);font-size:15px;
   font-weight:700;padding:8px 12px;border-radius:7px}
 .dtcChip i{font-style:normal;font-size:13px;opacity:.65;cursor:pointer;padding:0 3px}
+
 .dtcRow{display:flex;gap:10px;margin-top:10px;flex:0 0 auto}
-.dtcRow .btn{flex:1;padding:16px;font-size:15px}
-.dtc .cmdRow{margin-top:12px;flex:0 0 auto}
-.dtc .cmdRow .btn,.dtc label{font-size:13px}
-.dtc input[type=text]{padding:14px 12px;font-size:16px}
-.dtc .statusline{margin-top:10px;flex:0 0 auto}
-.dtc .dtcLog{flex:1 1 auto;min-height:80px;max-height:22vh;overflow:auto}
+.dtcRow .btn{flex:1;padding:12px;font-size:14px}
+.dtc .cmdRow{margin-top:8px;flex:0 0 auto}
+.dtc .cmdRow .btn,.dtc label{font-size:12px}
+.dtc input[type=text]{padding:8px 10px;font-size:14px}
+.dtc .statusline{margin-top:6px;flex:0 0 auto}
+
+/* จอบันทึกประวัติด้านล่าง ย่อขนาดเล็ก */
+.dtc .dtcLog{flex:0 0 auto;min-height:40px;max-height:80px;height:80px;overflow-y:auto;margin-top:8px}
 .dtc .hint{display:none}
+
 @media (orientation:landscape) and (min-width:700px){
   .dtc{max-width:760px;margin:0 auto;width:100%}
 }
 .btn.danger{background:#2a0d10;border-color:#6d1a20;color:#ff6b6b}
 .btn.danger:active{background:#3a1116}
 .cmdRow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.dtcLog{margin-top:10px;background:#070d14;border:1px solid var(--line);border-radius:10px;
+.dtcLog{background:#070d14;border:1px solid var(--line);border-radius:10px;
   padding:7px 10px;font-family:var(--mono);font-size:11px;
   color:var(--dim);display:none}
 .dtcLog:not(:empty){display:block}
-.logline{padding:3px 0;border-bottom:1px solid #101a25;word-break:break-all}
+.logline{padding:2px 0;border-bottom:1px solid #101a25;word-break:break-all}
 .logline:last-child{border-bottom:0}
 
 @media (orientation:landscape){
@@ -397,7 +403,6 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .lsPager::-webkit-scrollbar{display:none}
 .lsPage{flex:0 0 100%;min-width:100%;scroll-snap-align:start;display:flex;min-height:0;min-width:0}
 
-/* ซ่อนแถบ RPM สำหรับทุกหน้ายกเว้นหน้าแรก (lsPage0) */
 .lsApp:not(.lsPage0) .lsRpm, .lsApp.lsParams .lsRpm, .lsApp.lsDtc .lsRpm {
   height: 0; padding: 0; border-width: 0; overflow: hidden; margin: 0; opacity: 0;
 }
@@ -472,11 +477,11 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .lsDtcSlot{flex:1 1 auto;display:flex;min-height:0;min-width:0}
 @media (orientation:landscape) and (min-width:600px){
   .lsDtcSlot .dtc{max-width:none;margin:0;width:100%;padding:6px 8px}
-  .lsDtcSlot .dtcRow{margin-top:8px}
+  .lsDtcSlot .dtcRow{margin-top:6px}
   .lsDtcSlot .dtcRow .btn{padding:8px 12px;font-size:12px}
-  .lsDtcSlot .dtc .cmdRow{margin-top:8px}
-  .lsDtcSlot .dtc input[type=text]{padding:8px 10px;font-size:13px}
-  .lsDtcSlot .dtc .dtcLog{max-height:none;flex:1 1 auto;min-height:0}
+  .lsDtcSlot .dtc .cmdRow{margin-top:6px}
+  .lsDtcSlot .dtc input[type=text]{padding:6px 10px;font-size:13px}
+  .lsDtcSlot .dtc .dtcLog{max-height:80px;height:80px;flex:0 0 auto;min-height:0}
 }
 .lsFoot{display:flex;justify-content:space-between;align-items:center;flex:0 0 auto;
   font-size:max(7px,2vmin);letter-spacing:1px;color:#3d4552;padding:0 2px}
