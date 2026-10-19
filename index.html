@@ -1760,8 +1760,10 @@ function collectDtcLine(t){
     logLine('<< ' + t);
     return 1;
   }
-  // รองรับการจับทั้งโค้ดมาตรฐาน P-code (เช่น P0001, P0008) หรือรูปแบบ Code 01 / ตัวเลขรหัส
-  const codes = t.match(/\b([PBCU][0-9A-F]{4}|Code\s*\d+|\d{1,2})\b/gi);
+  
+  // เปลี่ยนมาใช้บรรทัดนี้แทน (ตัดตัวเลข 1-2 หลักเพียวๆ ออก)
+  const codes = t.match(/\b([PBCU][0-9A-F]{4}|Code\s*\d+)\b/gi);
+  
   if (!codes) return 0;
   codes.forEach(c => addDtc(c));
   return codes.length;
