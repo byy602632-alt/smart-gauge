@@ -481,15 +481,42 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .lsPu{font-size:max(7px,2vmin);color:var(--dim);min-width:2.4em;letter-spacing:.5px}
 
 .lsDtcSlot{flex:1 1 auto;display:flex;min-height:0;min-width:0}
-@media (orientation:landscape) and (min-width:600px){
-  .lsDtcSlot .dtc{max-width:none;margin:0;width:100%;padding:6px 8px}
-  .lsDtcSlot .dtcRow{margin-top:8px}
-  .lsDtcSlot .dtcRow .btn{padding:8px 12px;font-size:12px}
-  .lsDtcSlot .dtc .cmdRow{margin-top:8px}
-  .lsDtcSlot .dtc input[type=text]{padding:8px 10px;font-size:13px}
-  .lsDtcSlot .dtc .dtcLog{max-height:none;flex:1 1 auto;min-height:0}
-}
-.lsFoot{display:flex;justify-content:space-between;align-items:center;flex:0 0 auto;
+@media (orientation:landscape){
+  .lsDtcSlot .dtc {
+    max-width: none !important;
+    margin: 0 !important;
+    width: 100% !important;
+    padding: 10px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+  }
+  .lsDtcSlot .dtcList {
+    min-height: 80px !important;
+    max-height: 120px !important;
+    flex: 0 0 auto !important;
+  }
+  .lsDtcSlot .dtcRow {
+    margin-top: 8px !important;
+  }
+  .lsDtcSlot .dtcRow .btn {
+    padding: 12px !important;
+    font-size: 14px !important;
+  }
+  .lsDtcSlot .dtc .cmdRow {
+    margin-top: 8px !important;
+  }
+  .lsDtcSlot .dtc input[type=text] {
+    padding: 10px !important;
+    font-size: 14px !important;
+  }
+  .lsDtcSlot .dtc .dtcLog {
+    height: 120px !important;
+    max-height: 120px !important;
+    flex: 0 0 120px !important;
+    margin-top: 8px !important;
+  }
+}.lsFoot{display:flex;justify-content:space-between;align-items:center;flex:0 0 auto;
   font-size:max(7px,2vmin);letter-spacing:1px;color:#3d4552;padding:0 2px}
 .lsFoot b{color:#4d5766;font-weight:700}
 .lsFootMid{letter-spacing:.5px}
