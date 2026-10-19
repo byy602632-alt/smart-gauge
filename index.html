@@ -1673,6 +1673,12 @@ function clearDtc(){
   logLine('ล้างโค้ดทั้งหมดแล้ว (' + n + ' โค้ด)');
 }
 function collectDtcLine(t){
+  if (/NO FAULT CODES/i.test(t)){
+    dtcSet.clear();
+    renderDtc();
+    logLine('<< ' + t);
+    return 1;
+  }
   const codes = t.match(/\b[PBCU][0-9A-F]{4}\b/gi);
   if (!codes) return 0;
   const byWord = /\b(dtc|fault|trouble|code)/i.test(t);
