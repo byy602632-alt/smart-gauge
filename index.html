@@ -835,8 +835,36 @@ async function connectBluetooth() {
 
 const GREEN='#34d399', AMBER='#fbbf24', RED='#fb5c5c', CYAN='#22d3ee';
 
-// พจนานุกรมแปลโค้ด DTC ภาษาไทย / อังกฤษ (ตามรูปแบบที่คุณต้องการ)
+// พจนานุกรมแปลโค้ด DTC ภาษาไทย / อังกฤษ (รองรับทั้งรูปแบบ P-Code และ Code XX)
 const DTC_DICT = {
+  // รองรับรูปแบบ P-Code (ที่กล่อง ECU ส่งมาจริง)
+  'P0001': 'MAP Sensor (เซนเซอร์แรงดันไอดี)',
+  'P0007': 'Bank Angle (เซนเซอร์มุมเอียง)',
+  'P0008': 'Throttle Position (เซนเซอร์เรือนลิ้นเร่ง/TPS)',
+  'P0009': 'IAT Sensor (เซนเซอร์อุณหภูมิอากาศไอดี)',
+  'P0011': 'Wheel Speed / ABS (เซนเซอร์ความเร็วล้อ/เอบีเอส)',
+  'P0012': 'Fuel Injector (หัวฉีดน้ำมันเชื้อเพลิง)',
+  'P0013': 'MAP Pressure (แรงดันแมพเซนเซอร์ผิดปกติ)',
+  'P0014': 'IACV Valve (วาล์วควบคุมรอบเดินเบา)',
+  'P0015': 'EOT/ECT Sensor (เซนเซอร์อุณหภูมิเครื่องยนต์/น้ำหล่อเย็น)',
+  'P0018': 'CKP Sensor (เซนเซอร์ข้อเหวี่ยง)',
+  'P0019': 'CMP Sensor (เซนเซอร์เพลาลูกเบี้ยว)',
+  'P0021': 'O2 Sensor (ออกซิเจนเซนเซอร์)',
+  'P0024': 'Ignition Coil (คอยล์จุดระเบิด)',
+  'P0029': 'IACV Error (ความผิดปกติของวาล์ว IACV)',
+  'P0032': 'Injector Error (ความผิดปกติของระบบหัวฉีด)',
+  'P0033': 'ECU / Battery Voltage (แรงดันไฟแบตเตอรี่/กล่อง ECU)',
+  'P0035': 'EGR System (ระบบ EGR)',
+  'P0044': 'EVAP Valve (วาล์วไอระเหยน้ำมันถัง)',
+  'P0052': 'CKP Fault (ความผิดพลาดของเซนเซอร์ข้อเหวี่ยง)',
+  'P0054': 'Bank Angle Fault (ความผิดพลาดเซนเซอร์มุมเอียง)',
+  'P0063': 'Mode Switch (สวิตช์เลือกโหมด)',
+  'P0072': 'Exhaust Valve (วาล์วไอเสีย)',
+  'P0087': 'Fuel Pump / Relay (ปั๊มเชื้อเพลิงหรือรีเลย์ปั๊ม)',
+  'P0090': 'Smart Key System (ระบบกุญแจรีโมทอัจฉริยะ)',
+  'P0091': 'Security / Remote (ระบบกันขโมย/รีโมท)',
+
+  // รองรับรูปแบบ Code XX (สำหรับโหมด Demo หรือกล่องรุ่นเก่า)
   'Code 01': 'MAP Sensor (เซนเซอร์แรงดันไอดี)',
   'Code 07': 'Bank Angle (เซนเซอร์มุมเอียง)',
   'Code 08': 'Throttle Position (เซนเซอร์เรือนลิ้นเร่ง/TPS)',
@@ -1701,9 +1729,15 @@ function renderDtc(){
   [...dtcSet].sort().forEach(code=>{
     const chip = document.createElement('span'); chip.className = 'dtcChip';
     
+    // แปลงรหัส เช่น P0008 ให้รองรับการค้นหาสำรองเป็นรูปแบบ 'Code 08' หากจำเป็น
+    let num = code.replace(/[^0-9]/g, '');
+    if (num.length > 0) {
+      num = ('0' + parseInt(num, 10)).slice(-2);
+    }
+    const altKey = 'Code ' + num;
+
     // ค้นหาคำอธิบายจากตาราง DTC_DICT
-    const formattedCode = code.startsWith('Code') ? code : ('Code ' + code);
-    const desc = DTC_DICT[code] || DTC_DICT[formattedCode] || 'รหัสข้อผิดพลาดระบบเครื่องยนต์';
+    const desc = DTC_DICT[code] || DTC_DICT[altKey] || 'รหัสข้อผิดพลาดระบบเครื่องยนต์';
 
     const b = document.createElement('b'); 
     b.innerHTML = `${code}: <span style="font-size:13px; font-weight:normal; color:#ffb020;">${desc}</span>`;
@@ -1726,7 +1760,7 @@ function collectDtcLine(t){
     logLine('<< ' + t);
     return 1;
   }
-  // รองรับการจับทั้งโค้ดมาตรฐาน P-code (เช่น P0130) หรือรูปแบบ Code 01 / ตัวเลขรหัสกระพริบ
+  // รองรับการจับทั้งโค้ดมาตรฐาน P-code (เช่น P0001, P0008) หรือรูปแบบ Code 01 / ตัวเลขรหัส
   const codes = t.match(/\b([PBCU][0-9A-F]{4}|Code\s*\d+|\d{1,2})\b/gi);
   if (!codes) return 0;
   codes.forEach(c => addDtc(c));
