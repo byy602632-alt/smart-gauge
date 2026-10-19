@@ -147,16 +147,19 @@ body.stale .spdBlock,body.stale .gpad,body.stale .rows,body.stale .hdZone
   font-size:11px;word-break:break-all}
 .info h4{font-size:11px;letter-spacing:2px;color:var(--acc);margin-bottom:6px}
 
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(3px);
-  opacity:0;pointer-events:none;transition:.2s;z-index:40}
-.overlay.open{opacity:1;pointer-events:auto}
+.overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.62); backdrop-filter:blur(3px);
+  opacity:0; pointer-events:none; transition:.2s; z-index:40;
+}
+.overlay.open{opacity:1; pointer-events:auto;}
+
 .sheet{
   position: fixed;
   bottom: 0; left: 0; right: 0;
   z-index: 50;
   margin: 0 auto;
   max-width: 600px;
-  height: 55vh; /* กำหนดให้สูงครึ่งจอ */
+  height: 55vh;
   background: #14181f;
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
@@ -166,6 +169,7 @@ body.stale .spdBlock,body.stale .gpad,body.stale .rows,body.stale .hdZone
   transform: translateY(105%);
   transition: transform .25s cubic-bezier(.2,.8,.2,1);
 }
+.sheet.open{transform:translateY(0);}
 .sheet.open{transform:none}
 @media (prefers-reduced-motion:reduce){ .sheet{transition:none} .pill .dot{animation:none} }
 .grab{width:44px;height:4px;border-radius:9px;background:#2b2b31;margin:2px auto 10px;
@@ -1459,11 +1463,10 @@ function sheetOnScreen(){ const r = sheet.getBoundingClientRect(); return r.top 
 function forceSheet(open){
   setTimeout(()=>{
     if (sheet.classList.contains('open') !== open) return;
-    if (sheetOnScreen() === open) return;
     sheet.style.transition = 'none';
-    sheet.style.transform = open ? 'none' : 'translateY(105%)';
+    sheet.style.transform = open ? 'translateY(0)' : 'translateY(105%)';
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      sheet.style.transition = ''; sheet.style.transform = '';
+      sheet.style.transition = ''; 
     }));
   }, 380);
 }
