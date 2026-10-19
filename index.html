@@ -261,7 +261,7 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
   flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain}
 .dtcList .empty{font-size:12px;color:#3f5165}
 .dtcChip{display:inline-flex;align-items:center;gap:9px;background:#1a0d10;
-  border:1px solid #5a1a20;color:#ff6b6b;font-family:var(--mono);font-size:16px;
+  border:1px solid #5a1a20;color:#ff6b6b;font-family:var(--mono);font-size:15px;
   font-weight:700;padding:8px 12px;border-radius:7px}
 .dtcChip i{font-style:normal;font-size:13px;opacity:.65;cursor:pointer;padding:0 3px}
 .dtcRow{display:flex;gap:10px;margin-top:10px;flex:0 0 auto}
@@ -834,6 +834,35 @@ async function connectBluetooth() {
 }
 
 const GREEN='#34d399', AMBER='#fbbf24', RED='#fb5c5c', CYAN='#22d3ee';
+
+// พจนานุกรมแปลโค้ด DTC ภาษาไทย / อังกฤษ (ตามรูปแบบที่คุณต้องการ)
+const DTC_DICT = {
+  'Code 01': 'MAP Sensor (เซนเซอร์แรงดันไอดี)',
+  'Code 07': 'Bank Angle (เซนเซอร์มุมเอียง)',
+  'Code 08': 'Throttle Position (เซนเซอร์เรือนลิ้นเร่ง/TPS)',
+  'Code 09': 'IAT Sensor (เซนเซอร์อุณหภูมิอากาศไอดี)',
+  'Code 11': 'Wheel Speed / ABS (เซนเซอร์ความเร็วล้อ/เอบีเอส)',
+  'Code 12': 'Fuel Injector (หัวฉีดน้ำมันเชื้อเพลิง)',
+  'Code 13': 'MAP Pressure (แรงดันแมพเซนเซอร์ผิดปกติ)',
+  'Code 14': 'IACV Valve (วาล์วควบคุมรอบเดินเบา)',
+  'Code 15': 'EOT/ECT Sensor (เซนเซอร์อุณหภูมิเครื่องยนต์/น้ำหล่อเย็น)',
+  'Code 18': 'CKP Sensor (เซนเซอร์ข้อเหวี่ยง)',
+  'Code 19': 'CMP Sensor (เซนเซอร์เพลาลูกเบี้ยว)',
+  'Code 21': 'O2 Sensor (ออกซิเจนเซนเซอร์)',
+  'Code 24': 'Ignition Coil (คอยล์จุดระเบิด)',
+  'Code 29': 'IACV Error (ความผิดปกติของวาล์ว IACV)',
+  'Code 32': 'Injector Error (ความผิดปกติของระบบหัวฉีด)',
+  'Code 33': 'ECU / Battery Voltage (แรงดันไฟแบตเตอรี่/กล่อง ECU)',
+  'Code 35': 'EGR System (ระบบ EGR)',
+  'Code 44': 'EVAP Valve (วาล์วไอระเหยน้ำมันถัง)',
+  'Code 52': 'CKP Fault (ความผิดพลาดของเซนเซอร์ข้อเหวี่ยง)',
+  'Code 54': 'Bank Angle Fault (ความผิดพลาดเซนเซอร์มุมเอียง)',
+  'Code 63': 'Mode Switch (สวิตช์เลือกโหมด)',
+  'Code 72': 'Exhaust Valve (วาล์วไอเสีย)',
+  'Code 87': 'Fuel Pump / Relay (ปั๊มเชื้อเพลิงหรือรีเลย์ปั๊ม)',
+  'Code 90': 'Smart Key System (ระบบกุญแจรีโมทอัจฉริยะ)',
+  'Code 91': 'Security / Remote (ระบบกันขโมย/รีโมท)'
+};
 
 const TILES = [
   {key:'tps',  label:'TPS',  un:'%',     min:0,  max:100, dec:0, color:'#22d3ee', clamp:[0,100]},
@@ -1652,9 +1681,11 @@ let pendingClear = false;
 
 function addDtc(code){
   const c = String(code).toUpperCase().trim();
-  if (!/^[PBCU][0-9A-F]{4}$/.test(c) || dtcSet.has(c)) return;
+  if (dtcSet.has(c)) return;
   dtcSet.add(c); renderDtc(); logLine('<< ' + c);
 }
+
+// ฟังก์ชันเรนเดอร์ DTC แสดงรหัสพร้อมคำอธิบายภาษาไทย/อังกฤษ
 function renderDtc(){
   const box = $('dtcList'), cnt = $('dtcCount');
   if (!box) return;
@@ -1669,12 +1700,20 @@ function renderDtc(){
   }
   [...dtcSet].sort().forEach(code=>{
     const chip = document.createElement('span'); chip.className = 'dtcChip';
-    const b = document.createElement('b'); b.textContent = code;
+    
+    // ค้นหาคำอธิบายจากตาราง DTC_DICT
+    const formattedCode = code.startsWith('Code') ? code : ('Code ' + code);
+    const desc = DTC_DICT[code] || DTC_DICT[formattedCode] || 'รหัสข้อผิดพลาดระบบเครื่องยนต์';
+
+    const b = document.createElement('b'); 
+    b.innerHTML = `${code}: <span style="font-size:13px; font-weight:normal; color:#ffb020;">${desc}</span>`;
+
     const x = document.createElement('i'); x.textContent = '✕'; x.title = 'นำออกจากรายการ';
     x.addEventListener('click', ()=>{ dtcSet.delete(code); renderDtc(); });
     chip.appendChild(b); chip.appendChild(x); box.appendChild(chip);
   });
 }
+
 function clearDtc(){
   const n = dtcSet.size;
   dtcSet.clear(); renderDtc();
@@ -1687,12 +1726,10 @@ function collectDtcLine(t){
     logLine('<< ' + t);
     return 1;
   }
-  const codes = t.match(/\b[PBCU][0-9A-F]{4}\b/gi);
+  // รองรับการจับทั้งโค้ดมาตรฐาน P-code (เช่น P0130) หรือรูปแบบ Code 01 / ตัวเลขรหัสกระพริบ
+  const codes = t.match(/\b([PBCU][0-9A-F]{4}|Code\s*\d+|\d{1,2})\b/gi);
   if (!codes) return 0;
-  const byWord = /\b(dtc|fault|trouble|code)/i.test(t);
-  const bare = t.replace(/\b[PBCU][0-9A-F]{4}\b/gi,'').replace(/[\s,;|:[\]"']+/g,'') === '';
-  if (!byWord && !bare) return 0;
-  codes.forEach(addDtc);
+  codes.forEach(c => addDtc(c));
   return codes.length;
 }
 function logLine(msg){
@@ -1747,7 +1784,7 @@ async function runCmd(kind){
     if (mode === 'demo'){
       setTimeout(()=>{
         if (kind === 'read'){
-          ['P0130','P0301','P0420'].forEach(addDtc);
+          ['Code 01','Code 08','Code 12'].forEach(addDtc);
           setStatus('dtcStatus','อ่านได้ ' + dtcSet.size + ' โค้ด (โหมดจำลอง)','ok');
         } else {
           clearDtc(); pendingClear = false;
