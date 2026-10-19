@@ -802,7 +802,7 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
 <script>
 'use strict';
 let curPage = 0;
-let lsPage = 0; // ย้ายมารวมไว้ด้านบนสุดตรงนี้เรียบร้อยครับ
+let lsPage = 0;
 
 async function connectBluetooth() {
   if (!navigator.bluetooth) {
@@ -837,7 +837,6 @@ async function connectBluetooth() {
 
 const GREEN='#34d399', AMBER='#fbbf24', RED='#fb5c5c', CYAN='#22d3ee';
 
-// พจนานุกรมแปลโค้ด DTC ภาษาไทย / อังกฤษ (รองรับทั้งรูปแบบ P-Code และ Code XX)
 const DTC_DICT = {
   'P0001': 'MAP Sensor (เซนเซอร์แรงดันไอดี)',
   'P0007': 'EOT/ECT Sensor (เซ็นเซอร์อุณหภูมิเครื่องยนต์/น้ำหล่อเย็น)',
@@ -1249,7 +1248,7 @@ function setPill(kind, text){
   if (fab) fab.classList.toggle('on', kind === 'on');
 }
 function setStatus(id, text, cls){
-  const el = $(id); el.textContent = text; el.className = 'statusline' + (cls ? ' '+cls : '');
+  const el = $(id); if(el){ el.textContent = text; el.className = 'statusline' + (cls ? ' '+cls : ''); }
 }
 
 let bleDevice = null, bleChar = null, bleLineBuf = '';
@@ -1258,6 +1257,7 @@ let ws = null, wsTimer = null, wsShouldRun = false;
 const NATIVE_BLE = !!window.GaugeBle;
 function updateBleSupport(){
   const el = $('bleSupport');
+  if (!el) return;
   if (window.GaugeBle){
     el.innerHTML = window.GaugeBle.isSupported()
       ? '✅ แอป Android — กดปุ่มด้านล่างเพื่อสแกนและเลือกอุปกรณ์จากลิสต์'
@@ -1271,7 +1271,7 @@ function updateBleSupport(){
   if (!window.isSecureContext){
     el.innerHTML = '⚠️ Web Bluetooth ใช้ได้เฉพาะบน <b>HTTPS หรือ localhost</b> เท่านั้น '
       + '(ตอนนี้เปิดผ่าน <code>' + location.protocol + '</code> ที่ <code>' + location.host + '</code>) '
-      + '— หรือใช้แท็บ Wi‑Fi ไปก่อน';
+      + '— หรือใช้แท็บ Wi‑Fi แทน';
     return;
   }
   el.innerHTML = '⚠️ เบราว์เซอร์นี้<b>ไม่รองรับ Web Bluetooth</b> (เช่น iOS Safari) — ใช้แท็บ Wi‑Fi แทน';
@@ -1386,37 +1386,6 @@ function ingestBleText(text){
   if (bleLineBuf.length > 8192) bleLineBuf = '';
 }
 
-function wsConnect(){
-  stopAll();
-  const url = $('wsURL').value.trim();
-  if (!url){ setStatus('wsStatus','กรุณาใส่ URL','err'); return; }
-  mode = 'wifi'; wsShouldRun = true;
-  saveCfg();
-  openWs(url, 0);
-}
-function openWs(url, attempt){
-  if (!wsShouldRun) return;
-  setPill('warn','กำลังต่อ Wi‑Fi…');
-  setStatus('wsStatus','กำลังเชื่อมต่อ '+url+' …');
-  try { ws = new WebSocket(url); }
-  catch(err){ setStatus('wsStatus','URL ไม่ถูกต้อง: '+err.message,'err'); setPill('err','ผิดพลาด'); return; }
-  ws.onopen = ()=>{
-    setPill('on','Wi‑Fi');
-    noteConnected();
-    setStatus('wsStatus','✅ เชื่อมต่อแล้ว: '+url,'ok');
-  };
-  ws.onmessage = ev => ingest(typeof ev.data === 'string' ? ev.data : '');
-  ws.onerror = ()=> setStatus('wsStatus','เกิดข้อผิดพลาดในการเชื่อมต่อ','err');
-  ws.onclose = ()=>{
-    ws = null;
-    if (!wsShouldRun) return;
-    const wait = Math.min(8000, 1500 * (attempt+1));
-    setPill('warn','Wi‑Fi ตัด…');
-    setStatus('wsStatus','การเชื่อมต่อขาด — ลองใหม่ใน '+(wait/1000)+' วิ …','err');
-    wsTimer = setTimeout(()=> openWs(url, attempt+1), wait);
-  };
-}
-
 let demoTimer = null;
 function demoStart(){
   stopAll();
@@ -1523,25 +1492,28 @@ document.querySelectorAll('.tabs button').forEach(b=>{
 });
 $('bleConnect').addEventListener('click', bleConnect);
 $('bleDisconnect').addEventListener('click', ()=>{ stopAll(); setStatus('bleStatus','ตัดการเชื่อมต่อแล้ว'); });
-$('wsDisconnect').addEventListener('click', ()=>{ wsShouldRun=false; stopAll(); setStatus('wsStatus','ตัดการเชื่อมต่อแล้ว'); });
 $('demoStart').addEventListener('click', demoStart);
 $('demoStop').addEventListener('click', ()=>{ demoStop(); setStatus('demoStatus','หยุดแล้ว'); });
 
 function readStore(){ try{ return JSON.parse(localStorage.getItem('gauge_cfg') || '{}') || {}; }catch(e){ return {}; } }
 function writeStore(patch){ const o = Object.assign(readStore(), patch); try{ localStorage.setItem('gauge_cfg', JSON.stringify(o)); }catch(e){} return o; }
-function saveCfg(){ writeStore({ svc: $('svcUUID').value, chr: $('chrUUID').value, ws: $('wsURL').value,
-  dcR: $('cmdRead').value, dcC: $('cmdClear').value }); }
+function saveCfg(){ 
+  const svc = $('svcUUID') ? $('svcUUID').value : '';
+  const chr = $('chrUUID') ? $('chrUUID').value : '';
+  const dcR = $('cmdRead') ? $('cmdRead').value : '';
+  const dcC = $('cmdClear') ? $('cmdClear').value : '';
+  writeStore({ svc, chr, dcR, dcC }); 
+}
 function saveTune(){ writeStore({ tune: tune }); }
 function loadCfg(){
   const c = readStore();
-  if (c.svc) $('svcUUID').value = c.svc;
-  if (c.chr) $('chrUUID').value = c.chr;
-  if (c.ws)  $('wsURL').value  = c.ws;
-  if (c.dcR) $('cmdRead').value = c.dcR;
-  if (c.dcC) $('cmdClear').value = c.dcC;
+  if (c.svc && $('svcUUID')) $('svcUUID').value = c.svc;
+  if (c.chr && $('chrUUID')) $('chrUUID').value = c.chr;
+  if (c.dcR && $('cmdRead')) $('cmdRead').value = c.dcR;
+  if (c.dcC && $('cmdClear')) $('cmdClear').value = c.dcC;
   if (c.tune) tune = mergeTune(c.tune);
 }
-['svcUUID','chrUUID','wsURL','cmdRead','cmdClear'].forEach(id=> $(id).addEventListener('change', saveCfg));
+['svcUUID','chrUUID','cmdRead','cmdClear'].forEach(id=> { const el = $(id); if(el) el.addEventListener('change', saveCfg); });
 
 const SCALE_FIELDS = [
   {k:'rpmMax',   label:'RPM สูงสุด',       step:100},
@@ -1630,6 +1602,7 @@ function rowColor(label, val, on){
 }
 function buildSettings(){
   const sc = $('scaleRows'), th = $('thRows'), co = $('colorRows');
+  if(!sc || !th || !co) return;
   sc.textContent = ''; th.textContent = ''; co.textContent = '';
   SCALE_FIELDS.forEach(f=> sc.appendChild(
     rowOne(f.label, tune[f.k], f.step, v=>{ tune[f.k] = v; tuneChanged(); })));
@@ -1687,6 +1660,7 @@ document.addEventListener('fullscreenchange', ()=>{
 const toastEl = $('toast');
 let toastTimer = null;
 function toast(msg){
+  if(!toastEl) return;
   toastEl.textContent = msg;
   toastEl.classList.add('show');
   clearTimeout(toastTimer);
@@ -1793,14 +1767,12 @@ async function sendRaw(cmd){
     if (bleChar.writeValueWithoutResponse){ await bleChar.writeValueWithoutResponse(buf); return; }
     throw new Error('Characteristic นี้ไม่รองรับการส่งคำสั่ง');
   }
-  if (mode === 'wifi'){
-    if (!ws || ws.readyState !== 1) throw new Error('Wi‑Fi ยังไม่ได้เชื่อมต่อ');
-    ws.send(payload); return;
-  }
   throw new Error('ยังไม่ได้เชื่อมต่ออุปกรณ์ — กด “เชื่อมต่อ” ก่อน');
 }
 async function runCmd(kind){
-  const cmd = (kind === 'read' ? $('cmdRead' ) : $('cmdClear')).value.trim();
+  const cmdInput = (kind === 'read' ? $('cmdRead' ) : $('cmdClear'));
+  if (!cmdInput) return;
+  const cmd = cmdInput.value.trim();
   if (!cmd){ setStatus('dtcStatus','กรุณาใส่คำสั่ง','err'); return; }
   
   markLive();
@@ -1966,6 +1938,7 @@ PARAMS.forEach(p=>{
 
 const lsDtcCard = document.querySelector('#page2 .dtc');
 function placeDtc(){
+  if(!lsDtcCard) return;
   const land = getComputedStyle(lsApp).display !== 'none';
   const slot = $('lsDtcSlot');
   if (land && lsDtcCard.parentElement !== slot) slot.appendChild(lsDtcCard);
