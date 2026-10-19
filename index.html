@@ -101,7 +101,6 @@ header{display:flex;align-items:center;gap:9px;margin-bottom:6px}
 .dspd i{font-style:normal;font-size:max(9px,3vmin);letter-spacing:4px;color:var(--acc);font-weight:700}
 .dmaxRow{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
 
-/* ปรับแกไข้กล่องชิปวันที่ให้ยืดหยุ่นและแสดงผลไม่ถูกตัด */
 .dchip{background:var(--panel);border-radius:6px;padding:3px 8px;display:flex;
   align-items:baseline;gap:6px;white-space:nowrap;overflow:hidden;}
 .dchip .gLab{letter-spacing:1.5px}
@@ -400,7 +399,6 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .lsPager::-webkit-scrollbar{display:none}
 .lsPage{flex:0 0 100%;min-width:100%;scroll-snap-align:start;display:flex;min-height:0;min-width:0}
 
-/* ซ่อนแถบ RPM สำหรับทุกหน้ายกเว้นหน้าแรก (lsPage0) */
 .lsApp:not(.lsPage0) .lsRpm, .lsApp.lsParams .lsRpm, .lsApp.lsDtc .lsRpm {
   height: 0; padding: 0; border-width: 0; overflow: hidden; margin: 0; opacity: 0;
 }
@@ -428,7 +426,7 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .lsChip b{font-family:var(--mono);font-size:max(11px,4vmin);color:#fff;font-weight:700;
   line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden}
 .lsChip b i{font-style:normal;font-size:.62em;color:var(--dim);letter-spacing:1px}
-.lsChip .lsDate{font-size:max(8px,2.4vmin);white-space:nowrap;} /* ปรับขนาดฟอนต์และตั้งค่าไม่ให้ตัดบรรทัด */
+.lsChip .lsDate{font-size:max(8px,2.4vmin);white-space:nowrap;}
 .lsTiles{display:grid;gap:5px;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;min-height:0}
 .lsTile{background:var(--panel);border:1px solid var(--line);border-radius:8px;
   padding:4px max(7px,2vmin) 5px;display:flex;flex-direction:column;justify-content:center;
@@ -723,11 +721,11 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
         <div class="lsRows">
           <div class="lsRow"><span class="lsRLab">INJ <i>(ms)</i></span><span class="lsRVal" id="ls_r_inj">–</span></div>
           <div class="lsRow"><span class="lsRLab">IGN <i>(°)</i></span><span class="lsRVal" id="ls_r_ign">–</span></div>
-          <div class="lsRow"><span class="lsRLab">ISC <i>(%)</i></span><span class="lsRVal" id="ls_r_iacv">–</span></div>
-          <div class="lsRow"><span class="lsRLab">BAT <i>(V)</i></span><span class="lsRVal" id="ls_r_bat">–</span></div>
-          <div class="lsRow"><span class="lsRLab">IAT <i>(°C)</i></span><span class="lsRVal" id="ls_r_iat">–</span></div>
-          <div class="lsRow"><span class="lsRLab">TRIM <i>(%)</i></span><span class="lsRVal" id="ls_r_fueltrim">–</span></div>
-          <div class="lsRow"><span class="lsRLab">O2 <i>(V)</i></span><span class="lsRVal" id="ls_r_o2">–</span></div>
+          <div class="lsRow"><span class="lsRLab">ISC <i>(%)</i></span><span class="lsRVal" id="r_iacv">–</span></div>
+          <div class="lsRow"><span class="lsRLab">BAT <i>(V)</i></span><span class="lsRVal" id="v_bat">–</span></div>
+          <div class="lsRow"><span class="lsRLab">IAT <i>(°C)</i></span><span class="lsRVal" id="r_iat">–</span></div>
+          <div class="lsRow"><span class="lsRLab">TRIM <i>(%)</i></span><span class="lsRVal" id="r_trim">–</span></div>
+          <div class="lsRow"><span class="lsRLab">O2 <i>(V)</i></span><span class="lsRVal" id="r_o2">–</span></div>
         </div>
       </div>
     </section>
@@ -804,6 +802,8 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
 
 <script>
 'use strict';
+let curPage = 0;
+
 async function connectBluetooth() {
   if (!navigator.bluetooth) {
     alert("เบราว์เซอร์ในแอปนี้ไม่รองรับ Web Bluetooth");
@@ -837,9 +837,7 @@ async function connectBluetooth() {
 
 const GREEN='#34d399', AMBER='#fbbf24', RED='#fb5c5c', CYAN='#22d3ee';
 
-// พจนานุกรมแปลโค้ด DTC ภาษาไทย / อังกฤษ (รองรับทั้งรูปแบบ P-Code และ Code XX)
 const DTC_DICT = {
-  // รองรับรูปแบบ P-Code (ที่กล่อง ECU ส่งมาจริง)
   'P0001': 'MAP Sensor (เซนเซอร์แรงดันไอดี)',
   'P0007': 'EOT/ECT Sensor (เซ็นเซอร์อุณหภูมิเครื่องยนต์/น้ำหล่อเย็น)',
   'P0008': 'Throttle Position (เซนเซอร์เรือนลิ้นเร่ง/TPS)',
@@ -866,7 +864,6 @@ const DTC_DICT = {
   'P0090': 'Smart Key System (ระบบกุญแจรีโมทอัจฉริยะ)',
   'P0091': 'Security / Remote (ระบบกันขโมย/รีโมท)',
 
-  // รองรับรูปแบบ Code XX (สำหรับโหมด Demo หรือกล่องรุ่นเก่า)
   'Code 01': 'MAP Sensor (เซนเซอร์แรงดันไอดี)',
   'Code 07': 'EOT/ECT Sensor (เซ็นเซอร์อุณหภูมิเครื่องยนต์/น้ำหล่อเย็น)',
   'Code 08': 'Throttle Position (เซนเซอร์เรือนลิ้นเร่ง/TPS)',
@@ -1172,13 +1169,12 @@ function render(now){
   
   document.body.classList.toggle('stale', hadData && !live);
   if (mode === 'demo'){ }
-  else if ((mode === 'ble' || mode === 'wifi') && hadData && !live) setPill('err', 'ข้อมูลค้าง');
-  else if ((mode === 'ble' || mode === 'wifi') && lastUpdate === 0 && now - connectedAt > timeoutLimit)
+  else if (mode === 'ble' && hadData && !live) setPill('err', 'ข้อมูลค้าง');
+  else if (mode === 'ble' && lastUpdate === 0 && now - connectedAt > timeoutLimit)
     setPill('warn', 'ยังไม่มีข้อมูล');
-  else if ((mode === 'ble' || mode === 'wifi') && live) {
-    if (mode === 'ble' && bleDevice) setPill('on', (bleDevice.name || 'BLE').slice(0, 14));
-    else if (mode === 'ble') setPill('on', 'BLE');
-    else if (mode === 'wifi') setPill('on', 'Wi‑Fi');
+  else if (mode === 'ble' && live) {
+    if (bleDevice) setPill('on', (bleDevice.name || 'BLE').slice(0, 14));
+    else setPill('on', 'BLE');
   }
 
   put('rpmVal', String(Math.round(data.rpm)));
@@ -1188,7 +1184,421 @@ function render(now){
   const rpmOver = data.rpm > REDLINE;
   if (rpmOver !== rpmWasOver){
     rpmWasOver = rpmOver;
-    rpmValEl.classList.toggle('over', rpmOver);
+    if (rpmValEl) rpmValEl.classList.toggle('over', rpmOver);
+  }
+
+  put('spdVal', String(Math.round(data.speed)));
+  spdMax = Math.max(spdMax, data.speed);
+  spdAvg += (data.speed - spdAvg) * 0.02;
+  put('spdMax', String(Math.round(spdMax)));
+  put('spdAvg', String(Math.round(spdAvg)));
+  const clock = new Date();
+  const p2 = n => (n < 10 ? '0' : '') + n;
+  put('clk', p2(clock.getHours()) + ':' + p2(clock.getMinutes()));
+  // แก้ไขวันที่ให้แสดงผลเป็นปี 2 หลัก (เช่น 20 ต.ค. 26)
+  put('dateTxt', clock.getDate() + ' ' +
+    ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][clock.getMonth()] +
+    ' ' + String(clock.getFullYear()).slice(-2));
+  put('modeVal', hadData && data.mode != null && data.mode !== '' ? String(data.mode) : '–');
+
+  const gaugeArcs = {tps:'f_tps', afr:'f_afr', temp:'f_temp'};
+  TILES.forEach(t=>{
+    const v = data[t.key], st = statusOf(t.key, v), sc = statusColor(st);
+    put('v_'+t.key, fmt(v, t.dec));
+    const vEl = document.getElementById('v_'+t.key);
+    if (vEl){
+      const cls = st==='ok' ? 'val' : 'val '+st;
+      if (vEl.className !== cls) vEl.className = cls;
+    }
+    if (gaugeArcs[t.key]) setArc(gaugeArcs[t.key], (v - t.min)/(t.max - t.min), sc);
+  });
+  const mv = data.map;
+  put('mapVal', mv == null || !hadData ? '–' : fmt(mv, 0));
+  setArc('f_map', mv == null<script>
+'use strict';
+let curPage = 0;
+
+async function connectBluetooth() {
+  if (!navigator.bluetooth) {
+    alert("เบราว์เซอร์ในแอปนี้ไม่รองรับ Web Bluetooth");
+    return;
+  }
+  try {
+    const svcUUID = document.getElementById('svcUUID').value.trim();
+    const chrUUID = document.getElementById('chrUUID').value.trim();
+    
+    const device = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true,
+      optionalServices: [svcUUID]
+    });
+    
+    const server = await device.gatt.connect();
+    const service = await server.getPrimaryService(svcUUID);
+    bleChar = await service.getCharacteristic(chrUUID);
+    
+    await bleChar.startNotifications();
+    bleChar.addEventListener('characteristicvaluechanged', onBleValue);
+    
+    noteConnected();
+    saveCfg();
+    setPill('on', (device.name || 'BLE').slice(0, 14));
+    alert('เชื่อมต่อสำเร็จกับ: ' + (device.name || 'ESP32'));
+  } catch (error) {
+    console.error('BLE Error:', error);
+    alert('เชื่อมต่อไม่สำเร็จ: ' + (error.message || error));
+  }
+}
+
+const GREEN='#34d399', AMBER='#fbbf24', RED='#fb5c5c', CYAN='#22d3ee';
+
+const DTC_DICT = {
+  'P0001': 'MAP Sensor (เซนเซอร์แรงดันไอดี)',
+  'P0007': 'EOT/ECT Sensor (เซ็นเซอร์อุณหภูมิเครื่องยนต์/น้ำหล่อเย็น)',
+  'P0008': 'Throttle Position (เซนเซอร์เรือนลิ้นเร่ง/TPS)',
+  'P0009': 'IAT Sensor (เซนเซอร์อุณหภูมิอากาศไอดี)',
+  'P0011': 'Wheel Speed / ABS (เซนเซอร์ความเร็วล้อ/เอบีเอส)',
+  'P0012': 'Fuel Injector (หัวฉีดน้ำมันเชื้อเพลิง)',
+  'P0013': 'MAP Pressure (แรงดันแมพเซนเซอร์ผิดปกติ)',
+  'P0014': 'IACV Valve (วาล์วควบคุมรอบเดินเบา)',
+  'P0015': 'EOT/ECT Sensor (เซนเซอร์อุณหภูมิเครื่องยนต์/น้ำหล่อเย็น)',
+  'P0018': 'CKP Sensor (เซนเซอร์ข้อเหวี่ยง)',
+  'P0019': 'CMP Sensor (เซนเซอร์เพลาลูกเบี้ยว)',
+  'P0021': 'O2 Sensor (ออกซิเจนเซนเซอร์)',
+  'P0024': 'Ignition Coil (คอยล์จุดระเบิด)',
+  'P0029': 'IACV Error (ความผิดปกติของวาล์ว IACV)',
+  'P0032': 'Injector Error (ความผิดปกติของระบบหัวฉีด)',
+  'P0033': 'ECU / Battery Voltage (แรงดันไฟแบตเตอรี่/กล่อง ECU)',
+  'P0035': 'EGR System (ระบบ EGR)',
+  'P0044': 'EVAP Valve (วาล์วไอระเหยน้ำมันถัง)',
+  'P0052': 'CKP Fault (ความผิดพลาดของเซนเซอร์ข้อเหวี่ยง)',
+  'P0054': 'Bank Angle Fault (ความผิดพลาดเซนเซอร์มุมเอียง)',
+  'P0063': 'Mode Switch (สวิตช์เลือกโหมด)',
+  'P0072': 'Exhaust Valve (วาล์วไอเสีย)',
+  'P0087': 'Fuel Pump / Relay (ปั๊มเชื้อเพลิงหรือรีเลย์ปั๊ม)',
+  'P0090': 'Smart Key System (ระบบกุญแจรีโมทอัจฉริยะ)',
+  'P0091': 'Security / Remote (ระบบกันขโมย/รีโมท)',
+
+  'Code 01': 'MAP Sensor (เซนเซอร์แรงดันไอดี)',
+  'Code 07': 'EOT/ECT Sensor (เซ็นเซอร์อุณหภูมิเครื่องยนต์/น้ำหล่อเย็น)',
+  'Code 08': 'Throttle Position (เซนเซอร์เรือนลิ้นเร่ง/TPS)',
+  'Code 09': 'IAT Sensor (เซนเซอร์อุณหภูมิอากาศไอดี)',
+  'Code 11': 'Wheel Speed / ABS (เซนเซอร์ความเร็วล้อ/เอบีเอส)',
+  'Code 12': 'Fuel Injector (หัวฉีดน้ำมันเชื้อเพลิง)',
+  'Code 13': 'MAP Pressure (แรงดันแมพเซนเซอร์ผิดปกติ)',
+  'Code 14': 'IACV Valve (วาล์วควบคุมรอบเดินเบา)',
+  'Code 15': 'EOT/ECT Sensor (เซนเซอร์อุณหภูมิเครื่องยนต์/น้ำหล่อเย็น)',
+  'Code 18': 'CKP Sensor (เซนเซอร์ข้อเหวี่ยง)',
+  'Code 19': 'CMP Sensor (เซนเซอร์เพลาลูกเบี้ยว)',
+  'Code 21': 'O2 Sensor (ออกซิเจนเซนเซอร์)',
+  'Code 24': 'Ignition Coil (คอยล์จุดระเบิด)',
+  'Code 29': 'IACV Error (ความผิดปกติของวาล์ว IACV)',
+  'Code 32': 'Injector Error (ความผิดปกติของระบบหัวฉีด)',
+  'Code 33': 'ECU / Battery Voltage (แรงดันไฟแบตเตอรี่/กล่อง ECU)',
+  'Code 35': 'EGR System (ระบบ EGR)',
+  'Code 44': 'EVAP Valve (วาล์วไอระเหยน้ำมันถัง)',
+  'Code 52': 'CKP Fault (ความผิดพลาดของเซนเซอร์ข้อเหวี่ยง)',
+  'Code 54': 'Bank Angle Fault (ความผิดพลาดเซนเซอร์มุมเอียง)',
+  'Code 63': 'Mode Switch (สวิตช์เลือกโหมด)',
+  'Code 72': 'Exhaust Valve (วาล์วไอเสีย)',
+  'Code 87': 'Fuel Pump / Relay (ปั๊มเชื้อเพลิงหรือรีเลย์ปั๊ม)',
+  'Code 90': 'Smart Key System (ระบบกุญแจรีโมทอัจฉริยะ)',
+  'Code 91': 'Security / Remote (ระบบกันขโมย/รีโมท)'
+};
+
+const TILES = [
+  {key:'tps',  label:'TPS',  un:'%',     min:0,  max:100, dec:0, color:'#22d3ee', clamp:[0,100]},
+  {key:'afr',  label:'AFR',  un:'ratio', min:10, max:18,  dec:1, color:'#a78bfa', clamp:[0,30]},
+  {key:'temp', label:'TEMP', un:'°C',    min:0,  max:120, dec:0, color:'#fbbf24', clamp:[-40,250]},
+  {key:'ign',  label:'IGN',  un:'°BTDC', min:0,  max:50,  dec:0, color:'#fb923c', clamp:[-10,90]},
+  {key:'bat',  label:'BAT',  un:'V',     min:10, max:15,  dec:1, color:'#4ade80', clamp:[0,20]},
+  {key:'inj',  label:'INJ',  un:'ms',    min:0,  max:15,  dec:1, color:'#fb7185', clamp:[0,40]}
+];
+const ALIASES = {
+  rpm:  ['rpm','enginespeed','engine_speed','r'],
+  speed:['speed','spd','vss','kmh','kph'],
+  afr:  ['afr','lambda','lam','o2','afr1'],
+  tps:  ['tps','throttle','throttleposition'],
+  ign:  ['ign','lgn','ignition','advance','timing','spark'],
+  inj:  ['inj','lnj','injection','injector','pw','pulsewidth'],
+  bat:  ['bat','battery','volt','voltage','vbat','vbat12'],
+  temp: ['temp','ect','coolant','watertemp','enginetemp'],
+  map:  ['map','mapkpa','manifoldpressure','boostpressure'],
+  iat:  ['iat','intakeairtemp','intaketemp','airstemp'],
+  iacv: ['iacv','isv','idleaircontrol','iac'],
+  mode: ['mode','enginemode','loopmode'],
+  o2:   ['o2','o2sensor','o2s','o2v','oxy','oxygen'],
+  fueltrim:['fueltrim','stft','ltft','trim'],
+  fastidle:['fastidle','fidle'],
+  stand:['stand','standswitch','kickstand','sidestand'],
+  bank: ['bank','bankangle','leanangle','angle']
+};
+const STRING_KEYS = new Set(['mode','fastidle','stand']);
+const CSV_ORDER = ['rpm','afr','tps','speed','ign','inj','bat','temp'];
+
+const PARAMS = [
+  {key:'rpm',      label:'Rpm Engine',                  un:'rpm',   dec:0, st:'rpm',   color:'#34d399'},
+  {key:'tps',      label:'Trottle Position / TPS',      un:'%',     dec:0, st:'tps',   color:'#22d3ee'},
+  {key:'temp',     label:'Sensor ECT',                  un:'°C',    dec:0, st:'temp',  color:'#fbbf24'},
+  {key:'bat',      label:'Battery Voltage',             un:'V',     dec:1, st:'bat',   color:'#4ade80'},
+  {key:'inj',      label:'Injection / INJ',             un:'ms',    dec:1, st:'inj',   color:'#fb7185'},
+  {key:'ign',      label:'Ignition Timing / IGN',       un:'°BTDC', dec:0, st:'ign',   color:'#fb923c'},
+  {key:'iat',      label:'Sensor IAT',                  un:'°C',    dec:0,            color:'#60a5fa'},
+  {key:'speed',    label:'Speed Sensor',                un:'km/h',  dec:0, st:'speed', color:'#60a5fa'},
+  {key:'iacv',     label:'Sensor IACV',                 un:'%',     dec:0,            color:'#94a3b8'},
+  {key:'mode',     label:'Mode / โหมด',                 un:'',                 color:'#94a3b8'},
+  {key:'o2',       label:'Oxigen Sensor O2',            un:'V',     dec:2,            color:'#34d399'},
+  {key:'fueltrim', label:'Fueltrim / ตัวปรับเชื้อเพลิง', un:'%',    dec:1,            color:'#34d399'},
+  {key:'afr',      label:'Air-Fuel Ratio / A/F',        un:'λ',     dec:1, st:'afr',   color:'#a78bfa'},
+  {key:'fastidle', label:'Fast-Idle Sensor',            un:'',                 color:'#fbbf24'},
+  {key:'stand',    label:'Stand Switch / ขาตั้ง',        un:'',                 color:'#fbbf24'},
+  {key:'bank',     label:'Bank Angle / มุมเอียง',        un:'°',     dec:1,            color:'#fb5c5c'}
+];
+
+function statusOf(key, v){
+  const t = tune.th;
+  switch(key){
+    case 'rpm':  return v>t.rpmBad ? 'bad' : (v>t.rpmWarn ? 'warn' : 'ok');
+    case 'speed':return v>t.spdWarn ? 'warn' : 'ok';
+    case 'afr':  return v<t.afrLow ? 'bad' : (v>t.afrHigh ? 'warn' : 'ok');
+    case 'tps':  return v>t.tpsWarn ? 'warn' : 'ok';
+    case 'temp': return v>t.tempBad ? 'bad' : (v>t.tempWarn ? 'warn' : (v<t.tempCool ? 'cool' : 'ok'));
+    case 'bat':  return (v<t.batBadLow || v>t.batBadHigh) ? 'bad' : (v<t.batWarnLow ? 'warn' : 'ok');
+    case 'inj':  return v>t.injWarn ? 'warn' : 'ok';
+    case 'ign':  return v>t.ignWarn ? 'warn' : 'ok';
+  }
+  return 'ok';
+}
+const statusColor = s => s==='bad'?RED : s==='warn'?AMBER : s==='cool'?CYAN : GREEN;
+
+const DEFAULT_TUNE = {
+  rpmMax: 8000, redline: 7000, speedMax: 240,
+  scale: { afr:[10,18], tps:[0,100], temp:[0,120], bat:[10,15], inj:[0,15], ign:[0,50] },
+  th: { rpmWarn:6400, rpmBad:7000, spdWarn:160,
+        afrLow:11.5, afrHigh:15.2, tpsWarn:90,
+        tempCool:60, tempWarn:88, tempBad:105,
+        batBadLow:12.0, batWarnLow:12.6, batBadHigh:15.0,
+        injWarn:10, ignWarn:45 },
+  accent: { afr:'#a78bfa', tps:'#22d3ee', temp:'#fbbf24', bat:'#4ade80', inj:'#fb7185', ign:'#fb923c' }
+};
+const clone = o => JSON.parse(JSON.stringify(o));
+function mergeTune(saved){
+  const base = clone(DEFAULT_TUNE);
+  if (!saved || typeof saved !== 'object') return base;
+  ['rpmMax','redline','speedMax'].forEach(k=>{ if (Number.isFinite(Number(saved[k]))) base[k] = Number(saved[k]); });
+  ['scale','th','accent'].forEach(g=>{ if (saved[g]) Object.assign(base[g], saved[g]); });
+  return base;
+}
+let tune = clone(DEFAULT_TUNE);
+
+const data = {rpm:0, speed:0, afr:14.7, tps:0, ign:0, inj:0, bat:12.6, temp:20, map:null,
+  iat:null, iacv:null, mode:null, o2:null, fueltrim:null, fastidle:null, stand:null, bank:null};
+let lastUpdate = 0, hadData = false, spdMax = 0, spdAvg = 0, rpmMax = 0;
+let mode = 'off';
+let connectedAt = 0;
+const fmt = (v,dec) => dec ? Number(v).toFixed(dec) : String(Math.round(v));
+const clamp = (v,a,b) => Math.min(b, Math.max(a, v));
+
+function ingestObject(obj){
+  let hit = 0;
+  for (const key in data){
+    const names = ALIASES[key];
+    if (!names) continue;
+    for (const n in obj){
+      if (names.includes(String(n).toLowerCase().replace(/[^a-z0-9_]/g,''))){
+        const raw = obj[n];
+        const blank = raw == null || String(raw).trim() === '';
+        const v = Number(raw);
+        if (!blank && typeof raw !== 'boolean' && Number.isFinite(v)){
+          const c = TILES.find(t=>t.key===key);
+          data[key] = c ? clamp(v, c.clamp[0], c.clamp[1]) : clamp(v, -360, 30000);
+          hit++;
+        } else if (!blank && typeof raw !== 'object' && STRING_KEYS.has(key)){
+          data[key] = String(raw).trim();
+          hit++;
+        }
+        break;
+      }
+    }
+  }
+  if (hit) markLive();
+  return hit;
+}
+
+function fmtParam(p){
+  const v = data[p.key];
+  if (!hadData || v == null || v === '') return '-';
+  if (typeof v === 'string') return v;
+  if (!Number.isFinite(v)) return '-';
+  return fmt(v, p.dec);
+}
+let csvHeader = null;
+function ingestCSV(parts){
+  const vals = parts.map(p => Number(String(p).trim())).filter(v => Number.isFinite(v));
+  if (vals.length < 2) return 0;
+  const obj = {};
+  if (csvHeader && csvHeader.length >= vals.length){
+    csvHeader.forEach((k,i)=>{ obj[k] = vals[i]; });
+  } else {
+    CSV_ORDER.forEach((k,i)=>{ if (i < vals.length) obj[k] = vals[i]; });
+  }
+  return ingestObject(obj);
+}
+function ingest(text){
+  const t = String(text).trim();
+  if (!t) return 0;
+  markLive();
+  if (pendingClear && /\b(ok|okay|done|success|cleared)\b/i.test(t)){
+    pendingClear = false; clearDtc();
+    setStatus('dtcStatus','ล้างโค้ด DTC แล้ว','ok');
+  }
+  const dtcHit = collectDtcLine(t);
+  if (t[0]==='{'){
+    try { return ingestObject(JSON.parse(t)) + dtcHit; } catch(e){ return dtcHit; }
+  }
+  if (t.includes('=')){
+    const obj = {};
+    t.split(/[,&;\s]+/).forEach(pair=>{
+      const i = pair.indexOf('='); if (i>0) obj[pair.slice(0,i)] = pair.slice(i+1);
+    });
+    return ingestObject(obj) + dtcHit;
+  }
+  if (/^[0-9eE+\-.,\s]+$/.test(t)) return ingestCSV(t.split(',')) + dtcHit;
+  if (/^[a-z_,\s]+$/i.test(t)){
+    csvHeader = t.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+    return dtcHit;
+  }
+  return dtcHit;
+}
+function markLive(){ lastUpdate = performance.now(); hadData = true; }
+function noteConnected(){ connectedAt = performance.now(); lastUpdate = performance.now(); hadData = true; }
+
+function setArc(id, frac, color){
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.strokeDasharray = (clamp(frac,0,1) * 100).toFixed(1) + ' 100';
+  if (color) el.style.stroke = color;
+}
+
+const plistEl = document.getElementById('plist');
+PARAMS.forEach(p=>{
+  const box = document.createElement('div');
+  box.className = 'pbox';
+  box.style.setProperty('--acc', p.color);
+  const k = document.createElement('span'); k.className = 'pk'; k.textContent = p.label;
+  const r = document.createElement('span'); r.className = 'pr';
+  const v = document.createElement('span'); v.className = 'pv'; v.id = 'pv_' + p.key; v.textContent = '-';
+  const u = document.createElement('span'); u.className = 'pu'; u.textContent = p.un || '';
+  r.appendChild(v); r.appendChild(u);
+  box.appendChild(k); box.appendChild(r);
+  plistEl.appendChild(box);
+});
+
+let RPM_MAX = tune.rpmMax, REDLINE = tune.redline, SPEED_MAX = tune.speedMax;
+const rpmValEl = document.getElementById('rpmVal');
+let rpmWasOver = false;
+const SEGS = 32;
+const rpmBarEl = document.getElementById('rpmBar');
+const rpmScaleEl = document.getElementById('rpmScale');
+let segRedFrom = 0;
+function updateRed(){
+  segRedFrom = Math.round(clamp(REDLINE / RPM_MAX, 0, 1) * SEGS);
+}
+const segNodes = [];
+function buildTicks(){
+  if (!rpmBarEl) return;
+  rpmBarEl.textContent = '';
+  segNodes.length = 0;
+  for (let i = 0; i < SEGS; i++){
+    const s = document.createElement('i');
+    s.dataset.zone = '';
+    rpmBarEl.appendChild(s);
+    segNodes.push(s);
+  }
+  if (rpmScaleEl){
+    rpmScaleEl.textContent = '';
+    [0, 0.5, 0.75, 1].forEach(f=>{
+      const sp = document.createElement('span');
+      sp.style.left = (f * 100).toFixed(1) + '%';
+      sp.textContent = (Math.round(RPM_MAX * f / 100) / 10).toFixed(1).replace(/\.0$/, '');
+      rpmScaleEl.appendChild(sp);
+    });
+  }
+}
+function setSegs(frac){
+  const lit = Math.round(clamp(frac, 0, 1) * SEGS);
+  for (let i = 0; i < SEGS; i++){
+    const on = i < lit;
+    const zone = i >= segRedFrom ? 'red'
+      : i >= Math.round(SEGS * 0.75) ? 'amber' : 'green';
+    const s = segNodes[i];
+    if (!s) continue;
+    if (s.dataset.on !== (on ? '1' : '0')){
+      s.dataset.on = on ? '1' : '0';
+      s.classList.toggle('on', on);
+    }
+    if (on && s.dataset.zone !== zone){
+      s.dataset.zone = zone;
+      s.style.setProperty('--seg', zone === 'red' ? '#fb5c5c'
+        : zone === 'amber' ? '#fbbf24' : '#34d399');
+    }
+  }
+}
+function applyTune(){
+  RPM_MAX = tune.rpmMax; REDLINE = tune.redline; SPEED_MAX = tune.speedMax;
+  TILES.forEach(t=>{
+    const s = tune.scale[t.key];
+    if (s) { t.min = s[0]; t.max = s[1]; }
+    if (tune.accent[t.key]) t.color = tune.accent[t.key];
+    const val = document.getElementById('v_'+t.key);
+    if (!val) return;
+    const tile = val.parentNode;
+    tile.style.setProperty('--acc', t.color);
+    const rng = tile.querySelector('.rng');
+    if (rng){ rng.children[0].textContent = t.min; rng.children[1].textContent = t.max; }
+  });
+  buildTicks();
+  updateRed();
+}
+applyTune();
+
+const cache = {};
+function put(id, val){
+  if (cache[id] === val) return;
+  cache[id] = val;
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+let rafPending = false, lastFrame = 0;
+function scheduleRender(){
+  if (rafPending) return;
+  rafPending = true;
+  requestAnimationFrame(frame);
+}
+function frame(t){ rafPending = false; render(t); scheduleRender(); }
+function render(now){
+  lastFrame = now;
+  const isDtcTab = (curPage === 2 || lsPage === 2);
+  const timeoutLimit = isDtcTab ? 30000 : 8000;
+  const live = lastUpdate > 0 && (now - lastUpdate) < timeoutLimit;
+  
+  document.body.classList.toggle('stale', hadData && !live);
+  if (mode === 'demo'){ }
+  else if (mode === 'ble' && hadData && !live) setPill('err', 'ข้อมูลค้าง');
+  else if (mode === 'ble' && lastUpdate === 0 && now - connectedAt > timeoutLimit)
+    setPill('warn', 'ยังไม่มีข้อมูล');
+  else if (mode === 'ble' && live) {
+    if (bleDevice) setPill('on', (bleDevice.name || 'BLE').slice(0, 14));
+    else setPill('on', 'BLE');
+  }
+
+  put('rpmVal', String(Math.round(data.rpm)));
+  rpmMax = Math.max(rpmMax, data.rpm);
+  put('rpmMax', String(Math.round(rpmMax)));
+  setSegs(data.rpm / RPM_MAX);
+  const rpmOver = data.rpm > REDLINE;
+  if (rpmOver !== rpmWasOver){
+    rpmWasOver = rpmOver;
+    if (rpmValEl) rpmValEl.classList.toggle('over', rpmOver);
   }
 
   put('spdVal', String(Math.round(data.speed)));
@@ -1201,7 +1611,7 @@ function render(now){
   put('clk', p2(clock.getHours()) + ':' + p2(clock.getMinutes()));
   put('dateTxt', clock.getDate() + ' ' +
     ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][clock.getMonth()] +
-    ' ' + clock.getFullYear());
+    ' ' + String(clock.getFullYear()).slice(-2));
   put('modeVal', hadData && data.mode != null && data.mode !== '' ? String(data.mode) : '–');
 
   const gaugeArcs = {tps:'f_tps', afr:'f_afr', temp:'f_temp'};
@@ -1245,25 +1655,22 @@ setInterval(()=>{
 const $ = id => document.getElementById(id);
 const pill = $('connPill'), pillText = $('connText');
 function setPill(kind, text){
-  pill.className = 'pill' + (kind==='on' ? ' on' : kind==='warn' ? ' warn' : kind==='err' ? ' err' : '');
-  pillText.textContent = text;
+  if (pill) pill.className = 'pill' + (kind==='on' ? ' on' : kind==='warn' ? ' warn' : kind==='err' ? ' err' : '');
+  if (pillText) pillText.textContent = text;
   const fab = document.getElementById('fabBle');
   if (fab) fab.classList.toggle('on', kind === 'on');
 }
 function setStatus(id, text, cls){
-  const el = $(id); el.textContent = text; el.className = 'statusline' + (cls ? ' '+cls : '');
+  const el = $(id); if (el) { el.textContent = text; el.className = 'statusline' + (cls ? ' '+cls : ''); }
 }
 
-let bleDevice = null, bleChar = null, bleLineBuf = '';
-let ws = null, wsTimer = null, wsShouldRun = false;
-
-const NATIVE_BLE = !!window.GaugeBle;
 function updateBleSupport(){
   const el = $('bleSupport');
+  if (!el) return;
   if (window.GaugeBle){
     el.innerHTML = window.GaugeBle.isSupported()
       ? '✅ แอป Android — กดปุ่มด้านล่างเพื่อสแกนและเลือกอุปกรณ์จากลิสต์'
-      : '⚠️ อุปกรณ์นี้<b>ไม่รองรับ Bluetooth LE</b> — ใช้แท็บ Wi‑Fi แทน';
+      : '⚠️ อุปกรณ์นี้<b>ไม่รองรับ Bluetooth LE</b>';
     return;
   }
   if (navigator.bluetooth){
@@ -1271,12 +1678,10 @@ function updateBleSupport(){
     return;
   }
   if (!window.isSecureContext){
-    el.innerHTML = '⚠️ Web Bluetooth ใช้ได้เฉพาะบน <b>HTTPS หรือ localhost</b> เท่านั้น '
-      + '(ตอนนี้เปิดผ่าน <code>' + location.protocol + '</code> ที่ <code>' + location.host + '</code>) '
-      + '— หรือใช้แท็บ Wi‑Fi ไปก่อน';
+    el.innerHTML = '⚠️ Web Bluetooth ใช้ได้เฉพาะบน <b>HTTPS หรือ localhost</b> เท่านั้น';
     return;
   }
-  el.innerHTML = '⚠️ เบราว์เซอร์นี้<b>ไม่รองรับ Web Bluetooth</b> (เช่น iOS Safari) — ใช้แท็บ Wi‑Fi แทน';
+  el.innerHTML = '⚠️ เบราว์เซอร์นี้<b>ไม่รองรับ Web Bluetooth</b> (เช่น iOS Safari)';
 }
 updateBleSupport();
 
@@ -1310,9 +1715,6 @@ function stopAll(keepMode){
   bleChar = null;
   if (bleDevice && bleDevice.gatt && bleDevice.gatt.connected){ try{ bleDevice.gatt.disconnect(); }catch(e){} }
   bleDevice = null;
-  wsShouldRun = false;
-  if (wsTimer){ clearTimeout(wsTimer); wsTimer = null; }
-  if (ws){ try{ ws.onclose = null; ws.close(); }catch(e){} ws = null; }
   if (demoTimer){ clearInterval(demoTimer); demoTimer = null; }
   if (!keepMode){ mode = 'off'; document.body.classList.remove('stale');
     setPill('', 'ไม่ได้เชื่อมต่อ'); }
@@ -1388,37 +1790,6 @@ function ingestBleText(text){
   if (bleLineBuf.length > 8192) bleLineBuf = '';
 }
 
-function wsConnect(){
-  stopAll();
-  const url = $('wsURL').value.trim();
-  if (!url){ setStatus('wsStatus','กรุณาใส่ URL','err'); return; }
-  mode = 'wifi'; wsShouldRun = true;
-  saveCfg();
-  openWs(url, 0);
-}
-function openWs(url, attempt){
-  if (!wsShouldRun) return;
-  setPill('warn','กำลังต่อ Wi‑Fi…');
-  setStatus('wsStatus','กำลังเชื่อมต่อ '+url+' …');
-  try { ws = new WebSocket(url); }
-  catch(err){ setStatus('wsStatus','URL ไม่ถูกต้อง: '+err.message,'err'); setPill('err','ผิดพลาด'); return; }
-  ws.onopen = ()=>{
-    setPill('on','Wi‑Fi');
-    noteConnected();
-    setStatus('wsStatus','✅ เชื่อมต่อแล้ว: '+url,'ok');
-  };
-  ws.onmessage = ev => ingest(typeof ev.data === 'string' ? ev.data : '');
-  ws.onerror = ()=> setStatus('wsStatus','เกิดข้อผิดพลาดในการเชื่อมต่อ','err');
-  ws.onclose = ()=>{
-    ws = null;
-    if (!wsShouldRun) return;
-    const wait = Math.min(8000, 1500 * (attempt+1));
-    setPill('warn','Wi‑Fi ตัด…');
-    setStatus('wsStatus','การเชื่อมต่อขาด — ลองใหม่ใน '+(wait/1000)+' วิ …','err');
-    wsTimer = setTimeout(()=> openWs(url, attempt+1), wait);
-  };
-}
-
 let demoTimer = null;
 function demoStart(){
   stopAll();
@@ -1462,8 +1833,8 @@ function demoStop(){
 }
 
 const sheet = $('sheet'), overlay = $('overlay');
-function sheetOnScreen(){ const r = sheet.getBoundingClientRect(); return r.top < innerHeight - 4 && r.bottom > 4; }
 function forceSheet(open){
+  if (!sheet) return;
   setTimeout(()=>{
     if (sheet.classList.contains('open') !== open) return;
     sheet.style.transition = 'none';
@@ -1473,14 +1844,16 @@ function forceSheet(open){
     }));
   }, 380);
 }
-function openSheet(){ sheet.classList.add('open'); overlay.classList.add('open'); forceSheet(true); }
-function closeSheet(){ sheet.classList.remove('open'); overlay.classList.remove('open'); forceSheet(false); }
-$('openSheet').addEventListener('click', openSheet);
-overlay.addEventListener('click', closeSheet);
-$('menuBtn').addEventListener('click', openSheet);
-$('fabBle').addEventListener('click', openSheet);
+function openSheet(){ if(sheet && overlay){ sheet.classList.add('open'); overlay.classList.add('open'); forceSheet(true); } }
+function closeSheet(){ if(sheet && overlay){ sheet.classList.remove('open'); overlay.classList.remove('open'); forceSheet(false); } }
+
+if ($('openSheet')) $('openSheet').addEventListener('click', openSheet);
+if (overlay) overlay.addEventListener('click', closeSheet);
+if ($('menuBtn')) $('menuBtn').addEventListener('click', openSheet);
+if ($('fabBle')) $('fabBle').addEventListener('click', openSheet);
 
 (function(){
+  if (!sheet) return;
   const zones = [sheet.querySelector('.grab'), sheet.querySelector('h3')].filter(Boolean);
   let dragging = false, startY = 0, dy = 0;
   function dragStart(e){
@@ -1520,30 +1893,38 @@ document.querySelectorAll('.tabs button').forEach(b=>{
     document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');
     document.querySelectorAll('.pane').forEach(p=>p.classList.remove('show'));
-    $('pane-'+b.dataset.tab).classList.add('show');
+    if ($('pane-'+b.dataset.tab)) $('pane-'+b.dataset.tab).classList.add('show');
   });
 });
-$('bleConnect').addEventListener('click', bleConnect);
-$('bleDisconnect').addEventListener('click', ()=>{ stopAll(); setStatus('bleStatus','ตัดการเชื่อมต่อแล้ว'); });
-$('wsDisconnect').addEventListener('click', ()=>{ wsShouldRun=false; stopAll(); setStatus('wsStatus','ตัดการเชื่อมต่อแล้ว'); });
-$('demoStart').addEventListener('click', demoStart);
-$('demoStop').addEventListener('click', ()=>{ demoStop(); setStatus('demoStatus','หยุดแล้ว'); });
+
+if ($('bleConnect')) $('bleConnect').addEventListener('click', bleConnect);
+if ($('bleDisconnect')) $('bleDisconnect').addEventListener('click', ()=>{ stopAll(); setStatus('bleStatus','ตัดการเชื่อมต่อแล้ว'); });
+if ($('demoStart')) $('demoStart').addEventListener('click', demoStart);
+if ($('demoStop')) $('demoStop').addEventListener('click', ()=>{ demoStop(); setStatus('demoStatus','หยุดแล้ว'); });
 
 function readStore(){ try{ return JSON.parse(localStorage.getItem('gauge_cfg') || '{}') || {}; }catch(e){ return {}; } }
 function writeStore(patch){ const o = Object.assign(readStore(), patch); try{ localStorage.setItem('gauge_cfg', JSON.stringify(o)); }catch(e){} return o; }
-function saveCfg(){ writeStore({ svc: $('svcUUID').value, chr: $('chrUUID').value, ws: $('wsURL').value,
-  dcR: $('cmdRead').value, dcC: $('cmdClear').value }); }
+function saveCfg(){ 
+  writeStore({ 
+    svc: $('svcUUID') ? $('svcUUID').value : '', 
+    chr: $('chrUUID') ? $('chrUUID').value : '',
+    dcR: $('cmdRead') ? $('cmdRead').value : '', 
+    dcC: $('cmdClear') ? $('cmdClear').value : '' 
+  }); 
+}
 function saveTune(){ writeStore({ tune: tune }); }
 function loadCfg(){
   const c = readStore();
-  if (c.svc) $('svcUUID').value = c.svc;
-  if (c.chr) $('chrUUID').value = c.chr;
-  if (c.ws)  $('wsURL').value  = c.ws;
-  if (c.dcR) $('cmdRead').value = c.dcR;
-  if (c.dcC) $('cmdClear').value = c.dcC;
+  if (c.svc && $('svcUUID')) $('svcUUID').value = c.svc;
+  if (c.chr && $('chrUUID')) $('chrUUID').value = c.chr;
+  if (c.dcR && $('cmdRead')) $('cmdRead').value = c.dcR;
+  if (c.dcC && $('cmdClear')) $('cmdClear').value = c.dcC;
   if (c.tune) tune = mergeTune(c.tune);
 }
-['svcUUID','chrUUID','wsURL','cmdRead','cmdClear'].forEach(id=> $(id).addEventListener('change', saveCfg));
+
+['svcUUID','chrUUID','cmdRead','cmdClear'].forEach(id=> {
+  const el = $(id); if (el) el.addEventListener('change', saveCfg);
+});
 
 const SCALE_FIELDS = [
   {k:'rpmMax',   label:'RPM สูงสุด',       step:100},
@@ -1632,6 +2013,7 @@ function rowColor(label, val, on){
 }
 function buildSettings(){
   const sc = $('scaleRows'), th = $('thRows'), co = $('colorRows');
+  if (!sc || !th || !co) return;
   sc.textContent = ''; th.textContent = ''; co.textContent = '';
   SCALE_FIELDS.forEach(f=> sc.appendChild(
     rowOne(f.label, tune[f.k], f.step, v=>{ tune[f.k] = v; tuneChanged(); })));
@@ -1645,13 +2027,16 @@ function buildSettings(){
   TILES.forEach(t=> co.appendChild(
     rowColor(t.label, tune.accent[t.key], v=>{ tune.accent[t.key] = v; tuneChanged(); })));
 }
-$('tuneReset').addEventListener('click', ()=>{
-  tune = clone(DEFAULT_TUNE); tuneSnapshot = clone(tune);
-  applyTune(); saveTune(); buildSettings();
-  setStatus('tuneStatus', 'คืนค่าเริ่มต้นแล้ว', 'ok');
-  toast('คืนค่าเริ่มต้นแล้ว');
-});
-$('tuneClose').addEventListener('click', closeSheet);
+
+if ($('tuneReset')) {
+  $('tuneReset').addEventListener('click', ()=>{
+    tune = clone(DEFAULT_TUNE); tuneSnapshot = clone(tune);
+    applyTune(); saveTune(); buildSettings();
+    setStatus('tuneStatus', 'คืนค่าเริ่มต้นแล้ว', 'ok');
+    toast('คืนค่าเริ่มต้นแล้ว');
+  });
+}
+if ($('tuneClose')) $('tuneClose').addEventListener('click', closeSheet);
 
 function lockLandscape(){
   try{
@@ -1660,35 +2045,37 @@ function lockLandscape(){
         .catch(()=> toast('เบราว์เซอร์นี้ไม่รองรับการล็อกทิศทาง'));
   }catch(e){ }
 }
-$('fsBtn').addEventListener('click', ()=>{
-  if (document.fullscreenElement){
-    document.exitFullscreen()
-      .then(()=> toast('ออกจากโหมดเต็มจอ'))
-      .catch(err=> toast('ออกจากโหมดเต็มจอไม่สำเร็จ: '+(err && err.message ? err.message : err)));
-    return;
-  }
-  let settled = false, p;
-  try { p = document.documentElement.requestFullscreen(); }
-  catch(err){ toast('เต็มจอไม่สำเร็จ: '+(err && err.message ? err.message : err)); return; }
-  if (!p || !p.then){ toast('เบราว์เซอร์นี้ไม่รองรับโหมดเต็มจอ'); return; }
-  p.then(()=>{
-    settled = true; $('fsBtn').textContent = '✕';
-    toast('เข้าโหมดเต็มจอแล้ว — หมุนเครื่องเป็นแนวนอนได้เลย');
-    lockLandscape();
-  }).catch(err=>{
-    settled = true;
-    toast('เต็มจอไม่สำเร็จ: '+(err && err.message ? err.message : err));
+if ($('fsBtn')) {
+  $('fsBtn').addEventListener('click', ()=>{
+    if (document.fullscreenElement){
+      document.exitFullscreen()
+        .then(()=> toast('ออกจากโหมดเต็มจอ'))
+        .catch(err=> toast('ออกจากโหมดเต็มจอไม่สำเร็จ: '+(err && err.message ? err.message : err)));
+      return;
+    }
+    let settled = false, p;
+    try { p = document.documentElement.requestFullscreen(); }
+    catch(err){ toast('เต็มจอไม่สำเร็จ: '+(err && err.message ? err.message : err)); return; }
+    if (!p || !p.then){ toast('เบราว์เซอร์นี้ไม่รองรับโหมดเต็มจอ'); return; }
+    p.then(()=>{
+      settled = true; if($('fsBtn')) $('fsBtn').textContent = '✕';
+      toast('เข้าโหมดเต็มจอแล้ว — หมุนเครื่องเป็นแนวนอนได้เลย');
+      lockLandscape();
+    }).catch(err=>{
+      settled = true;
+      toast('เต็มจอไม่สำเร็จ: '+(err && err.message ? err.message : err));
+    });
+    setTimeout(()=>{ if (!settled) toast('กำลังเข้าโหมดเต็มจอ…'); }, 900);
   });
-  setTimeout(()=>{ if (!settled) toast('กำลังเข้าโหมดเต็มจอ…'); }, 900);
-});
+}
 document.addEventListener('fullscreenchange', ()=>{
-  $('fsBtn').textContent = document.fullscreenElement ? '✕' : '⛶';
+  if ($('fsBtn')) $('fsBtn').textContent = document.fullscreenElement ? '✕' : '⛶';
 });
-
 
 const toastEl = $('toast');
 let toastTimer = null;
 function toast(msg){
+  if (!toastEl) return;
   toastEl.textContent = msg;
   toastEl.classList.add('show');
   clearTimeout(toastTimer);
@@ -1700,8 +2087,6 @@ let pendingClear = false;
 
 function addDtc(code){
   let c = String(code).toUpperCase().trim();
-  
-  // แปลงรหัส P-Code หรือตัวเลข ให้กลายเป็นรูปแบบ Code XX (เช่น P0001 -> Code 01)
   if (c.startsWith('P')) {
     let num = c.replace(/[^0-9]/g, '');
     if (num.length > 0) {
@@ -1718,7 +2103,6 @@ function addDtc(code){
   logLine('<< ' + c);
 }
 
-// ฟังก์ชันเรนเดอร์ DTC แสดงรหัสพร้อมคำอธิบายภาษาไทย/อังกฤษ
 function renderDtc(){
   const box = $('dtcList'), cnt = $('dtcCount');
   if (!box) return;
@@ -1733,15 +2117,11 @@ function renderDtc(){
   }
   [...dtcSet].sort().forEach(code=>{
     const chip = document.createElement('span'); chip.className = 'dtcChip';
-    
-    // แปลงรหัส เช่น P0008 ให้รองรับการค้นหาสำรองเป็นรูปแบบ 'Code 08' หากจำเป็น
     let num = code.replace(/[^0-9]/g, '');
     if (num.length > 0) {
       num = ('0' + parseInt(num, 10)).slice(-2);
     }
     const altKey = 'Code ' + num;
-
-    // ค้นหาคำอธิบายจากตาราง DTC_DICT
     const desc = DTC_DICT[code] || DTC_DICT[altKey] || 'รหัสข้อผิดพลาดระบบเครื่องยนต์';
 
     const b = document.createElement('b'); 
@@ -1765,10 +2145,7 @@ function collectDtcLine(t){
     logLine('<< ' + t);
     return 1;
   }
-  
-  // เปลี่ยนมาใช้บรรทัดนี้แทน (ตัดตัวเลข 1-2 หลักเพียวๆ ออก)
   const codes = t.match(/\b([PBCU][0-9A-F]{4}|Code\s*\d+)\b/gi);
-  
   if (!codes) return 0;
   codes.forEach(c => addDtc(c));
   return codes.length;
@@ -1799,10 +2176,6 @@ async function sendRaw(cmd){
     }
     if (bleChar.writeValueWithoutResponse){ await bleChar.writeValueWithoutResponse(buf); return; }
     throw new Error('Characteristic นี้ไม่รองรับการส่งคำสั่ง');
-  }
-  if (mode === 'wifi'){
-    if (!ws || ws.readyState !== 1) throw new Error('Wi‑Fi ยังไม่ได้เชื่อมต่อ');
-    ws.send(payload); return;
   }
   throw new Error('ยังไม่ได้เชื่อมต่ออุปกรณ์ — กด “เชื่อมต่อ” ก่อน');
 }
@@ -1841,44 +2214,49 @@ async function runCmd(kind){
   }
 }
 let clearArm = 0, clearArmTimer = null;
-$('dtcReadBtn').addEventListener('click', ()=> runCmd('read'));
-$('dtcClearBtn').addEventListener('click', ()=>{
-  const btn = $('dtcClearBtn'), now = Date.now();
-  if (clearArm < now){
-    clearArm = now + 4000;
-    btn.textContent = 'แตะอีกครั้งเพื่อยืนยัน';
-    setStatus('dtcStatus','กดยืนยันอีกครั้งภายใน 4 วินาทีเพื่อล้างความจำ ECU');
+if ($('dtcReadBtn')) $('dtcReadBtn').addEventListener('click', ()=> runCmd('read'));
+if ($('dtcClearBtn')) {
+  $('dtcClearBtn').addEventListener('click', ()=>{
+    const btn = $('dtcClearBtn'), now = Date.now();
+    if (clearArm < now){
+      clearArm = now + 4000;
+      btn.textContent = 'แตะอีกครั้งเพื่อยืนยัน';
+      setStatus('dtcStatus','กดยืนยันอีกครั้งภายใน 4 วินาทีเพื่อล้างความจำ ECU');
+      clearTimeout(clearArmTimer);
+      clearArmTimer = setTimeout(()=>{
+        clearArm = 0; btn.textContent = 'ลบโค้ด DTC';
+        if (/ยืนยัน/.test($('dtcStatus').textContent)) setStatus('dtcStatus','');
+      }, 4100);
+      return;
+    }
     clearTimeout(clearArmTimer);
-    clearArmTimer = setTimeout(()=>{
-      clearArm = 0; btn.textContent = 'ลบโค้ด DTC';
-      if (/ยืนยัน/.test($('dtcStatus').textContent)) setStatus('dtcStatus','');
-    }, 4100);
-    return;
-  }
-  clearTimeout(clearArmTimer);
-  clearArm = 0; btn.textContent = 'ลบโค้ด DTC';
-  runCmd('clear');
-});
+    clearArm = 0; btn.textContent = 'ลบโค้ด DTC';
+    runCmd('clear');
+  });
+}
 
 const pagerEl = $('pager');
-const pageEls = [...pagerEl.querySelectorAll('.page')];
-const barBtns = [...$('pagebar').querySelectorAll('button')];
+const pageEls = pagerEl ? [...pagerEl.querySelectorAll('.page')] : [];
+const barBtns = $('pagebar') ? [...$('pagebar').querySelectorAll('button')] : [];
 function updateBar(){ barBtns.forEach((b,i)=> b.classList.toggle('active', i === curPage)); }
 function setPage(i, smooth){
+  if (!pagerEl) return;
   curPage = Math.max(0, Math.min(pageEls.length - 1, i|0));
   updateBar();
   pagerEl.scrollTo({left: curPage * pagerEl.clientWidth, behavior: smooth ? 'smooth' : 'auto'});
 }
 barBtns.forEach((b,i)=> b.addEventListener('click', ()=> setPage(i, true)));
 let barTimer = null;
-pagerEl.addEventListener('scroll', ()=>{
-  clearTimeout(barTimer);
-  barTimer = setTimeout(()=>{
-    const w = pagerEl.clientWidth || 1;
-    curPage = Math.max(0, Math.min(pageEls.length - 1, Math.round(pagerEl.scrollLeft / w)));
-    updateBar();
-  }, 80);
-});
+if (pagerEl) {
+  pagerEl.addEventListener('scroll', ()=>{
+    clearTimeout(barTimer);
+    barTimer = setTimeout(()=>{
+      const w = pagerEl.clientWidth || 1;
+      curPage = Math.max(0, Math.min(pageEls.length - 1, Math.round(pagerEl.scrollLeft / w)));
+      updateBar();
+    }, 80);
+  });
+}
 window.addEventListener('resize', ()=> setPage(curPage, false));
 document.addEventListener('keydown', e=>{
   if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
@@ -1899,58 +2277,69 @@ setPill('', 'ไม่ได้เชื่อมต่อ');
 const lsApp = $('lsApp');
 const lsPill = $('lsConnPill'), lsConnText = $('lsConnText');
 const lsPagerEl = $('lsPager');
-const lsPages = [...lsPagerEl.querySelectorAll('.lsPage')];
+const lsPages = lsPagerEl ? [...lsPagerEl.querySelectorAll('.lsPage')] : [];
 const lsTabEls = [...document.querySelectorAll('.lsTab')];
 let lsPage = 0;
 
 function lsSetPage(i){
   lsPage = Math.max(0, Math.min(lsPages.length - 1, i|0));
   lsTabEls.forEach(b => b.classList.toggle('active', Number(b.dataset.page) === lsPage));
-  lsApp.classList.toggle('lsPage0', lsPage === 0);
-  lsApp.classList.toggle('lsParams', lsPage === 1);
-  lsApp.classList.toggle('lsDtc', lsPage === 2);
-  $('lsMenuBtn').classList.toggle('acc', lsPage === 2);
-  lsPagerEl.scrollLeft = lsPage * lsPagerEl.clientWidth;
+  if (lsApp) {
+    lsApp.classList.toggle('lsPage0', lsPage === 0);
+    lsApp.classList.toggle('lsParams', lsPage === 1);
+    lsApp.classList.toggle('lsDtc', lsPage === 2);
+  }
+  if ($('lsMenuBtn')) $('lsMenuBtn').classList.toggle('acc', lsPage === 2);
+  if (lsPagerEl) lsPagerEl.scrollLeft = lsPage * lsPagerEl.clientWidth;
 }
 lsTabEls.forEach(b => b.addEventListener('click', ()=> lsSetPage(Number(b.dataset.page))));
-lsPagerEl.addEventListener('scroll', ()=>{
-  const w = lsPagerEl.clientWidth || 1;
-  const i = Math.max(0, Math.min(lsPages.length - 1, Math.round(lsPagerEl.scrollLeft / w)));
-  if (i !== lsPage){ 
-    lsPage = i; 
-    lsTabEls.forEach(b => b.classList.toggle('active', Number(b.dataset.page) === i));
-    lsApp.classList.toggle('lsPage0', i === 0);
-    lsApp.classList.toggle('lsParams', i === 1);
-    lsApp.classList.toggle('lsDtc', i === 2);
-    $('lsMenuBtn').classList.toggle('acc', i === 2); 
-  }
-});
-$('lsMenuBtn').addEventListener('click', ()=> lsSetPage(lsPage === 2 ? 0 : 2));
-$('lsFsBtn').addEventListener('click', ()=> $('fsBtn').click());
-$('lsConnBtn').addEventListener('click', ()=>{
-  if (mode === 'off') openSheet();
-  else { stopAll(); toast('ตัดการเชื่อมต่อแล้ว'); }
-});
+if (lsPagerEl) {
+  lsPagerEl.addEventListener('scroll', ()=>{
+    const w = lsPagerEl.clientWidth || 1;
+    const i = Math.max(0, Math.min(lsPages.length - 1, Math.round(lsPagerEl.scrollLeft / w)));
+    if (i !== lsPage){ 
+      lsPage = i; 
+      lsTabEls.forEach(b => b.classList.toggle('active', Number(b.dataset.page) === i));
+      if (lsApp) {
+        lsApp.classList.toggle('lsPage0', i === 0);
+        lsApp.classList.toggle('lsParams', i === 1);
+        lsApp.classList.toggle('lsDtc', i === 2);
+      }
+      if ($('lsMenuBtn')) $('lsMenuBtn').classList.toggle('acc', i === 2); 
+    }
+  });
+}
+if ($('lsMenuBtn')) $('lsMenuBtn').addEventListener('click', ()=> lsSetPage(lsPage === 2 ? 0 : 2));
+if ($('lsFsBtn')) $('lsFsBtn').addEventListener('click', ()=> { if ($('fsBtn')) $('fsBtn').click(); });
+if ($('lsConnBtn')) {
+  $('lsConnBtn').addEventListener('click', ()=>{
+    if (mode === 'off') openSheet();
+    else { stopAll(); toast('ตัดการเชื่อมต่อแล้ว'); }
+  });
+}
 document.addEventListener('keydown', e=>{
   if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
-  if (getComputedStyle(lsApp).display === 'none') return;
+  if (lsApp && getComputedStyle(lsApp).display === 'none') return;
   if (e.key === 'ArrowRight') lsSetPage(lsPage + 1);
   if (e.key === 'ArrowLeft')  lsSetPage(lsPage - 1);
 });
 
 const LS_SEG = 36, lsBarEl = $('lsBar'), lsSegs = [], lsSegOn = [];
-for (let i = 0; i < LS_SEG; i++){
-  const s = document.createElement('i');
-  const f = i / LS_SEG;
-  s.style.setProperty('--segc', f < .60 ? GREEN : f < .82 ? AMBER : RED);
-  if (f >= .82) s.classList.add('segRed');
-  lsBarEl.appendChild(s); lsSegs.push(s); lsSegOn.push(false);
+if (lsBarEl) {
+  for (let i = 0; i < LS_SEG; i++){
+    const s = document.createElement('i');
+    const f = i / LS_SEG;
+    s.style.setProperty('--segc', f < .60 ? GREEN : f < .82 ? AMBER : RED);
+    if (f >= .82) s.classList.add('segRed');
+    lsBarEl.appendChild(s); lsSegs.push(s); lsSegOn.push(false);
+  }
 }
 let lsScaleMax = 0;
 function lsBuildScale(){
   if (RPM_MAX === lsScaleMax) return;
   lsScaleMax = RPM_MAX;
-  const box = $('lsScale'); box.textContent = '';
+  const box = $('lsScale'); if (!box) return;
+  box.textContent = '';
   for (let i = 0; i <= 4; i++){
     const v = Math.round(RPM_MAX * i / 4 / 1000);
     const s = document.createElement('span');
@@ -1961,23 +2350,26 @@ function lsBuildScale(){
 }
 
 const lsPgrid = $('lsPgrid');
-PARAMS.forEach(p=>{
-  const c = document.createElement('div');
-  c.className = 'lsCell';
-  c.style.setProperty('--c', p.color || 'var(--acc)');
-  const k = document.createElement('span'); k.className = 'lsPk'; k.textContent = p.label;
-  const r = document.createElement('span'); r.className = 'lsPr';
-  const v = document.createElement('b'); v.className = 'lsPv'; v.id = 'lspv_' + p.key; v.textContent = '–';
-  const u = document.createElement('span'); u.className = 'lsPu'; u.textContent = p.un || '';
-  r.appendChild(v); r.appendChild(u); c.appendChild(k); c.appendChild(r); lsPgrid.appendChild(c);
-});
+if (lsPgrid) {
+  PARAMS.forEach(p=>{
+    const c = document.createElement('div');
+    c.className = 'lsCell';
+    c.style.setProperty('--c', p.color || 'var(--acc)');
+    const k = document.createElement('span'); k.className = 'lsPk'; k.textContent = p.label;
+    const r = document.createElement('span'); r.className = 'lsPr';
+    const v = document.createElement('b'); v.className = 'lsPv'; v.id = 'lspv_' + p.key; v.textContent = '–';
+    const u = document.createElement('span'); u.className = 'lsPu'; u.textContent = p.un || '';
+    r.appendChild(v); r.appendChild(u); c.appendChild(k); c.appendChild(r); lsPgrid.appendChild(c);
+  });
+}
 
 const lsDtcCard = document.querySelector('#page2 .dtc');
 function placeDtc(){
+  if (!lsDtcCard || !lsApp) return;
   const land = getComputedStyle(lsApp).display !== 'none';
   const slot = $('lsDtcSlot');
-  if (land && lsDtcCard.parentElement !== slot) slot.appendChild(lsDtcCard);
-  else if (!land && lsDtcCard.parentElement === slot) $('page2').appendChild(lsDtcCard);
+  if (land && slot && lsDtcCard.parentElement !== slot) slot.appendChild(lsDtcCard);
+  else if (!land && lsDtcCard.parentElement === slot && $('page2')) $('page2').appendChild(lsDtcCard);
 }
 window.addEventListener('resize', placeDtc);
 window.addEventListener('orientationchange', placeDtc);
@@ -1993,7 +2385,7 @@ function lsPaint(id, txt, cls){
   if (el.dataset.c !== c){ el.dataset.c = c; el.className = el.className.replace(/\s*(warn|bad|cool)\b/g,'') + (c ? ' ' + c : ''); }
 }
 function lsRender(now){
-  if (getComputedStyle(lsApp).display === 'none'){
+  if (!lsApp || getComputedStyle(lsApp).display === 'none'){
     document.body.classList.remove('lsRed');
     return;
   }
@@ -2010,12 +2402,12 @@ function lsRender(now){
   const lit = Math.round(clamp(data.rpm / RPM_MAX, 0, 1) * LS_SEG);
   for (let i = 0; i < LS_SEG; i++){
     const on = has && i < lit;
-    if (lsSegOn[i] !== on){ lsSegOn[i] = on; lsSegs[i].classList.toggle('on', on); }
+    if (lsSegOn[i] !== on && lsSegs[i]){ lsSegOn[i] = on; lsSegs[i].classList.toggle('on', on); }
   }
   const hot = has && data.rpm >= REDLINE;
-  if (lsBarEl.classList.contains('hot') !== hot) lsBarEl.classList.toggle('hot', hot);
+  if (lsBarEl && lsBarEl.classList.contains('hot') !== hot) lsBarEl.classList.toggle('hot', hot);
   const shEl = $('lsShift');
-  if (shEl.classList.contains('hot') !== hot) shEl.classList.toggle('hot', hot);
+  if (shEl && shEl.classList.contains('hot') !== hot) shEl.classList.toggle('hot', hot);
   document.body.classList.toggle('lsRed', hot);
 
   lsPaint('lsSpd', has ? String(Math.round(data.speed)) : '–');
@@ -2023,10 +2415,9 @@ function lsRender(now){
   put('lsSpdAvg', String(Math.round(spdAvg)));
   const d = new Date(), p2 = n => (n < 10 ? '0' : '') + n;
   put('lsClock', p2(d.getHours()) + ':' + p2(d.getMinutes()));
-  // แสดงผล วัน เดือน ปี (เช่น 20 ต.ค. 2026)
   put('lsDate', d.getDate() + ' ' +
     ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][d.getMonth()] +
-    ' ' + d.getFullYear());
+    ' ' + String(d.getFullYear()).slice(-2));
 
   [['tps',0,100,0],['afr',10,18,1],['temp',0,120,0],['map',0,400,0]].forEach(([k,mn,mx,dec])=>{
     const v = data[k], st = statusOf(k, v);
@@ -2063,13 +2454,13 @@ render = function(now){ _renderBase(now); lsRender(now); };
 const _setPillBase = setPill;
 setPill = function(kind, text){
   _setPillBase(kind, text);
-  lsPill.className = pill.className;
-  lsConnText.textContent = text;
+  if (lsPill && pill) lsPill.className = pill.className;
+  if (lsConnText) lsConnText.textContent = text;
 };
 
 lsSetPage(0);
-lsPill.className = pill.className;
-lsConnText.textContent = pillText.textContent;
+if (lsPill && pill) lsPill.className = pill.className;
+if (lsConnText && pillText) lsConnText.textContent = pillText.textContent;
 
 let wakeLock = null;
 async function requestWakeLock() {
