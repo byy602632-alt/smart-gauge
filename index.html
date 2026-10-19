@@ -271,7 +271,7 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .dtcCount{font-family:var(--mono);font-size:12px;color:var(--dim)}
 .dtcList{display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;min-height:52px;
   background:#070d14;border:1px dashed var(--line);border-radius:10px;padding:10px;
-  flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain}
+  flex:0 0 auto;max-height:120px;overflow:auto;overscroll-behavior:contain}
 .dtcList .empty{font-size:12px;color:#3f5165}
 .dtcChip{display:inline-flex;align-items:center;gap:9px;background:#1a0d10;
   border:1px solid #5a1a20;color:#ff6b6b;font-family:var(--mono);font-size:15px;
@@ -283,7 +283,7 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .dtc .cmdRow .btn,.dtc label{font-size:13px}
 .dtc input[type=text]{padding:14px 12px;font-size:16px}
 .dtc .statusline{margin-top:10px;flex:0 0 auto}
-.dtc .dtcLog{flex:0 0 auto;max-height:22vh}
+.dtc .dtcLog{flex:1 1 auto;min-height:80px;max-height:22vh;overflow:auto}
 .dtc .hint{display:none}
 @media (orientation:landscape) and (min-width:700px){
   .dtc{max-width:760px;margin:0 auto;width:100%}
@@ -292,7 +292,7 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .btn.danger:active{background:#3a1116}
 .cmdRow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .dtcLog{margin-top:10px;background:#070d14;border:1px solid var(--line);border-radius:10px;
-  padding:7px 10px;max-height:120px;overflow:auto;font-family:var(--mono);font-size:11px;
+  padding:7px 10px;font-family:var(--mono);font-size:11px;
   color:var(--dim);display:none}
 .dtcLog:not(:empty){display:block}
 .logline{padding:3px 0;border-bottom:1px solid #101a25;word-break:break-all}
