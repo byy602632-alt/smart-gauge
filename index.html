@@ -100,10 +100,13 @@ header{display:flex;align-items:center;gap:9px;margin-bottom:6px}
   min-width:3ch;text-align:right}
 .dspd i{font-style:normal;font-size:max(9px,3vmin);letter-spacing:4px;color:var(--acc);font-weight:700}
 .dmaxRow{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
+
+/* ปรับแกไข้กล่องชิปวันที่ให้ยืดหยุ่นและแสดงผลไม่ถูกตัด */
 .dchip{background:var(--panel);border-radius:6px;padding:3px 8px;display:flex;
-  align-items:baseline;gap:6px}
+  align-items:baseline;gap:6px;white-space:nowrap;overflow:hidden;}
 .dchip .gLab{letter-spacing:1.5px}
 .dchip .val{font-size:max(13px,4vmin)}
+
 .dtime{display:flex;gap:10px;align-items:center;margin-top:4px;font-family:var(--mono);
   font-size:max(8px,2.6vmin);color:var(--dim)}
 .fab{width:34px;height:34px;border-radius:7px;border:1px solid var(--line);cursor:pointer;
@@ -266,42 +269,36 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 
 .page#page2{overflow:hidden}
 .dtc{padding:10px;height:100%;display:flex;flex-direction:column;min-height:0}
-.dtcHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex:0 0 auto}
+.dtcHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .dtcTitle{font-size:13px;letter-spacing:2px;color:var(--text);font-weight:800}
 .dtcCount{font-family:var(--mono);font-size:12px;color:var(--dim)}
-
-/* จออ่านโค้ด ขยายเต็มพื้นที่ด้านบน */
-.dtcList{display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;
+.dtcList{display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;min-height:52px;
   background:#070d14;border:1px dashed var(--line);border-radius:10px;padding:10px;
-  flex:1 1 auto;min-height:100px;overflow-y:auto;overscroll-behavior:contain}
+  flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain}
 .dtcList .empty{font-size:12px;color:#3f5165}
 .dtcChip{display:inline-flex;align-items:center;gap:9px;background:#1a0d10;
   border:1px solid #5a1a20;color:#ff6b6b;font-family:var(--mono);font-size:15px;
   font-weight:700;padding:8px 12px;border-radius:7px}
 .dtcChip i{font-style:normal;font-size:13px;opacity:.65;cursor:pointer;padding:0 3px}
-
 .dtcRow{display:flex;gap:10px;margin-top:10px;flex:0 0 auto}
-.dtcRow .btn{flex:1;padding:12px;font-size:14px}
-.dtc .cmdRow{margin-top:8px;flex:0 0 auto}
-.dtc .cmdRow .btn,.dtc label{font-size:12px}
-.dtc input[type=text]{padding:8px 10px;font-size:14px}
-.dtc .statusline{margin-top:6px;flex:0 0 auto}
-
-/* จอบันทึกประวัติด้านล่าง ย่อขนาดเล็ก */
-.dtc .dtcLog{flex:0 0 auto;min-height:40px;max-height:80px;height:80px;overflow-y:auto;margin-top:8px}
+.dtcRow .btn{flex:1;padding:16px;font-size:15px}
+.dtc .cmdRow{margin-top:12px;flex:0 0 auto}
+.dtc .cmdRow .btn,.dtc label{font-size:13px}
+.dtc input[type=text]{padding:14px 12px;font-size:16px}
+.dtc .statusline{margin-top:10px;flex:0 0 auto}
+.dtc .dtcLog{flex:0 0 auto;max-height:22vh}
 .dtc .hint{display:none}
-
 @media (orientation:landscape) and (min-width:700px){
   .dtc{max-width:760px;margin:0 auto;width:100%}
 }
 .btn.danger{background:#2a0d10;border-color:#6d1a20;color:#ff6b6b}
 .btn.danger:active{background:#3a1116}
 .cmdRow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.dtcLog{background:#070d14;border:1px solid var(--line);border-radius:10px;
-  padding:7px 10px;font-family:var(--mono);font-size:11px;
+.dtcLog{margin-top:10px;background:#070d14;border:1px solid var(--line);border-radius:10px;
+  padding:7px 10px;max-height:120px;overflow:auto;font-family:var(--mono);font-size:11px;
   color:var(--dim);display:none}
 .dtcLog:not(:empty){display:block}
-.logline{padding:2px 0;border-bottom:1px solid #101a25;word-break:break-all}
+.logline{padding:3px 0;border-bottom:1px solid #101a25;word-break:break-all}
 .logline:last-child{border-bottom:0}
 
 @media (orientation:landscape){
@@ -403,6 +400,7 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .lsPager::-webkit-scrollbar{display:none}
 .lsPage{flex:0 0 100%;min-width:100%;scroll-snap-align:start;display:flex;min-height:0;min-width:0}
 
+/* ซ่อนแถบ RPM สำหรับทุกหน้ายกเว้นหน้าแรก (lsPage0) */
 .lsApp:not(.lsPage0) .lsRpm, .lsApp.lsParams .lsRpm, .lsApp.lsDtc .lsRpm {
   height: 0; padding: 0; border-width: 0; overflow: hidden; margin: 0; opacity: 0;
 }
@@ -430,7 +428,7 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .lsChip b{font-family:var(--mono);font-size:max(11px,4vmin);color:#fff;font-weight:700;
   line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden}
 .lsChip b i{font-style:normal;font-size:.62em;color:var(--dim);letter-spacing:1px}
-.lsChip .lsDate{font-size:max(9px,3vmin)}
+.lsChip .lsDate{font-size:max(8px,2.4vmin);white-space:nowrap;} /* ปรับขนาดฟอนต์และตั้งค่าไม่ให้ตัดบรรทัด */
 .lsTiles{display:grid;gap:5px;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;min-height:0}
 .lsTile{background:var(--panel);border:1px solid var(--line);border-radius:8px;
   padding:4px max(7px,2vmin) 5px;display:flex;flex-direction:column;justify-content:center;
@@ -477,11 +475,11 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .lsDtcSlot{flex:1 1 auto;display:flex;min-height:0;min-width:0}
 @media (orientation:landscape) and (min-width:600px){
   .lsDtcSlot .dtc{max-width:none;margin:0;width:100%;padding:6px 8px}
-  .lsDtcSlot .dtcRow{margin-top:6px}
+  .lsDtcSlot .dtcRow{margin-top:8px}
   .lsDtcSlot .dtcRow .btn{padding:8px 12px;font-size:12px}
-  .lsDtcSlot .dtc .cmdRow{margin-top:6px}
-  .lsDtcSlot .dtc input[type=text]{padding:6px 10px;font-size:13px}
-  .lsDtcSlot .dtc .dtcLog{max-height:80px;height:80px;flex:0 0 auto;min-height:0}
+  .lsDtcSlot .dtc .cmdRow{margin-top:8px}
+  .lsDtcSlot .dtc input[type=text]{padding:8px 10px;font-size:13px}
+  .lsDtcSlot .dtc .dtcLog{max-height:none;flex:1 1 auto;min-height:0}
 }
 .lsFoot{display:flex;justify-content:space-between;align-items:center;flex:0 0 auto;
   font-size:max(7px,2vmin);letter-spacing:1px;color:#3d4552;padding:0 2px}
@@ -539,7 +537,7 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
         <div class="dmaxRow">
           <span class="dchip"><span class="gLab">TOP</span><span class="val" id="spdMax">0</span></span>
           <span class="dchip"><span class="gLab">AVG</span><span class="val" id="spdAvg">0</span></span>
-          <span class="dchip"><span class="gLab">วันนี้</span><span id="dateTxt" style="font-family:var(--mono);font-size:max(8px,2.6vmin);color:var(--dim)"></span></span>
+          <span class="dchip"><span class="gLab">วันนี้</span><span id="dateTxt" style="font-family:var(--mono);font-size:max(8px,2.6vmin);color:var(--dim);white-space:nowrap;"></span></span>
         </div>
         <div class="dtime">
           <button class="fab" id="fabBle" type="button" title="เชื่อมต่อ Bluetooth">
@@ -806,9 +804,6 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
 
 <script>
 'use strict';
-let curPage = 0;
-let lsPage = 0;
-
 async function connectBluetooth() {
   if (!navigator.bluetooth) {
     alert("เบราว์เซอร์ในแอปนี้ไม่รองรับ Web Bluetooth");
@@ -842,7 +837,9 @@ async function connectBluetooth() {
 
 const GREEN='#34d399', AMBER='#fbbf24', RED='#fb5c5c', CYAN='#22d3ee';
 
+// พจนานุกรมแปลโค้ด DTC ภาษาไทย / อังกฤษ (รองรับทั้งรูปแบบ P-Code และ Code XX)
 const DTC_DICT = {
+  // รองรับรูปแบบ P-Code (ที่กล่อง ECU ส่งมาจริง)
   'P0001': 'MAP Sensor (เซนเซอร์แรงดันไอดี)',
   'P0007': 'EOT/ECT Sensor (เซ็นเซอร์อุณหภูมิเครื่องยนต์/น้ำหล่อเย็น)',
   'P0008': 'Throttle Position (เซนเซอร์เรือนลิ้นเร่ง/TPS)',
@@ -869,6 +866,7 @@ const DTC_DICT = {
   'P0090': 'Smart Key System (ระบบกุญแจรีโมทอัจฉริยะ)',
   'P0091': 'Security / Remote (ระบบกันขโมย/รีโมท)',
 
+  // รองรับรูปแบบ Code XX (สำหรับโหมด Demo หรือกล่องรุ่นเก่า)
   'Code 01': 'MAP Sensor (เซนเซอร์แรงดันไอดี)',
   'Code 07': 'EOT/ECT Sensor (เซ็นเซอร์อุณหภูมิเครื่องยนต์/น้ำหล่อเย็น)',
   'Code 08': 'Throttle Position (เซนเซอร์เรือนลิ้นเร่ง/TPS)',
@@ -1253,7 +1251,7 @@ function setPill(kind, text){
   if (fab) fab.classList.toggle('on', kind === 'on');
 }
 function setStatus(id, text, cls){
-  const el = $(id); if(el){ el.textContent = text; el.className = 'statusline' + (cls ? ' '+cls : ''); }
+  const el = $(id); el.textContent = text; el.className = 'statusline' + (cls ? ' '+cls : '');
 }
 
 let bleDevice = null, bleChar = null, bleLineBuf = '';
@@ -1262,7 +1260,6 @@ let ws = null, wsTimer = null, wsShouldRun = false;
 const NATIVE_BLE = !!window.GaugeBle;
 function updateBleSupport(){
   const el = $('bleSupport');
-  if (!el) return;
   if (window.GaugeBle){
     el.innerHTML = window.GaugeBle.isSupported()
       ? '✅ แอป Android — กดปุ่มด้านล่างเพื่อสแกนและเลือกอุปกรณ์จากลิสต์'
@@ -1276,7 +1273,7 @@ function updateBleSupport(){
   if (!window.isSecureContext){
     el.innerHTML = '⚠️ Web Bluetooth ใช้ได้เฉพาะบน <b>HTTPS หรือ localhost</b> เท่านั้น '
       + '(ตอนนี้เปิดผ่าน <code>' + location.protocol + '</code> ที่ <code>' + location.host + '</code>) '
-      + '— หรือใช้แท็บ Wi‑Fi แทน';
+      + '— หรือใช้แท็บ Wi‑Fi ไปก่อน';
     return;
   }
   el.innerHTML = '⚠️ เบราว์เซอร์นี้<b>ไม่รองรับ Web Bluetooth</b> (เช่น iOS Safari) — ใช้แท็บ Wi‑Fi แทน';
@@ -1391,6 +1388,37 @@ function ingestBleText(text){
   if (bleLineBuf.length > 8192) bleLineBuf = '';
 }
 
+function wsConnect(){
+  stopAll();
+  const url = $('wsURL').value.trim();
+  if (!url){ setStatus('wsStatus','กรุณาใส่ URL','err'); return; }
+  mode = 'wifi'; wsShouldRun = true;
+  saveCfg();
+  openWs(url, 0);
+}
+function openWs(url, attempt){
+  if (!wsShouldRun) return;
+  setPill('warn','กำลังต่อ Wi‑Fi…');
+  setStatus('wsStatus','กำลังเชื่อมต่อ '+url+' …');
+  try { ws = new WebSocket(url); }
+  catch(err){ setStatus('wsStatus','URL ไม่ถูกต้อง: '+err.message,'err'); setPill('err','ผิดพลาด'); return; }
+  ws.onopen = ()=>{
+    setPill('on','Wi‑Fi');
+    noteConnected();
+    setStatus('wsStatus','✅ เชื่อมต่อแล้ว: '+url,'ok');
+  };
+  ws.onmessage = ev => ingest(typeof ev.data === 'string' ? ev.data : '');
+  ws.onerror = ()=> setStatus('wsStatus','เกิดข้อผิดพลาดในการเชื่อมต่อ','err');
+  ws.onclose = ()=>{
+    ws = null;
+    if (!wsShouldRun) return;
+    const wait = Math.min(8000, 1500 * (attempt+1));
+    setPill('warn','Wi‑Fi ตัด…');
+    setStatus('wsStatus','การเชื่อมต่อขาด — ลองใหม่ใน '+(wait/1000)+' วิ …','err');
+    wsTimer = setTimeout(()=> openWs(url, attempt+1), wait);
+  };
+}
+
 let demoTimer = null;
 function demoStart(){
   stopAll();
@@ -1497,28 +1525,25 @@ document.querySelectorAll('.tabs button').forEach(b=>{
 });
 $('bleConnect').addEventListener('click', bleConnect);
 $('bleDisconnect').addEventListener('click', ()=>{ stopAll(); setStatus('bleStatus','ตัดการเชื่อมต่อแล้ว'); });
+$('wsDisconnect').addEventListener('click', ()=>{ wsShouldRun=false; stopAll(); setStatus('wsStatus','ตัดการเชื่อมต่อแล้ว'); });
 $('demoStart').addEventListener('click', demoStart);
 $('demoStop').addEventListener('click', ()=>{ demoStop(); setStatus('demoStatus','หยุดแล้ว'); });
 
 function readStore(){ try{ return JSON.parse(localStorage.getItem('gauge_cfg') || '{}') || {}; }catch(e){ return {}; } }
 function writeStore(patch){ const o = Object.assign(readStore(), patch); try{ localStorage.setItem('gauge_cfg', JSON.stringify(o)); }catch(e){} return o; }
-function saveCfg(){ 
-  const svc = $('svcUUID') ? $('svcUUID').value : '';
-  const chr = $('chrUUID') ? $('chrUUID').value : '';
-  const dcR = $('cmdRead') ? $('cmdRead').value : '';
-  const dcC = $('cmdClear') ? $('cmdClear').value : '';
-  writeStore({ svc, chr, dcR, dcC }); 
-}
+function saveCfg(){ writeStore({ svc: $('svcUUID').value, chr: $('chrUUID').value, ws: $('wsURL').value,
+  dcR: $('cmdRead').value, dcC: $('cmdClear').value }); }
 function saveTune(){ writeStore({ tune: tune }); }
 function loadCfg(){
   const c = readStore();
-  if (c.svc && $('svcUUID')) $('svcUUID').value = c.svc;
-  if (c.chr && $('chrUUID')) $('chrUUID').value = c.chr;
-  if (c.dcR && $('cmdRead')) $('cmdRead').value = c.dcR;
-  if (c.dcC && $('cmdClear')) $('cmdClear').value = c.dcC;
+  if (c.svc) $('svcUUID').value = c.svc;
+  if (c.chr) $('chrUUID').value = c.chr;
+  if (c.ws)  $('wsURL').value  = c.ws;
+  if (c.dcR) $('cmdRead').value = c.dcR;
+  if (c.dcC) $('cmdClear').value = c.dcC;
   if (c.tune) tune = mergeTune(c.tune);
 }
-['svcUUID','chrUUID','cmdRead','cmdClear'].forEach(id=> { const el = $(id); if(el) el.addEventListener('change', saveCfg); });
+['svcUUID','chrUUID','wsURL','cmdRead','cmdClear'].forEach(id=> $(id).addEventListener('change', saveCfg));
 
 const SCALE_FIELDS = [
   {k:'rpmMax',   label:'RPM สูงสุด',       step:100},
@@ -1607,7 +1632,6 @@ function rowColor(label, val, on){
 }
 function buildSettings(){
   const sc = $('scaleRows'), th = $('thRows'), co = $('colorRows');
-  if(!sc || !th || !co) return;
   sc.textContent = ''; th.textContent = ''; co.textContent = '';
   SCALE_FIELDS.forEach(f=> sc.appendChild(
     rowOne(f.label, tune[f.k], f.step, v=>{ tune[f.k] = v; tuneChanged(); })));
@@ -1665,7 +1689,6 @@ document.addEventListener('fullscreenchange', ()=>{
 const toastEl = $('toast');
 let toastTimer = null;
 function toast(msg){
-  if(!toastEl) return;
   toastEl.textContent = msg;
   toastEl.classList.add('show');
   clearTimeout(toastTimer);
@@ -1678,6 +1701,7 @@ let pendingClear = false;
 function addDtc(code){
   let c = String(code).toUpperCase().trim();
   
+  // แปลงรหัส P-Code หรือตัวเลข ให้กลายเป็นรูปแบบ Code XX (เช่น P0001 -> Code 01)
   if (c.startsWith('P')) {
     let num = c.replace(/[^0-9]/g, '');
     if (num.length > 0) {
@@ -1694,6 +1718,7 @@ function addDtc(code){
   logLine('<< ' + c);
 }
 
+// ฟังก์ชันเรนเดอร์ DTC แสดงรหัสพร้อมคำอธิบายภาษาไทย/อังกฤษ
 function renderDtc(){
   const box = $('dtcList'), cnt = $('dtcCount');
   if (!box) return;
@@ -1709,12 +1734,14 @@ function renderDtc(){
   [...dtcSet].sort().forEach(code=>{
     const chip = document.createElement('span'); chip.className = 'dtcChip';
     
+    // แปลงรหัส เช่น P0008 ให้รองรับการค้นหาสำรองเป็นรูปแบบ 'Code 08' หากจำเป็น
     let num = code.replace(/[^0-9]/g, '');
     if (num.length > 0) {
       num = ('0' + parseInt(num, 10)).slice(-2);
     }
     const altKey = 'Code ' + num;
 
+    // ค้นหาคำอธิบายจากตาราง DTC_DICT
     const desc = DTC_DICT[code] || DTC_DICT[altKey] || 'รหัสข้อผิดพลาดระบบเครื่องยนต์';
 
     const b = document.createElement('b'); 
@@ -1739,6 +1766,7 @@ function collectDtcLine(t){
     return 1;
   }
   
+  // เปลี่ยนมาใช้บรรทัดนี้แทน (ตัดตัวเลข 1-2 หลักเพียวๆ ออก)
   const codes = t.match(/\b([PBCU][0-9A-F]{4}|Code\s*\d+)\b/gi);
   
   if (!codes) return 0;
@@ -1772,12 +1800,14 @@ async function sendRaw(cmd){
     if (bleChar.writeValueWithoutResponse){ await bleChar.writeValueWithoutResponse(buf); return; }
     throw new Error('Characteristic นี้ไม่รองรับการส่งคำสั่ง');
   }
+  if (mode === 'wifi'){
+    if (!ws || ws.readyState !== 1) throw new Error('Wi‑Fi ยังไม่ได้เชื่อมต่อ');
+    ws.send(payload); return;
+  }
   throw new Error('ยังไม่ได้เชื่อมต่ออุปกรณ์ — กด “เชื่อมต่อ” ก่อน');
 }
 async function runCmd(kind){
-  const cmdInput = (kind === 'read' ? $('cmdRead' ) : $('cmdClear'));
-  if (!cmdInput) return;
-  const cmd = cmdInput.value.trim();
+  const cmd = (kind === 'read' ? $('cmdRead' ) : $('cmdClear')).value.trim();
   if (!cmd){ setStatus('dtcStatus','กรุณาใส่คำสั่ง','err'); return; }
   
   markLive();
@@ -1871,6 +1901,7 @@ const lsPill = $('lsConnPill'), lsConnText = $('lsConnText');
 const lsPagerEl = $('lsPager');
 const lsPages = [...lsPagerEl.querySelectorAll('.lsPage')];
 const lsTabEls = [...document.querySelectorAll('.lsTab')];
+let lsPage = 0;
 
 function lsSetPage(i){
   lsPage = Math.max(0, Math.min(lsPages.length - 1, i|0));
@@ -1943,7 +1974,6 @@ PARAMS.forEach(p=>{
 
 const lsDtcCard = document.querySelector('#page2 .dtc');
 function placeDtc(){
-  if(!lsDtcCard) return;
   const land = getComputedStyle(lsApp).display !== 'none';
   const slot = $('lsDtcSlot');
   if (land && lsDtcCard.parentElement !== slot) slot.appendChild(lsDtcCard);
@@ -1993,6 +2023,7 @@ function lsRender(now){
   put('lsSpdAvg', String(Math.round(spdAvg)));
   const d = new Date(), p2 = n => (n < 10 ? '0' : '') + n;
   put('lsClock', p2(d.getHours()) + ':' + p2(d.getMinutes()));
+  // แสดงผล วัน เดือน ปี (เช่น 20 ต.ค. 2026)
   put('lsDate', d.getDate() + ' ' +
     ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][d.getMonth()] +
     ' ' + d.getFullYear());
