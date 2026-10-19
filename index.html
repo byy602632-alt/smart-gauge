@@ -801,6 +801,8 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
 
 <script>
 'use strict';
+let curPage = 0; // ย้ายมาไว้ตรงนี้เรียบร้อยแล้วครับ
+
 async function connectBluetooth() {
   if (!navigator.bluetooth) {
     alert("เบราว์เซอร์ในแอปนี้ไม่รองรับ Web Bluetooth");
@@ -1698,7 +1700,6 @@ let pendingClear = false;
 function addDtc(code){
   let c = String(code).toUpperCase().trim();
   
-  // แปลงรหัส P-Code หรือตัวเลข ให้กลายเป็นรูปแบบ Code XX (เช่น P0001 -> Code 01)
   if (c.startsWith('P')) {
     let num = c.replace(/[^0-9]/g, '');
     if (num.length > 0) {
@@ -1715,7 +1716,6 @@ function addDtc(code){
   logLine('<< ' + c);
 }
 
-// ฟังก์ชันเรนเดอร์ DTC แสดงรหัสพร้อมคำอธิบายภาษาไทย/อังกฤษ
 function renderDtc(){
   const box = $('dtcList'), cnt = $('dtcCount');
   if (!box) return;
@@ -1731,14 +1731,12 @@ function renderDtc(){
   [...dtcSet].sort().forEach(code=>{
     const chip = document.createElement('span'); chip.className = 'dtcChip';
     
-    // แปลงรหัส เช่น P0008 ให้รองรับการค้นหาสำรองเป็นรูปแบบ 'Code 08' หากจำเป็น
     let num = code.replace(/[^0-9]/g, '');
     if (num.length > 0) {
       num = ('0' + parseInt(num, 10)).slice(-2);
     }
     const altKey = 'Code ' + num;
 
-    // ค้นหาคำอธิบายจากตาราง DTC_DICT
     const desc = DTC_DICT[code] || DTC_DICT[altKey] || 'รหัสข้อผิดพลาดระบบเครื่องยนต์';
 
     const b = document.createElement('b'); 
@@ -1763,7 +1761,6 @@ function collectDtcLine(t){
     return 1;
   }
   
-  // เปลี่ยนมาใช้บรรทัดนี้แทน (ตัดตัวเลข 1-2 หลักเพียวๆ ออก)
   const codes = t.match(/\b([PBCU][0-9A-F]{4}|Code\s*\d+)\b/gi);
   
   if (!codes) return 0;
@@ -1860,7 +1857,6 @@ $('dtcClearBtn').addEventListener('click', ()=>{
 const pagerEl = $('pager');
 const pageEls = [...pagerEl.querySelectorAll('.page')];
 const barBtns = [...$('pagebar').querySelectorAll('button')];
-let curPage = 0;
 function updateBar(){ barBtns.forEach((b,i)=> b.classList.toggle('active', i === curPage)); }
 function setPage(i, smooth){
   curPage = Math.max(0, Math.min(pageEls.length - 1, i|0));
@@ -2021,7 +2017,6 @@ function lsRender(now){
   put('lsSpdAvg', String(Math.round(spdAvg)));
   const d = new Date(), p2 = n => (n < 10 ? '0' : '') + n;
   put('lsClock', p2(d.getHours()) + ':' + p2(d.getMinutes()));
-  // แสดงผล วัน เดือน ปี (เช่น 20 ต.ค. 2026)
   put('lsDate', d.getDate() + ' ' +
     ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][d.getMonth()] +
     ' ' + d.getFullYear());
