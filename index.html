@@ -981,6 +981,7 @@ function ingest(text){
     setStatus('dtcStatus','ล้างโค้ด DTC แล้ว','ok');
   }
   const dtcHit = collectDtcLine(t);
+  if (dtcHit > 0) markLive(); // ต่ออายุสถานะการเชื่อมต่อเมื่อได้รับข้อความ DTC กลับมา
   if (t[0]==='{'){
     try { return ingestObject(JSON.parse(t)) + dtcHit; } catch(e){ return dtcHit; }
   }
@@ -992,7 +993,8 @@ function ingest(text){
     return ingestObject(obj) + dtcHit;
   }
   if (/^[0-9eE+\-.,\s]+$/.test(t)) return ingestCSV(t.split(',')) + dtcHit;
-  if (/^[a-z_,\s]+$/i.test(t)){
+  if (/^[a-z_,\s]+$|NO FAULT CODES/i.test(t)){
+    if (!/^[a-z_,\s]+$/i.test(t)) return dtcHit;
     csvHeader = t.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
     return dtcHit;
   }
@@ -1106,7 +1108,8 @@ function scheduleRender(){
 function frame(t){ rafPending = false; render(t); scheduleRender(); }
 function render(now){
   lastFrame = now;
-  const live = lastUpdate > 0 && (now - lastUpdate) < 2500;
+  // เพิ่มเวลา Timeout เป็น 6 วินาที (จากเดิม 2.5 วินาที) เพื่อป้องกันขึ้นข้อมูลค้างเวลาบอร์ดกำลังส่งข้อมูล DTC
+  const live = lastUpdate > 0 && (now - lastUpdate) < 6000;
   document.body.classList.toggle('stale', hadData && !live);
   if (mode === 'demo'){ }
   else if ((mode === 'ble' || mode === 'wifi') && hadData && !live) setPill('err', 'ข้อมูลค้าง');
@@ -1830,7 +1833,7 @@ lsPagerEl.addEventListener('scroll', ()=>{
     lsApp.classList.toggle('lsPage0', i === 0);
     lsApp.classList.toggle('lsParams', i === 1);
     lsApp.classList.toggle('lsDtc', i === 2);
-    $('lsMenuBtn').classList.toggle('acc', i === 2); 
+    $('lsMenuBtn').classList.toggle('acc', lsPage === 2); 
   }
 });
 $('lsMenuBtn').addEventListener('click', ()=> lsSetPage(lsPage === 2 ? 0 : 2));
@@ -1905,7 +1908,7 @@ function lsRender(now){
     document.body.classList.remove('lsRed');
     return;
   }
-  const live = lastUpdate > 0 && (now - lastUpdate) < 2500;
+  const live = lastUpdate > 0 && (now - lastUpdate) < 6000;
   const has = hadData && live;
 
   lsBuildScale();
@@ -2005,7 +2008,7 @@ async function checkRemoteStatus() {
       
       if (cols[0] && cols[0] === myDeviceId) {
         if (cols[1] && cols[1].toUpperCase() === "OFF") {
-          isLocked = true;
+          isLocked = type = true;
         }
         break;
       }
@@ -2025,7 +2028,7 @@ async function checkRemoteStatus() {
         overlay.style.zIndex = "999999";
         overlay.style.display = "flex";
         overlay.style.flexDirection = "column";
-        overlay.style.justifyContent = "center";
+        overlay.style.justifyContent, "center";
         overlay.style.alignItems = "center";
         overlay.style.color = "white";
         overlay.style.fontFamily = "sans-serif";
