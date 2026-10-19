@@ -801,7 +801,8 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
 
 <script>
 'use strict';
-let curPage = 0; // ย้ายมาไว้ตรงนี้เรียบร้อยแล้วครับ
+let curPage = 0;
+let lsPage = 0; // ย้ายมารวมไว้ด้านบนสุดตรงนี้เรียบร้อยครับ
 
 async function connectBluetooth() {
   if (!navigator.bluetooth) {
@@ -838,7 +839,6 @@ const GREEN='#34d399', AMBER='#fbbf24', RED='#fb5c5c', CYAN='#22d3ee';
 
 // พจนานุกรมแปลโค้ด DTC ภาษาไทย / อังกฤษ (รองรับทั้งรูปแบบ P-Code และ Code XX)
 const DTC_DICT = {
-  // รองรับรูปแบบ P-Code (ที่กล่อง ECU ส่งมาจริง)
   'P0001': 'MAP Sensor (เซนเซอร์แรงดันไอดี)',
   'P0007': 'EOT/ECT Sensor (เซ็นเซอร์อุณหภูมิเครื่องยนต์/น้ำหล่อเย็น)',
   'P0008': 'Throttle Position (เซนเซอร์เรือนลิ้นเร่ง/TPS)',
@@ -865,7 +865,6 @@ const DTC_DICT = {
   'P0090': 'Smart Key System (ระบบกุญแจรีโมทอัจฉริยะ)',
   'P0091': 'Security / Remote (ระบบกันขโมย/รีโมท)',
 
-  // รองรับรูปแบบ Code XX (สำหรับโหมด Demo หรือกล่องรุ่นเก่า)
   'Code 01': 'MAP Sensor (เซนเซอร์แรงดันไอดี)',
   'Code 07': 'EOT/ECT Sensor (เซ็นเซอร์อุณหภูมิเครื่องยนต์/น้ำหล่อเย็น)',
   'Code 08': 'Throttle Position (เซนเซอร์เรือนลิ้นเร่ง/TPS)',
@@ -1895,7 +1894,6 @@ const lsPill = $('lsConnPill'), lsConnText = $('lsConnText');
 const lsPagerEl = $('lsPager');
 const lsPages = [...lsPagerEl.querySelectorAll('.lsPage')];
 const lsTabEls = [...document.querySelectorAll('.lsTab')];
-let lsPage = 0;
 
 function lsSetPage(i){
   lsPage = Math.max(0, Math.min(lsPages.length - 1, i|0));
