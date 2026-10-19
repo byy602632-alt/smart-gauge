@@ -287,8 +287,66 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .dtc .statusline{margin-top:10px;flex:0 0 auto}
 .dtc .dtcLog{flex:0 0 auto;max-height:22vh}
 .dtc .hint{display:none}
-@media (orientation:landscape) and (min-width:700px){
-  .dtc{max-width:760px;margin:0 auto;width:100%}
+@media (orientation:landscape){
+  .lsDtcSlot {
+    display: flex !important;
+    flex: 1 1 auto !important;
+    height: 100% !important;
+    min-height: 0 !important;
+  }
+  .lsDtcSlot .dtc {
+    max-width: none !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 10px 16px !important;
+    box-sizing: border-box !important;
+  }
+  /* ขยายกล่องรายการโค้ดให้ใหญ่เต็มที่ */
+  .lsDtcSlot .dtcList {
+    flex: 1 1 auto !important;
+    min-height: 160px !important;
+    max-height: none !important;
+    padding: 14px !important;
+    overflow-y: auto !important;
+    gap: 12px !important;
+  }
+  /* ขยายป้ายโค้ด DTC และตัวอักษรให้อ่านง่าย */
+  .lsDtcSlot .dtcChip {
+    font-size: 18px !important;
+    padding: 12px 18px !important;
+  }
+  .lsDtcSlot .dtcChip b {
+    font-size: 17px !important;
+  }
+  .lsDtcSlot .dtcChip i {
+    font-size: 18px !important;
+    padding: 0 6px !important;
+  }
+  /* ขยายปุ่มกดและช่องใส่คำสั่งให้ใหญ่ ชัดเจน */
+  .lsDtcSlot .dtcRow {
+    flex: 0 0 auto !important;
+    margin-top: 10px !important;
+  }
+  .lsDtcSlot .dtcRow .btn {
+    padding: 14px !important;
+    font-size: 15px !important;
+  }
+  .lsDtcSlot .dtc .cmdRow {
+    flex: 0 0 auto !important;
+    margin-top: 8px !important;
+  }
+  .lsDtcSlot .dtc input[type=text] {
+    padding: 10px !important;
+    font-size: 15px !important;
+  }
+  .lsDtcSlot .dtc .statusline {
+    flex: 0 0 auto !important;
+    margin-top: 6px !important;
+    font-size: 13px !important;
+  }
 }
 .btn.danger{background:#2a0d10;border-color:#6d1a20;color:#ff6b6b}
 .btn.danger:active{background:#3a1116}
@@ -481,58 +539,8 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
 .lsPu{font-size:max(7px,2vmin);color:var(--dim);min-width:2.4em;letter-spacing:.5px}
 
 .lsDtcSlot{flex:1 1 auto;display:flex;min-height:0;min-width:0}
-@media (orientation:landscape){
-  .lsDtcSlot {
-    display: flex !important;
+
     flex: 1 1 auto !important;
-    min-height: 0 !important;
-    height: 100% !important;
-  }
-  .lsDtcSlot .dtc {
-    max-width: none !important;
-    margin: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    padding: 6px 10px !important;
-    box-sizing: border-box !important;
-  }
-  .lsDtcSlot .dtcList {
-    flex: 1 1 auto !important;
-    min-height: 40px !important;
-    max-height: 80px !important;
-    overflow-y: auto !important;
-  }
-  .lsDtcSlot .dtcRow {
-    flex: 0 0 auto !important;
-    margin-top: 4px !important;
-  }
-  .lsDtcSlot .dtcRow .btn {
-    padding: 8px !important;
-    font-size: 12px !important;
-  }
-  .lsDtcSlot .dtc .cmdRow {
-    flex: 0 0 auto !important;
-    margin-top: 4px !important;
-  }
-  .lsDtcSlot .dtc input[type=text] {
-    padding: 6px !important;
-    font-size: 12px !important;
-  }
-  .lsDtcSlot .dtc .statusline {
-    flex: 0 0 auto !important;
-    margin-top: 2px !important;
-    font-size: 10px !important;
-  }
-  .lsDtcSlot .dtc .dtcLog {
-    flex: 0 0 50px !important;
-    height: 50px !important;
-    max-height: 50px !important;
-    margin-top: 2px !important;
-    overflow-y: auto !important;
-  }
-}
   .lsFoot{display:flex;justify-content:space-between;align-items:center;flex:0 0 auto;
   font-size:max(7px,2vmin);letter-spacing:1px;color:#3d4552;padding:0 2px}
 .lsFoot b{color:#4d5766;font-weight:700}
