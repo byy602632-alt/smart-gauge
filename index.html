@@ -1480,21 +1480,21 @@ function demoStart(){
     spd += (sT - spd) * 0.08;
     const tT = 15 + 70*Math.pow(0.5 + 0.5*Math.sin(ph*0.55), 2);
     tps = clamp(tps + (tT - tps)*0.15, 0, 100);
-    ingestObject({
+  ingestObject({
       rpm: rpm,
       speed: spd,
       tps: tps,
       afr: 14.7 - (tps/100)*3.2 + 0.1*Math.sin(ph*3.1),
       temp: 22 + 70*Math.min(1, ph/50) + 2.5*Math.sin(ph*0.7),
       map: 30 + 55*Math.pow(0.5 + 0.5*Math.sin(ph*0.55), 2) + 4*Math.sin(ph*2.3),
-      bat: 13.7 - (tps/100)*0.9 + 0.2*Math.sin(ph*1.7),
+      bat: 13.7 - (tps/100)*0.9 + 0.2*Math.sin(ph*1.7),  // ตรวจสอบว่าส่ง key "bat" มาแล้ว
       inj: 1.1 + (tps/100)*9.6,
       ign: clamp(36 - (rpm/8000)*15 - (tps/100)*8, 8, 42),
-      iat: 26 + (tps/100)*13 + 1.4*Math.sin(ph*0.9),
-      iacv: clamp(22 + 34*(1 - Math.min(1, rpm/2600)) + 5*Math.sin(ph*2.1), 0, 100),
+      iat: 26 + (tps/100)*13 + 1.4*Math.sin(ph*0.9),     // ตรวจสอบว่าส่ง key "iat" มาแล้ว
+      isc: 25 + 5*Math.sin(ph*2.1),                     // เปลี่ยนจาก iacv เป็น "isc"
+      trim: 3.1*Math.sin(ph*0.37),                      // เปลี่ยนจาก fueltrim เป็น "trim"
       mode: rpm < 1700 ? 'IDLE' : 'LOOP',
-      o2: (0.15 + 0.75*(0.5 + 0.5*Math.sin(ph*4.3))).toFixed(2),
-      fueltrim: 3.1*Math.sin(ph*0.37),
+      o2: (0.15 + 0.75*(0.5 + 0.5*Math.sin(ph*4.3))).toFixed(2), // ตรวจสอบ key "o2"
       fastidle: ph < 15 ? 'ON' : 'OFF',
       stand: spd < 2 ? 'ON' : 'OFF',
       bank: 1.6*Math.sin(ph*1.2)
