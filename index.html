@@ -1205,12 +1205,22 @@ function applyTune(){
     const s = tune.scale[t.key];
     if (s) { t.min = s[0]; t.max = s[1]; }
     if (tune.accent[t.key]) t.color = tune.accent[t.key];
+    
+    // อัปเดตการ์ดฝั่งหน้าจอแนวตั้ง (Portrait)
     const val = document.getElementById('v_'+t.key);
-    if (!val) return;
-    const tile = val.parentNode;
-    tile.style.setProperty('--acc', t.color);
-    const rng = tile.querySelector('.rng');
-    if (rng){ rng.children[0].textContent = t.min; rng.children[1].textContent = t.max; }
+    if (val){
+      const tile = val.parentNode;
+      tile.style.setProperty('--acc', t.color);
+      const rng = tile.querySelector('.rng');
+      if (rng){ rng.children[0].textContent = t.min; rng.children[1].textContent = t.max; }
+    }
+
+    // อัปเดตการ์ดฝั่งหน้าจอแนวนอน (Landscape .lsTile)
+    const lsVal = document.getElementById('ls_v_'+t.key);
+    if (lsVal){
+      const lsTile = lsVal.closest('.lsTile');
+      if (lsTile) lsTile.style.setProperty('--acc', t.color);
+    }
   });
   buildTicks();
   updateRed();
