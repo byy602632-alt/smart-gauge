@@ -304,16 +304,18 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
     padding: 6px 10px !important;
     box-sizing: border-box !important;
   }
+
+  /* 1. ขยายกล่องรายการโค้ด DTC ให้ยืดกินพื้นที่ส่วนใหญ่ของจอ */
   .lsDtcSlot .dtcList {
     flex: 1 1 auto !important;
-    min-height: 50px !important;
-    max-height: 120px !important;
+    min-height: 100px !important;
+    max-height: none !important;
+    padding: 10px !important;
     overflow-y: auto !important;
+    gap: 10px !important;
   }
-  .lsDtcSlot .dtcChip {
-    font-size: 15px !important;
-    padding: 8px 12px !important;
-  }
+
+  /* 2. ปรับปุ่มกดอ่าน/ลบโค้ด */
   .lsDtcSlot .dtcRow {
     flex: 0 0 auto !important;
     margin-top: 6px !important;
@@ -322,19 +324,30 @@ input[type=color]{padding:2px;height:38px;cursor:pointer}
     padding: 8px 12px !important;
     font-size: 13px !important;
   }
+
+  /* 3. ช่องใส่คำสั่งอ่าน/ลบ */
   .lsDtcSlot .dtc .cmdRow {
     flex: 0 0 auto !important;
-    margin-top: 6px !important;
+    margin-top: 4px !important;
   }
   .lsDtcSlot .dtc input[type=text] {
     padding: 6px 8px !important;
-    font-size: 13px !important;
+    font-size: 12px !important;
   }
+
+  /* 4. ย้ายข้อความสถานะมาไว้ล่างสุด (ลำดับสุดท้าย) */
   .lsDtcSlot .dtc .statusline {
+    order: 99 !important;
     display: block !important;
     flex: 0 0 auto !important;
     margin-top: 4px !important;
     font-size: 11px !important;
+    min-height: 16px !important;
+  }
+
+  /* ซ่อน Log และ Footer */
+  .lsDtcSlot .dtc .dtcLog {
+    display: none !important;
   }
   .lsFoot {
     display: none !important;
