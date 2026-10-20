@@ -1493,7 +1493,7 @@ function demoStart(){
       iat: 26 + (tps/100)*13 + 1.4*Math.sin(ph*0.9),     // ตรวจสอบว่าส่ง key "iat" มาแล้ว
       iacv: 25 + 5*Math.sin(ph*2.1), // เปลี่ยนจาก isc เป็น iacv                     // เปลี่ยนจาก iacv เป็น "isc"
       trim: 3.1*Math.sin(ph*0.37),                      // เปลี่ยนจาก fueltrim เป็น "trim"
-      mode: rpm < 1700 ? 'IDLE' : 'LOOP',
+      mode: 'MODE ' + (Math.floor(ph / 40) % 4 + 1),
       o2: (0.15 + 0.75*(0.5 + 0.5*Math.sin(ph*4.3))).toFixed(2), // ตรวจสอบ key "o2"
       fastidle: ph < 15 ? 'ON' : 'OFF',
       stand: spd < 2 ? 'ON' : 'OFF',
