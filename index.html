@@ -1491,7 +1491,7 @@ function demoStart(){
       inj: 1.1 + (tps/100)*9.6,
       ign: clamp(36 - (rpm/8000)*15 - (tps/100)*8, 8, 42),
       iat: 26 + (tps/100)*13 + 1.4*Math.sin(ph*0.9),     // ตรวจสอบว่าส่ง key "iat" มาแล้ว
-      isc: 25 + 5*Math.sin(ph*2.1),                     // เปลี่ยนจาก iacv เป็น "isc"
+      iacv: 25 + 5*Math.sin(ph*2.1), // เปลี่ยนจาก isc เป็น iacv                     // เปลี่ยนจาก iacv เป็น "isc"
       trim: 3.1*Math.sin(ph*0.37),                      // เปลี่ยนจาก fueltrim เป็น "trim"
       mode: rpm < 1700 ? 'IDLE' : 'LOOP',
       o2: (0.15 + 0.75*(0.5 + 0.5*Math.sin(ph*4.3))).toFixed(2), // ตรวจสอบ key "o2"
