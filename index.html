@@ -721,24 +721,15 @@ stale: .stale .lsGrid,.stale .lsRpm,.stale .lsPtable{opacity:.35;filter:grayscal
     <div class="lsBrand">Smart Gauge<small>Telemetry</small></div>
     <div class="pill" id="lsConnPill"><span class="dot"></span><span id="lsConnText">ไม่ได้เชื่อมต่อ</span></div>
     <div class="lsSpacer"></div>
-    
-    <!-- ปุ่ม Bluetooth กดแล้วเชื่อมต่อทันที -->
-    <button class="btn ghost iconBtn" id="lsFabBle" type="button" title="สแกนและเชื่อมต่อ Bluetooth">
-      <svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round" aria-hidden="true">
-        <polyline points="6.5 6.5 17.5 17.5 12 22 12 2 17.5 6.5 6.5 17.5"/>
-      </svg>
-    </button>
-
     <nav class="lsTabs" id="lsTabs" aria-label="เลือกหน้า">
       <button type="button" class="lsTab active" data-page="0">① แดชบอร์ด</button>
       <button type="button" class="lsTab" data-page="1">② ค่าทั้งหมด</button>
     </nav>
     <div class="lsClock" id="lsClock">--:--</div>
     <button type="button" class="btn ghost" id="lsFsBtn" title="เต็มจอ (ล็อกแนวนอน)">⛶</button>
-    
-    <!-- ปุ่มเฟืองตั้งค่า -->
-    <button type="button" class="btn ghost iconBtn" id="lsGearBtn" title="ตั้งค่า / Demo">⚙️</button>
+    <button type="button" class="btn" id="lsConnBtn">เชื่อมต่อ</button>
   </header>
+
   <section class="lsRpm">
     <div class="lsRpmHead">
       <span class="lsRpmVal" id="lsRpmVal">0</span>
@@ -1214,22 +1205,12 @@ function applyTune(){
     const s = tune.scale[t.key];
     if (s) { t.min = s[0]; t.max = s[1]; }
     if (tune.accent[t.key]) t.color = tune.accent[t.key];
-    
-    // อัปเดตการ์ดฝั่งหน้าจอแนวตั้ง (Portrait)
     const val = document.getElementById('v_'+t.key);
-    if (val){
-      const tile = val.parentNode;
-      tile.style.setProperty('--acc', t.color);
-      const rng = tile.querySelector('.rng');
-      if (rng){ rng.children[0].textContent = t.min; rng.children[1].textContent = t.max; }
-    }
-
-    // อัปเดตการ์ดฝั่งหน้าจอแนวนอน (Landscape .lsTile)
-    const lsVal = document.getElementById('ls_v_'+t.key);
-    if (lsVal){
-      const lsTile = lsVal.closest('.lsTile');
-      if (lsTile) lsTile.style.setProperty('--acc', t.color);
-    }
+    if (!val) return;
+    const tile = val.parentNode;
+    tile.style.setProperty('--acc', t.color);
+    const rng = tile.querySelector('.rng');
+    if (rng){ rng.children[0].textContent = t.min; rng.children[1].textContent = t.max; }
   });
   buildTicks();
   updateRed();
@@ -2198,25 +2179,6 @@ window.addEventListener("DOMContentLoaded", () => {
   checkRemoteStatus();
   setInterval(checkRemoteStatus, 4000);
 });
-
-// --- วางโค้ดควบคุมปุ่มบลูทูธและปุ่มเฟืองตรงนี้ ---
-if ($('lsFabBle')) {
-  $('lsFabBle').addEventListener('click', () => {
-    bleConnect();
-  });
-}
-
-if ($('lsGearBtn')) {
-  $('lsGearBtn').addEventListener('click', () => {
-    const bleTabBtn = document.querySelector('.tabs button[data-tab="ble"]');
-    if (bleTabBtn) bleTabBtn.style.display = 'none';
-
-    openSheet();
-
-    const setTabBtn = document.querySelector('.tabs button[data-tab="set"]');
-    if (setTabBtn) setTabBtn.click();
-  });
-}
 </script>
 </body>
 </html>
