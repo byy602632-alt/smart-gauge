@@ -1444,50 +1444,27 @@ async function bleConnect(){
     setStatus('bleStatus', 'ผิดพลาด: ' + (err && err.message ? err.message : err), 'err');
   }
 }
-let telemetryData = {};
-
-function onBleValue(ev) {
-    const text = new TextDecoder().decode(ev.target.value);
-    ingestBleText(text);
+function onBleValue(ev){ ingestBleText(new TextDecoder().decode(ev.target.value)); }
+function ingestBleText(text){
+  bleLineBuf += text;
+  if (bleLineBuf.trim()[0] === '{'){
+    const close = bleLineBuf.lastIndexOf('}');
+    if (close >= 0){
+      const chunk = bleLineBuf.slice(0, close+1);
+      bleLineBuf = bleLineBuf.slice(close+1);
+      if (ingest(chunk)) return;
+      bleLineBuf = chunk + bleLineBuf;
+    }
+  }
+  let i;
+  while ((i = bleLineBuf.indexOf('\n')) >= 0){
+    const line = bleLineBuf.slice(0, i).trim();
+    bleLineBuf = bleLineBuf.slice(i+1);
+    if (line) ingest(line);
+  }
+  if (bleLineBuf.length > 8192) bleLineBuf = '';
 }
 
-function ingestBleText(text) {
-    bleLineBuf += text;
-    if (bleLineBuf.trim()[0] === '{') {
-        const close = bleLineBuf.lastIndexOf('}');
-        if (close >= 0){
-            const chunk = bleLineBuf.slice(0, close+1);
-            bleLineBuf = bleLineBuf.slice(close+1);
-            if (ingest(chunk)) return;
-            bleLineBuf = chunk + bleLineBuf;
-        }
-    }
-    let i;
-    while ((i = bleLineBuf.indexOf('\n')) >= 0){
-        const line = bleLineBuf.slice(0, i).trim();
-        bleLineBuf = bleLineBuf.slice(i+1);
-        if (line) ingest(line);
-    }
-    if (bleLineBuf.length > 8192) bleLineBuf = '';
-}
-
-function ingest(chunk) {
-    try {
-        const partialData = JSON.parse(chunk);
-        // รวมข้อมูลก้อนย่อยเข้ากับตัวแปรกลางโดยอัตโนมัติ
-        Object.assign(telemetryData, partialData);
-        
-        // ส่งข้อมูลชุดรวมไปให้ฟังก์ชันแสดงผลเดิมของคุณใช้งานต่อ
-        if (typeof renderTelemetry === 'function') {
-            renderTelemetry(telemetryData);
-        } else if (typeof updateDashboard === 'function') {
-            updateDashboard(telemetryData);
-        }
-        return true;
-    } catch (e) {
-        return false;
-    }
-}
 let demoTimer = null;
 function demoStart(){
   stopAll();
