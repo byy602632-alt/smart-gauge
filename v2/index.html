@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#070B11">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>ECU TUNE — จูนกล่องมอไซค์</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 30 19" fill="#FF5A45" aria-hidden="true"><path d="M0 18 10.3 0h4.5l7.1 12.4L26 6.7h4L25.4 18h-4.4L14 5.4 7.2 18H0Z"/></svg>
+      <div>
+        <div class="bt">ECU TUNE</div>
+        <div class="bs">จูนกล่อง PGM-FI บนมือถือ</div>
+      </div>
+    </div>
+    <div class="topright">
+      <span class="pill dim" id="statusPill"><i></i>ออฟไลน์</span>
+    </div>
+  </header>
+
+  <main class="scroller">
+
+    <!-- ============================ HOME / DASHBOARD ============================ -->
+    <section class="view on" id="view-dash">
+
+      <div class="card glow hero">
+        <div class="hero-top">
+          <div>
+            <div class="hero-name">WAVE 125i <span>PGM-FI</span></div>
+            <div class="hero-sub" id="heroSub">4 สปีด · 125 cc · ยังไม่โหลดไฟล์</div>
+          </div>
+          <button class="pill dim" id="connChip" style="margin-left:auto;cursor:pointer;border:1px solid var(--line2)">
+            <i></i><span id="connText">เดโม</span>
+          </button>
+        </div>
+
+        <div class="tach" id="tach">
+          <svg id="tachSvg" viewBox="0 0 320 320" aria-hidden="true"></svg>
+          <div class="mid">
+            <div class="rpmline"><b id="rpmVal">0</b><span>RPM</span></div>
+            <div class="speedline"><b id="spdVal">0</b><span>KM/H</span></div>
+            <div class="gearline">
+              <span class="gearbox" id="gearVal">N</span>
+              <span class="shift" id="shiftPill">SHIFT</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-foot">
+          <span class="tl">TPS</span>
+          <div class="throttle"><i id="tpsFill"></i></div>
+          <span class="tv" id="tpsText">0%</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>ส่วนผสมอากาศ / น้ำมัน</h3>
+          <span class="right sub" id="afrTarget">เป้า 13.0</span>
+        </div>
+        <div class="afr-big">
+          <span class="v" id="afrVal">--</span>
+          <span class="u">AFR</span>
+          <span class="tag" id="afrTag">รอข้อมูล</span>
+        </div>
+        <div class="afr-scale">
+          <div class="afr-track"></div>
+          <div class="afr-band" id="afrBand"></div>
+          <div class="afr-mark" id="afrMark" style="left:50%"></div>
+          <div class="afr-ticks"><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span></div>
+        </div>
+      </div>
+
+      <div class="metrics" id="metrics">
+        <div class="metric"><div class="lb">น้ำมันเครื่อง</div><div class="vl"><span id="mEct">--</span><small>°C</small></div></div>
+        <div class="metric"><div class="lb">อากาศเข้า</div><div class="vl"><span id="mIat">--</span><small>°C</small></div></div>
+        <div class="metric"><div class="lb">MAP</div><div class="vl"><span id="mMap">--</span><small>kPa</small></div></div>
+        <div class="metric"><div class="lb">หัวฉีด</div><div class="vl"><span id="mInj">--</span><small>ms</small></div></div>
+        <div class="metric"><div class="lb">ไฟจุดระเบิด</div><div class="vl"><span id="mIgn">--</span><small>°BTDC</small></div></div>
+        <div class="metric" id="mBattCard"><div class="lb">แบตเตอรี่</div><div class="vl"><span id="mBatt">--</span><small>V</small></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>กราฟสด</h3>
+          <span class="right sub" id="traceState">30 วินาที</span>
+        </div>
+        <canvas class="trace" id="traceCanvas"></canvas>
+        <div class="trace-legend">
+          <span><i style="background:#35C7FF"></i>RPM</span>
+          <span><i style="background:#C8F53C"></i>AFR</span>
+          <span><i style="background:#FFB020"></i>TPS</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>ทริปนี้</h3>
+          <span class="right sub" id="rideClock">00:00</span>
+        </div>
+        <div class="sum">
+          <div><b id="sumMaxRpm">0</b><span>RPM สูงสุด</span></div>
+          <div><b id="sumTopSpd">0</b><span>KM/H สูงสุด</span></div>
+          <div><b id="sumAvgAfr">--</b><span>AFR เฉลี่ย</span></div>
+          <div><b id="sumDist">0.0</b><span>กม.</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>ไฟล์จูนในเครื่อง</h3><span class="right sub" id="ecuState">ยังไม่โหลด</span></div>
+        <div class="ecu-row">
+          <span class="ecu-ic">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#35C7FF" stroke-width="1.6" stroke-linecap="round">
+              <rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/>
+            </svg>
+          </span>
+          <div style="min-width:0">
+            <div class="nm" id="ecuName">ยังไม่มีไฟล์ .bin</div>
+            <div class="mt" id="ecuMeta">โหลด .bin + .xdf เพื่อเริ่มจูน</div>
+          </div>
+          <button class="btn sm" id="goTune" style="margin-left:auto">ไปจูน ›</button>
+        </div>
+      </div>
+
+      <div class="note blue">
+        <b>โหมดเดโม:</b> มาตรวัดจำลองการขับขี่ให้ดูการทำงาน ถ้าต่ออุปกรณ์จริงผ่าน Web Serial
+        ให้ส่งข้อมูลบรรทัดละชุด เช่น <span class="mono">rpm=5200,afr=13.2,tps=45,ect=88</span>
+      </div>
+    </section>
+
+    <!-- ============================ TUNE ============================ -->
+    <section class="view" id="view-tune">
+
+      <div class="filebar">
+        <button class="fchip" id="fBinChip">
+          <span class="fi">BIN</span>
+          <span class="ft">
+            <span class="fn" id="fBinName">โหลดไฟล์ .bin</span>
+            <span class="fm" id="fBinMeta">ไฟล์ firmware / แผนที่ ECU</span>
+          </span>
+          <span class="fx">＋</span>
+        </button>
+        <button class="fchip" id="fXdfChip">
+          <span class="fi">XDF</span>
+          <span class="ft">
+            <span class="fn" id="fXdfName">โหลดไฟล์ .xdf</span>
+            <span class="fm" id="fXdfMeta">คำนิยามตาราง (TunerPro)</span>
+          </span>
+          <span class="fx">＋</span>
+        </button>
+      </div>
+
+      <div class="empty" id="tuneEmpty">
+        <div class="big">BIN</div>
+        <h2>เริ่มจูนกล่อง</h2>
+        <p>โหลดไฟล์ <b>.bin</b> ที่อ่านจากกล่อง แล้วโหลด <b>.xdf</b> ของรุ่นนั้น<br>
+           ถ้าไม่มี XDF แอปจะสแกนหาตารางให้อัตโนมัติ</p>
+        <div class="row" style="max-width:300px;margin:0 auto">
+          <button class="btn primary" id="btnPickBin">โหลด .bin</button>
+          <button class="btn" id="btnPickXdf">โหลด .xdf</button>
+        </div>
+      </div>
+
+      <div id="tuneBody" hidden style="display:flex;flex-direction:column;gap:10px">
+        <div class="card" style="padding:11px 12px">
+          <div class="maphead">
+            <div style="min-width:0">
+              <div class="mt" id="mapTitle">—</div>
+              <div class="ms" id="mapMeta">—</div>
+            </div>
+            <div class="chg"><b id="mapChanged">0</b><span>ช่องที่แก้</span></div>
+          </div>
+        </div>
+
+        <div class="toolrail">
+          <button id="btnMaps">☰ ตาราง <span id="mapCount" class="mono" style="color:var(--dim2)"></span></button>
+          <button id="btn3d">◢ 3D</button>
+          <button id="btnUndo">↶ ย้อน</button>
+          <button id="btnRedo">↷ ซ้ำ</button>
+          <button id="btnTools">⚙ เครื่องมือ</button>
+          <button id="btnReport">🧾 รายงาน</button>
+        </div>
+
+        <div class="tablewrap" id="tableWrap"><table class="grid" id="mapGrid"></table></div>
+        <canvas class="surface" id="surface3d" hidden></canvas>
+        <div class="surfbar" id="surfBar" hidden>
+          <span id="surfMin">0</span><span class="legendbar"></span><span id="surfMax">0</span>
+          <span style="color:var(--dim2);margin-left:6px">ลากเพื่อหมุน</span>
+        </div>
+
+        <div class="cellinfo" id="cellInfo">
+          <span>แตะช่องเพื่อแก้ค่า</span>
+        </div>
+
+        <div class="row">
+          <button class="btn" id="btnSaveBin">บันทึก .bin</button>
+          <button class="btn lime" id="btnGoFlash">ไปอัดไฟ ›</button>
+        </div>
+
+        <div class="note blue" id="tuneNote" hidden></div>
+      </div>
+    </section>
+
+    <!-- ============================ FLASH ============================ -->
+    <section class="view" id="view-flash">
+
+      <div class="card">
+        <div class="card-head"><h3>ไฟล์ที่จะอัด</h3><span class="right sub" id="flashSrc">—</span></div>
+        <div class="kv"><span class="k">ชื่อไฟล์</span><span class="v" id="flashName">—</span></div>
+        <div class="kv"><span class="k">ขนาด</span><span class="v" id="flashSize">—</span></div>
+        <div class="kv"><span class="k">ไบต์ที่แก้</span><span class="v" id="flashMod">—</span></div>
+        <div class="kv"><span class="k">XDF</span><span class="v" id="flashXdf">—</span></div>
+        <div class="kv"><span class="k">ผลตรวจขนาด</span><span class="v" id="flashCheck">—</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Checksum</h3><span class="right sub">ตรวจก่อนแฟลช</span></div>
+        <div class="kv"><span class="k">Sum8 (ทั้งไฟล์)</span><span class="v" id="ckSum8">—</span></div>
+        <div class="kv"><span class="k">Sum16 (ทั้งไฟล์)</span><span class="v" id="ckSum16">—</span></div>
+        <div class="kv"><span class="k">CRC16</span><span class="v" id="ckCrc">—</span></div>
+        <div class="kv" id="ckDefRow" hidden><span class="k">XDF checksum</span><span class="v" id="ckDef">—</span></div>
+        <div class="note" style="margin-top:9px" id="ckNote">
+          <b>อย่าลืม:</b> ไฟล์ที่แก้แล้วมักต้องคำนวณ checksum ของกล่องรุ่นนั้นก่อนอัด
+          ถ้า XDF ระบุ checksum ไว้ แอปจะแสดงให้ตรวจ — ถ้าไม่ระบุ ให้คำนวณด้วยเครื่องมือของรุ่นนั้น
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn" id="btnBackup">สำรองไฟล์เดิม</button>
+        <button class="btn" id="btnExport">บันทึก .bin ที่จูน</button>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>อัดลงกล่อง</h3><span class="right sub" id="flashMode">—</span></div>
+        <div class="flow">
+          <div class="step" data-step="check"><div class="dot">1</div><div class="bd"><div class="st">ตรวจไฟล์</div><div class="ss" id="sCheck">รอตรวจสอบ</div></div></div>
+          <div class="step" data-step="connect"><div class="dot">2</div><div class="bd"><div class="st">เชื่อมต่อกล่อง</div><div class="ss" id="sConnect">ยังไม่เชื่อมต่อ</div></div></div>
+          <div class="step" data-step="erase"><div class="dot">3</div><div class="bd"><div class="st">ลบหน่วยความจำ</div><div class="ss" id="sErase">—</div></div></div>
+          <div class="step" data-step="write"><div class="dot">4</div><div class="bd"><div class="st">เขียนข้อมูล</div><div class="ss" id="sWrite">—</div></div></div>
+          <div class="step" data-step="verify"><div class="dot">5</div><div class="bd"><div class="st">ตรวจสอบไบต์</div><div class="ss" id="sVerify">—</div></div></div>
+          <div class="step" data-step="reset"><div class="dot">6</div><div class="bd"><div class="st">รีเซ็ตกล่อง</div><div class="ss" id="sReset">—</div></div></div>
+        </div>
+
+        <div class="progress"><i id="flashFill"></i></div>
+        <div class="pctline"><span id="flashPct">0%</span><span id="flashBytes">0 / 0 KB</span></div>
+
+        <div class="row" style="margin-top:11px">
+          <button class="btn" id="btnConnect">เชื่อมต่อสาย</button>
+          <button class="btn" id="btnSim">โหมดจำลอง</button>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn danger holdbtn" id="btnFlash"><span>⤓ กดค้างเพื่ออัดไฟ</span><span class="fill" id="flashHold"></span></button>
+        </div>
+        <button class="btn ghost sm wide" id="btnProto" style="margin-top:8px;color:var(--dim)">สเปกโปรโตคอล / วิธีต่อสาย</button>
+
+        <div class="log" id="flashLog" style="margin-top:10px">ยังไม่มีกิจกรรม</div>
+      </div>
+
+      <div class="note red">
+        <b>อ่านก่อนอัด:</b> การเขียนผิดไฟล์/ผิดรุ่นทำให้กล่องล็อกได้ สำรองไฟล์เดิมทุกครั้ง
+        กดค้างปุ่มอัดเพื่อยืนยัน และควรต่อแบตเตอรี่สำรองระหว่างแฟลช
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="nav">
+    <button data-view="dash" class="on" aria-label="หน้าหลัก">
+      <svg viewBox="0 0 24 24"><path d="M12 20a8 8 0 1 1 8-8"/><path d="M12 12l5-3"/><circle cx="12" cy="12" r="1.6"/></svg>
+      หน้าหลัก
+    </button>
+    <button data-view="tune" aria-label="จูนกล่อง">
+      <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M9 15h6"/></svg>
+      จูนกล่อง
+    </button>
+    <button data-view="flash" aria-label="อัดไฟ">
+      <svg viewBox="0 0 24 24"><path d="M12 3v11"/><path d="M8 10l4 4 4-4"/><path d="M4 18h16"/></svg>
+      อัดไฟ
+    </button>
+  </nav>
+</div>
+
+<div class="sheetwrap" id="sheetWrap">
+  <div class="scrim"></div>
+  <div class="sheet" role="dialog" aria-modal="true">
+    <div class="grab"></div>
+    <div id="sheetBody"></div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+<input type="file" id="binInput" accept=".bin,.ori,.rom,.hex,application/octet-stream" hidden>
+<input type="file" id="xdfInput" accept=".xdf,text/xml,application/xml" hidden>
+
+<script src="assets/xdf.js"></script>
+<script src="assets/core.js"></script>
+<script src="assets/dash.js"></script>
+<script src="assets/tune.js"></script>
+<script src="assets/flash.js"></script>
+<script>
+  App.init();
+</script>
+</body>
+</html>
