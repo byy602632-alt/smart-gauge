@@ -80,6 +80,7 @@
     document.getElementById('tuneBody').hidden = !hasBin;
 
     const note = document.getElementById('tuneNote');
+    let langFix = false;
     if (hasBin) {
       let txt = '', show = true;
       if (!hasXdf) {
@@ -88,14 +89,28 @@
         if (xdfError) txt += '<br><br><b>XDF ที่เพิ่งโหลด:</b> ' + App.esc(xdfError) + '<br>ถ้าเป็นไฟล์ XDF ที่เข้ารหัส/ไม่ใช่ XML มาตรฐาน แอปจะใช้โหมดสแกนแทน';
       } else if (s.scanOnly) {
         txt = '<b>XDF ไม่มีตารางที่อ่านได้</b> — ใช้โหมดสแกนอัตโนมัติแทน';
+      } else if (App.looksGarbled(s.xdfText)) {
+        txt = '<b>ชื่อตารางอาจเพี้ยน:</b> ข้อความในไฟล์ถูกเข้ารหัสซ้อน (ถ้าเปิดใน TunerPro แล้วเป็นไทยปกติ ' +
+          'แปลว่าแอปถอดผิด) — โหลด .xdf ใหม่เพื่อให้ถอดจากไบต์ต้นฉบับ หรือเลือกภาษาจากตัวเลือก';
+        langFix = true;
       } else {
         txt = '<b>' + App.esc(s.xdf.title || s.xdfName) + '</b> · ' + App.esc(s.xdf.author || 'ไม่ระบุผู้ทำ') +
           (s.xdf.binSize ? ' · ไฟล์เป้าหมาย ' + App.kb(s.xdf.binSize) : '') +
           '<br>ค่าในตารางเป็นหน่วยจริงตามสูตรใน XDF · แตะช่องเพื่อแก้ค่า';
         show = true;
       }
-      note.innerHTML = txt;
+      note.innerHTML = txt + (langFix
+        ? '<div class="row" style="margin-top:8px">' +
+        '<button class="btn sm" id="ntReload">โหลด .xdf ใหม่</button>' +
+        '<button class="btn sm" id="ntLang">เลือกภาษา</button></div>'
+        : '');
       note.hidden = !show;
+      if (langFix) {
+        const rl = document.getElementById('ntReload');
+        if (rl) rl.onclick = () => App.pick('xdf');
+        const lg = document.getElementById('ntLang');
+        if (lg) lg.onclick = () => App.encodingSheet();
+      }
     }
 
     if (!hasBin) return;
@@ -395,6 +410,8 @@
       '<div class="mt">ย้อนค่าทุกช่องในตารางกลับเป็นไฟล์เดิม</div></div><div class="sp">↺</div></button>' +
       '<button class="item" data-act="revertAll"><div><div class="nm">คืนค่าทั้งไฟล์</div>' +
       '<div class="mt">ล้างการแก้ไขทั้งหมด (ย้อนได้)</div></div><div class="sp" style="color:var(--red)">!</div></button>' +
+      (App.state.xdfText ? '<button class="item" data-act="fixLang" style="margin-top:6px"><div><div class="nm">ภาษา / ชื่อตารางเพี้ยน</div>' +
+        '<div class="mt">เลือก encoding หรือซ่อมข้อความซ้อน พร้อมตัวอย่างชื่อตาราง</div></div><div class="sp">ก</div></button>' : '') +
       (App.state.bin ? '<button class="item" data-act="batch" style="margin-top:6px"><div><div class="nm">ใส่หลายแมพทีเดียว (จดจากโปรแกรมอื่น)</div>' +
         '<div class="mt">พิมพ์ชื่อ, offset, แถว, คอลัมน์, ไบต์/ต่อช่อง หลายบรรทัดในครั้งเดียว</div></div><div class="sp">✒</div></button>' : '') +
       (App.state.bin ? '<button class="item" data-act="exportXdf"><div><div class="nm">ส่งออกคำนิยาม XDF (XML)</div>' +
@@ -414,6 +431,7 @@
       else if (a === 'revertAll') { if (confirm('คืนค่าไบต์ทั้งหมดเป็นไฟล์เดิม?')) { App.revertFile(); render(); } }
       else if (a === 'manual') manualTableSheet();
       else if (a === 'batch') batchSheet();
+      else if (a === 'fixLang') App.encodingSheet();
       else if (a === 'exportXdf') App.exportXdf();
     });
   }
