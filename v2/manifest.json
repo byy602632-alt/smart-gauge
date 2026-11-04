@@ -1,0 +1,15 @@
+{
+  "name": "Smart Gauge ECU Tune",
+  "short_name": "SmartGauge",
+  "start_url": "/smart-gauge/v2/",
+  "display": "standalone",
+  "background_color": "#070B11",
+  "theme_color": "#070B11",
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
