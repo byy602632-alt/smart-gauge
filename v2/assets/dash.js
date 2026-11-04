@@ -370,7 +370,7 @@
     trace.t += dt;
     if (trace.t >= 0.1) { trace.t = 0; pushTrace(); }
 
-    const view = document.getElementById('view-dash');
+    const view = document.getElementById('view-live');
     if (view && view.classList.contains('on')) renderLive();
 
     const clock = document.getElementById('rideClock');
@@ -426,7 +426,7 @@
     setConn('demo');
   }
 
-  App.registerView('dash', { render: render });
+  App.registerView('live', { render: render });
   App.on('binchange', syncTune);
   App.on('binload', () => { syncTune(); });
   App.on('xdfchange', syncTune);
