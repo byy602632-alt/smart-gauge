@@ -15,7 +15,7 @@
       xdfName: '', xdfText: '', xdf: null,
       items: [], mapIdx: 0, scanOnly: false,
       undo: [], redo: [],
-      tab: 'dash'
+      tab: 'home'
     },
     pending: null,
     handlers: {}
@@ -100,6 +100,8 @@
           orig: App.bytesToB64(s.orig),
           xdfName: s.xdfName,
           xdfText: s.xdfText,
+          xdfRaw: s.xdfRaw ? App.bytesToB64(s.xdfRaw) : '',
+          xdfManual: !!s.xdfManual,
           mapIdx: s.mapIdx,
           scanOnly: s.scanOnly,
           xdfLockName: s.xdfLocked ? s.xdfLocked.name : '',
@@ -127,7 +129,17 @@
       s.bin = bin; s.orig = orig;
       s.binName = p.binName || 'ecu.bin';
       s.xdfName = p.xdfName || '';
+      s.xdfRaw = p.xdfRaw ? App.b64ToBytes(p.xdfRaw) : null;
+      s.xdfManual = !!p.xdfManual;
       s.xdfText = p.xdfText || '';
+      /* ถ้ามีไบต์ต้นฉบับให้ถอดใหม่เสมอ (ตัวถอด/ซ่อมภาษาอาจดีขึ้น) */
+      if (!s.xdfManual && s.xdfRaw && s.xdfRaw.length) {
+        const d = App.decodeXdfText(s.xdfRaw);
+        if (/<\s*XDFFORMAT[\s\/\>]/i.test(d.text)) s.xdfText = d.text;
+      } else if (s.xdfText) {
+        /* ไฟล์ที่เคยบันทึกไว้ตอนถอดภาษาผิด — ซ่อมให้เลยตอนเปิดแอป */
+        s.xdfText = App.fixXdfLanguage(s.xdfText);
+      }
       s.scanOnly = !!p.scanOnly;
       s.mapIdx = p.mapIdx || 0;
       s.xdfLocked = p.xdfLockName ? { name: p.xdfLockName, size: p.xdfLockSize || 0, magic: p.xdfLockMagic || '', enc: '' } : null;
@@ -310,7 +322,7 @@
 
   App.xdfLocked = function (bytes, name, enc) {
     const s = App.state;
-    s.xdf = null; s.xdfText = ''; s.xdfName = '';
+    s.xdf = null; s.xdfText = ''; s.xdfName = ''; s.xdfRaw = null; s.xdfManual = false;
     s.xdfLastError = '';
     s.xdfLocked = {
       name: name || 'definition.xdf',
@@ -333,6 +345,8 @@
     const s = App.state;
     if (!s.bin) { App.toast('ต้องโหลดไฟล์ .bin ก่อน', 'bad'); return false; }
     if (!items || !items.length) { App.toast('ไม่มีรายการที่ถูกต้อง', 'bad'); return false; }
+    s.xdfRaw = null;
+    s.xdfManual = false;
     const xml = Xdf.writeXdf(items, {
       title: title || 'แมพของฉัน',
       author: 'ECU TUNE app',
@@ -365,7 +379,7 @@
   App.clearFile = function () {
     const s = App.state;
     s.bin = null; s.orig = null; s.binName = '';
-    s.xdf = null; s.xdfText = ''; s.xdfName = '';
+    s.xdf = null; s.xdfText = ''; s.xdfName = ''; s.xdfRaw = null; s.xdfManual = false;
     s.xdfLocked = null; s.xdfLastError = '';
     s.items = []; s.mapIdx = 0; s.undo = []; s.redo = [];
     try { localStorage.removeItem(KEY); } catch (e) { }
@@ -389,14 +403,319 @@
     }
     return out.join(' ');
   };
-  App.decodeXdfText = function (bytes) {
-    if (bytes.length >= 2 && bytes[0] === 0xFF && bytes[1] === 0xFE) {
-      return { text: new TextDecoder('utf-16le').decode(bytes), enc: 'utf-16' };
+  /* ---------------- ตัวช่วยเรื่องภาษา/encoding ---------------- */
+  /* ตารางแปลงตัวอักษรกลับเป็นไบต์ สำหรับ single-byte encoding ที่เบราว์เซอร์ถอดได้ */
+  const SINGLE_BYTE_REV = (function () {
+    const maps = {};
+    ['windows-1252', 'windows-874', 'iso-8859-11', 'macintosh'].forEach(enc => {
+      try {
+        const all = new Uint8Array(256);
+        for (let i = 0; i < 256; i++) all[i] = i;
+        const t = new TextDecoder(enc).decode(all);
+        if (!t || t.length !== 256) return;
+        const rev = {};
+        for (let i = 0; i < 256; i++) {
+          const ch = t[i];
+          if (ch === '\uFFFD' || ch in rev) continue;
+          rev[ch] = i;
+        }
+        maps[enc] = rev;
+      } catch (e) { }
+    });
+    return maps;
+  })();
+
+  /* วัดว่า “อ่านเป็นคำไทยได้กี่คำ” — ใช้ตัดสินระหว่าง encoding/การซ่อม
+     (ไม่นับตัวอักษร ASCII เพราะ XML ทุกตัวเลือกมีเท่ากัน) */
+  /* คำที่พบบ่อยในไฟล์จูน — ใช้เป็นหลักฐานว่า “ข้อความนี้เป็นภาษาไทยจริง” */
+  const THAI_WORDS = ['ปรับ', 'แต่ง', 'ตั้ง', 'น้ำมัน', 'จุด', 'ระเบิด', 'รอบ', 'เดิน', 'เบา',
+    'องศา', 'แผนที่', 'ตาราง', 'ฉีด', 'อากาศ', 'อุณหภูมิ', 'แก้', 'เพิ่ม', 'ลด', 'ค่า',
+    'เครื่อง', 'ยนต์', 'ไฟ', 'แก๊ส', 'โหลด', 'ความ', 'เร็ว', 'เกียร์', 'ทด', 'เฟือง',
+    'ไอดี', 'ไอเสีย', 'วาล์ว', 'ปั๊ม', 'แรง', 'ดัน', 'คันเร่ง', 'เซ็นเซอร์', 'แมพ',
+    'หัวฉีด', 'ส่วนผสม', 'ความร้อน', 'สตาร์ท', 'วินาที', 'โวลต์', 'รอบเครื่อง', 'เวลา'];
+
+  function wordHits(t) {
+    if (!t) return 0;
+    let n = 0;
+    for (let i = 0; i < THAI_WORDS.length; i++) {
+      if (t.indexOf(THAI_WORDS[i]) >= 0) n++;
     }
-    const decU8 = new TextDecoder('utf-8', { fatal: true });
-    try { return { text: decU8.decode(bytes), enc: 'utf8' }; } catch (e) { }
-    return { text: new TextDecoder('windows-1252').decode(bytes), enc: 'windows-1252' };
+    return n;
+  }
+
+  const SCORE_CACHE = new Map();
+
+  function thaiScore(t) {
+    if (typeof t !== 'string') return -1e9;
+    const hit = SCORE_CACHE.get(t);
+    if (hit !== undefined) return hit;
+    let runs = 0, thai = 0;
+    const re = /[\u0E00-\u0E7F]+/g;
+    let m;
+    while ((m = re.exec(t))) {
+      if (m[0].length >= 2) runs++;
+      thai += m[0].length;
+    }
+    const bad = (t.match(/\uFFFD/g) || []).length;
+    /* ตัวอักษรแปลก ๆ (Latin-1 ส่วนขยาย, เครื่องหมายวรรคตอนพิเศษ) = สัญญาณข้อความเพี้ยน */
+    const odd = (t.match(/[\u0080-\u02FF\u2000-\u206F\u20A0-\u20CF]/g) || []).length;
+    /* ตรวจคำจากตัวอย่างต้นข้อความเพื่อความเร็ว (พอต่อการแยกแยะ) */
+    const hits = thai > 0 ? wordHits(t.length > 3000 ? t.slice(0, 3000) : t) : 0;
+    const sc = hits * 5000 + runs * 100 + thai - bad * 80 - odd * 30;
+    if (SCORE_CACHE.size > 80) SCORE_CACHE.clear();
+    SCORE_CACHE.set(t, sc);
+    return sc;
+  }
+
+  function encodeBytes(text, rev) {
+    const out = [];
+    for (let i = 0; i < text.length; i++) {
+      const b = rev[text[i]];
+      if (b === undefined) return null;
+      out.push(b);
+    }
+    return new Uint8Array(out);
+  }
+
+  function strictUtf8(bytes) {
+    try { return new TextDecoder('utf-8', { fatal: true }).decode(bytes); } catch (e) { return null; }
+  }
+
+  /* ซ่อมข้อความที่ถูกเข้ารหัสซ้อน (mojibake) เช่น Â»Ã‘Âº... → ปรับ...
+     วิธี: แปลงกลับเป็นไบต์แบบ cp1252 แล้วลองถอดเป็น UTF-8/TIS-620 ซ้ำจนกว่าจะดีที่สุด */
+  App.repairMojibake = function (text, maxPasses) {
+    let cur = text;
+    let curScore = thaiScore(text);
+    let passes = 0;
+    const visited = {};
+    visited[cur] = 1;
+    for (let i = 0; i < (maxPasses || 3); i++) {
+      /* 1) ถ้าไบตต์ที่แปลงกลับเป็น UTF-8 ที่ถูกต้อง = ถอดซ้อนมาแล้วหนึ่งชั้นแน่นอน → ใช้เลย */
+      let pick = null;
+      Object.keys(SINGLE_BYTE_REV).forEach(enc => {
+        const bytes = encodeBytes(cur, SINGLE_BYTE_REV[enc]);
+        if (!bytes) return;
+        const u8 = strictUtf8(bytes);
+        if (u8 == null || u8 === cur || visited[u8]) return;
+        const sc = thaiScore(u8);
+        if (!pick || sc > pick.score) pick = { text: u8, score: sc };
+      });
+      if (!pick) {
+        /* 2) ไม่มี UTF-8 ที่ถูกต้อง → ลองถอดเป็น TIS-620/cp1252 แล้วเลือกที่อ่านเป็นคำไทยได้ */
+        Object.keys(SINGLE_BYTE_REV).forEach(enc => {
+          const bytes = encodeBytes(cur, SINGLE_BYTE_REV[enc]);
+          if (!bytes) return;
+          ['windows-874', 'windows-1252'].forEach(d => {
+            let t = null;
+            try { t = new TextDecoder(d).decode(bytes); } catch (e) { return; }
+            if (t === cur || visited[t]) return;
+            const sc = thaiScore(t);
+            /* ต้องได้ “คำไทย” จริง (มีพยางค์ติดกัน) ไม่ใช่แค่เครื่องหมายวรรณยุกต์หลงมา */
+            if (sc < 100) return;
+            if (sc > curScore && (!pick || sc > pick.score)) pick = { text: t, score: sc };
+          });
+        });
+      }
+      if (!pick) break;
+      if (pick.score < curScore) break;
+      cur = pick.text;
+      curScore = pick.score;
+      visited[cur] = 1;
+      passes++;
+    }
+    return { text: cur, score: curScore, passes: passes };
   };
+
+  /* ซ่อมอัตโนมัติเฉพาะเมื่อเห็นผลชัดว่าเป็นข้อความเพี้ยน (มีคำไทยยาว ๆ หลังซ่อม) */
+  App.repairIfNeeded = function (text) {
+    if (!text || /[\u0E00-\u0E7F]/.test(text)) return text;
+    const r = App.repairMojibake(text);
+    if (r.passes && /[\u0E00-\u0E7F]{3,}/.test(r.text)) return r.text;
+    return text;
+  };
+
+  /* ตารางถอดไบต์เดียวเป็นอักษร (windows-874/TIS-620) ใช้แปลง numeric entity กลับเป็นไทย */
+  const WIN874_DECODE = (function () {
+    try {
+      const all = new Uint8Array(256);
+      for (let i = 0; i < 256; i++) all[i] = i;
+      return new TextDecoder('windows-874').decode(all);
+    } catch (e) { return null; }
+  })();
+
+  /* XDF จาก TunerPro มักเก็บชื่อไทยเป็น &#205; (รหัสไบต์ TIS-620) — แปลงกลับเป็นอักษรไทย */
+  App.decodeNumericRefs = function (text) {
+    if (!text || !WIN874_DECODE || text.indexOf('&#') < 0) return text;
+    const out = text.replace(/&#(?:x([0-9a-fA-F]{1,4})|(\d{1,5}));/g, (m, hex, dec) => {
+      const cp = hex ? parseInt(hex, 16) : parseInt(dec, 10);
+      if (!(cp >= 0x80 && cp <= 0xFF)) return m;
+      const ch = WIN874_DECODE[cp];
+      return ch && ch !== '\uFFFD' ? ch : m;
+    });
+    if (out === text) return text;
+    return thaiScore(out) > thaiScore(text) + 50 ? out : text;
+  };
+
+  /* รวมทุกวิธีซ่อมภาษา: entity → ซ่อมซ้อนทีละบรรทัด (เฉพาะบรรทัดที่ยังไม่มีอักษรไทย) */
+  App.fixXdfLanguage = function (text) {
+    if (!text) return text;
+    let t = App.decodeNumericRefs(text);
+    if (t.indexOf('\n') >= 0) {
+      t = t.split('\n').map(line => {
+        if (!line || /[\u0E00-\u0E7F]/.test(line)) return line;
+        return App.repairIfNeeded(line);
+      }).join('\n');
+    } else {
+      t = App.repairIfNeeded(t);
+    }
+    return t;
+  };
+
+  /* ข้อความดูเหมือนถูกเข้ารหัสซ้อน (ไม่มีอักษรไทยเลย แต่มีตัวอักษร Latin-1 เกลื่อน) */
+  App.looksGarbled = function (text) {
+    if (!text || /[\u0E00-\u0E7F]/.test(text)) return false;
+    const bad = (text.match(/[\u00A0-\u00FF]/g) || []).length;
+    return bad >= 8;
+  };
+
+  /* รายการตัวเลือกภาษา/การซ่อมข้อความ สำหรับให้ผู้ใช้เลือกเอง */
+  App.xdfVariants = function () {
+    const s = App.state;
+    const out = [];
+    const addVariant = (label, text) => {
+      if (!text) return;
+      if (out.some(v => v.text === text)) return;
+      const sample = [];
+      const re = /<title>([^<]{1,80})<\/title>/gi;
+      let m;
+      while ((m = re.exec(text)) && sample.length < 3) sample.push(m[1]);
+      out.push({ label: label, text: text, sample: sample, score: thaiScore(text), current: text === s.xdfText });
+    };
+    const bases = [];
+    if (s.xdfRaw && s.xdfRaw.length) {
+      [['UTF-8', 'utf-8'], ['TIS-620 / windows-874', 'windows-874'], ['Windows-1252', 'windows-1252']].forEach(pair => {
+        let t = null;
+        try { t = new TextDecoder(pair[1]).decode(s.xdfRaw); } catch (e) { return; }
+        bases.push([pair[0], t]);
+      });
+    } else if (s.xdfText) {
+      bases.push(['ข้อความที่โหลดไว้', s.xdfText]);
+    }
+    bases.forEach(b => {
+      const fixedText = App.fixXdfLanguage(b[1]);
+      if (fixedText !== b[1]) addVariant(b[0] + ' + ซ่อมภาษา', fixedText);
+      addVariant(b[0], b[1]);
+      let cur = b[1];
+      for (let i = 1; i <= 3; i++) {
+        const r = App.repairMojibake(cur, 1);
+        if (r.text === cur) break;
+        cur = r.text;
+        addVariant(b[0] + ' + ซ่อมซ้อน ' + i + ' ชั้น', cur);
+      }
+    });
+    out.sort((a, b) => (b.current ? 1 : 0) - (a.current ? 1 : 0) || b.score - a.score);
+    return out;
+  };
+
+  /* หน้าเลือกภาษา: โชว์ตัวอย่างชื่อตารางของแต่ละตัวเลือกให้กดเลือก */
+  App.encodingSheet = function () {
+    const s = App.state;
+    const variants = App.xdfVariants();
+    if (!variants.length) { App.toast('ยังไม่มี XDF ที่โหลดไว้', 'bad'); return; }
+    let html = '<div class="sh-head"><b>ภาษา / ชื่อตารางเพี้ยน</b><button class="x" onclick="App.closeSheet()">✕</button></div>' +
+      '<div class="sh-sub">แตะตัวเลือกที่ชื่อตารางอ่านออก (เรียงจากที่น่าจะถูกก่อน)' +
+      (s.xdfRaw && s.xdfRaw.length ? '' : '<br><b>หมายเหตุ:</b> ยังไม่มีไบต์ต้นฉบับของไฟล์นี้ — กด “โหลด .xdf ใหม่” เพื่อให้ถอดจากไบต์จริงได้แม่นยำที่สุด') + '</div>';
+    variants.forEach((v, i) => {
+      html += '<button class="item' + (v.current ? ' on' : '') + '" data-vi="' + i + '" style="margin-bottom:6px">' +
+        '<div style="min-width:0"><div class="nm">' + (v.current ? 'ใช้อยู่ · ' : '') + App.esc(v.label) + '</div>' +
+        '<div class="mt">' + App.esc(v.sample.length ? v.sample.join(' · ') : '(ไม่พบชื่อตาราง)') + '</div></div>' +
+        '<div class="sp">' + (v.current ? '✓' : '') + '</div></button>';
+    });
+    html += '<div class="row" style="margin-top:10px"><button class="btn sm" id="lgReload">โหลด .xdf ใหม่</button></div>';
+    App.sheet(html);
+    document.querySelectorAll('#sheetBody [data-vi]').forEach(b => b.onclick = () => {
+      const v = variants[+b.dataset.vi];
+      s.xdfManual = true;
+      if (App.setXdf(v.text, s.xdfName || 'definition.xdf')) {
+        App.persist();
+        App.closeSheet();
+        App.toast('ใช้ภาษานี้แล้ว', 'good');
+      }
+    });
+    const rl = document.getElementById('lgReload');
+    if (rl) rl.onclick = () => { App.closeSheet(); App.pick('xdf'); };
+  };
+
+  /* แปลงไบต์ XDF เป็นข้อความโดยไม่ให้ภาษาเพี้ยน
+     ลำดับ: BOM → UTF-8 แบบเข้ม → encoding ที่ประกาศใน XML → เดาจากรูปคำ (ไทย/ละติน) */
+  function decodeXdfBytes(bytes) {
+    const u8 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes || []);
+    const decode = (enc, slice) => {
+      try { return new TextDecoder(enc).decode(slice || u8); } catch (e) { return null; }
+    };
+
+    if (u8.length >= 3 && u8[0] === 0xEF && u8[1] === 0xBB && u8[2] === 0xBF) {
+      return { text: decode('utf-8', u8.subarray(3)) || '', enc: 'utf-8' };
+    }
+    if (u8.length >= 2 && u8[0] === 0xFF && u8[1] === 0xFE) {
+      return { text: decode('utf-16le', u8.subarray(2)) || '', enc: 'utf-16le' };
+    }
+    if (u8.length >= 2 && u8[0] === 0xFE && u8[1] === 0xFF) {
+      return { text: decode('utf-16be', u8.subarray(2)) || '', enc: 'utf-16be' };
+    }
+
+    /* ชื่อ encoding ที่ประกาศไว้ในหัวไฟล์ (อ่านเฉพาะไบต์ ASCII) */
+    let prolog = '';
+    for (let i = 0; i < Math.min(u8.length, 512); i++) prolog += String.fromCharCode(u8[i]);
+    const m = prolog.match(/<\?xml[^>]*?encoding\s*=\s*["']([A-Za-z0-9._:\-]+)["']/);
+    const declared = m ? m[1].toLowerCase() : '';
+
+    /* ถ้าถอดเป็น UTF-8 ได้ทั้งไฟล์ (ไม่มีไบต์เสีย) = UTF-8 แน่นอน */
+    let strict = null;
+    try { strict = new TextDecoder('utf-8', { fatal: true }).decode(u8); } catch (e) { strict = null; }
+    if (strict != null && strict.indexOf('\uFFFD') < 0) return { text: strict, enc: 'utf-8' };
+
+    const score = thaiScore;
+
+    const seen = {};
+    const candidates = [];
+    [declared, 'windows-874', 'windows-1252', 'utf-8'].forEach(enc => {
+      if (!enc || seen[enc]) return;
+      seen[enc] = 1;
+      candidates.push(enc);
+    });
+
+    let best = null;
+    candidates.forEach(enc => {
+      const text = decode(enc);
+      if (text == null) return;
+      const sc = score(text);
+      if (!best || sc > best.score) best = { text: text, enc: enc, score: sc };
+    });
+    return best || { text: decode('windows-1252') || '', enc: 'windows-1252' };
+  }
+
+  App.decodeXdfText = function (bytes) {
+    const out = decodeXdfBytes(bytes);
+    const fixed = App.fixXdfLanguage(out.text);
+    if (fixed !== out.text) return { text: fixed, enc: out.enc + '+fix' };
+    return out;
+  };
+
+  /* ปุ่มซ่อมภาษา: ใช้กับคำนิยามที่โหลด/บันทึกค้างไว้แล้ว */
+  App.repairXdfText = function () {
+    const s = App.state;
+    if (!s.xdfText) { App.toast('ยังไม่มีคำนิยาม XDF ที่โหลดไว้', 'bad'); return false; }
+    const fixed = App.repairIfNeeded(s.xdfText);
+    if (fixed === s.xdfText) {
+      App.toast('ข้อความนี้อ่านได้ปกติอยู่แล้ว', 'bad');
+      return false;
+    }
+    if (!App.setXdf(fixed, s.xdfName || 'definition.xdf')) return false;
+    App.toast('ซ่อมชื่อตารางที่เพี้ยนแล้ว', 'good');
+    return true;
+  };
+
   App.readXdfFile = function (file) {
     if (!file) return;
     const r = new FileReader();
@@ -404,6 +723,8 @@
       const bytes = new Uint8Array(r.result || new ArrayBuffer(0));
       const d = App.decodeXdfText(bytes);
       if (/<\s*XDFFORMAT[\s\/\>]/i.test(d.text)) {
+        App.state.xdfRaw = bytes;
+        App.state.xdfManual = false;
         App.setXdf(d.text, file.name);
         return;
       }
@@ -481,7 +802,8 @@
   App.go = function (name) {
     App.state.tab = name;
     $$('.view').forEach(v => v.classList.toggle('on', v.id === 'view-' + name));
-    $$('.nav button').forEach(b => b.classList.toggle('on', b.dataset.view === name));
+    const back = $('#btnBack');
+    if (back) back.hidden = name === 'home';
     const wrap = $('.scroller');
     if (wrap) wrap.scrollTop = 0;
     const v = App.views[name];
@@ -491,13 +813,7 @@
 
   App.updateNav = function () {
     const s = App.state;
-    const btn = $('.nav button[data-view="tune"]');
-    if (!btn) return;
     const changed = App.changedBytes();
-    let dot = btn.querySelector('.dot');
-    if (changed > 0) {
-      if (!dot) { dot = document.createElement('span'); dot.className = 'dot'; btn.appendChild(dot); }
-    } else if (dot) dot.remove();
     const title = $('#ecuState');
     if (title) title.textContent = changed ? changed + ' ไบต์ที่แก้' : (s.bin ? 'พร้อมจูน' : 'ยังไม่โหลด');
   };
@@ -560,7 +876,8 @@
 
   /* ---------------- boot ---------------- */
   function bindShell() {
-    $$('.nav button').forEach(b => b.addEventListener('click', () => App.go(b.dataset.view)));
+    const back = $('#btnBack');
+    if (back) back.onclick = () => App.go('home');
     $('#sheetWrap').addEventListener('click', (e) => {
       if (e.target.id === 'sheetWrap' || e.target.classList.contains('scrim')) App.closeSheet();
     });
@@ -594,7 +911,7 @@
     bindShell();
     const restored = App.restore();
     App.updateNav();
-    App.go('dash');
+    App.go('home');
     if (restored) App.toast('กู้คืนไฟล์ที่จูนค้างไว้แล้ว', 'good');
   };
 
