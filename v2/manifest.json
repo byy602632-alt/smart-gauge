@@ -1,11 +1,17 @@
 {
   "name": "Smart Gauge ECU Tune",
   "short_name": "SmartGauge",
+  "description": "แอปพลิเคชันจูนกล่องและเกอดิจิทัลสำหรับมอเตอร์ไซค์ PGM-FI",
   "start_url": "/smart-gauge/v2/",
   "display": "standalone",
   "background_color": "#070B11",
   "theme_color": "#070B11",
   "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
