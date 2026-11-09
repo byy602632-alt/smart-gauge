@@ -215,7 +215,7 @@ a{text-decoration:none}
 .toolrail button.on{border-color:var(--acc);color:var(--acc);background:#0A1A24}
 
 .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#080E14;
-  -webkit-overflow-scrolling:touch;max-height:52vh}
+  -webkit-overflow-scrolling:touch;max-height:52vh;touch-action:none;user-select:none;-webkit-user-select:none}
 table.grid{border-collapse:separate;border-spacing:1px;width:max-content;min-width:100%;padding:4px}
 table.grid th{position:sticky;top:0;z-index:3;background:#090F16;color:var(--dim2);font-family:var(--mono);
   font-size:8px;font-weight:500;padding:3px 2px;text-align:center;min-width:34px;white-space:nowrap}
@@ -223,8 +223,18 @@ table.grid th.corner{left:0;z-index:5;background:#090F16;min-width:38px}
 table.grid td.axis{position:sticky;left:0;z-index:2;background:#090F16;color:var(--dim2);font-family:var(--mono);
   font-size:8px;text-align:center;padding:0 4px;min-width:38px;white-space:nowrap}
 table.grid td.cell{font-family:var(--mono);font-size:9.5px;text-align:center;padding:0;height:26px;min-width:34px;
-  cursor:pointer;border-radius:3px;position:relative;color:#EAF2FA}
+  cursor:pointer;border-radius:3px;position:relative;color:#EAF2FA;user-select:none;-webkit-user-select:none}
 table.grid td.cell.sel{outline:2px solid var(--acc);outline-offset:-2px;color:#fff;font-weight:700;z-index:1}
+
+/* สไตล์ไฮไลต์เมื่อลากนิ้ว/เมาส์คลุมหลายช่อง */
+table.grid td.cell.selected-range{
+  background-color:rgba(53,199,255,0.45)!important;
+  outline:1px solid var(--acc)!important;
+  color:#ffffff!important;
+  font-weight:700;
+  box-shadow:inset 0 0 6px rgba(53,199,255,0.6);
+}
+
 table.grid td.cell.dirty:after{content:"";position:absolute;top:2px;right:2px;width:3px;height:3px;border-radius:50%;
   background:var(--amber)}
 table.grid th.sel{color:var(--acc)}
@@ -239,7 +249,7 @@ table.grid th.sel{color:var(--acc)}
 .empty p{margin:0 0 14px;font-size:11.5px;color:var(--dim);line-height:1.7}
 
 /* 3d */
-.surface{width:100%;height:250px;display:block;border:1px solid var(--line);border-radius:12px;background:#070D13;touch-action:none}
+.surface{width:100%;height:380px;display:block;border:1px solid var(--line);border-radius:12px;background:#070D13;touch-action:none}
 .surfbar{display:flex;align-items:center;gap:8px;margin-top:6px;font-family:var(--mono);font-size:8.5px;color:var(--dim2)}
 .legendbar{height:5px;flex:1;border-radius:3px;
   background:linear-gradient(90deg,#123B6B,#35C7FF,#C8F53C,#FFB020,#FF5A45)}
