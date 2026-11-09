@@ -11,6 +11,29 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/app.css">
 <link rel="manifest" href="manifest.json">
+<style>
+/* สไตล์เสริมเฉพาะหน้า Live Data ดีไซน์ใหม่ */
+.rpm{font:700 clamp(56px,16vw,84px)/1 var(--mono);letter-spacing:-.02em;text-shadow:0 0 24px rgba(53,199,255,.35)}
+.rpm.hot{color:var(--red);text-shadow:0 0 24px rgba(255,90,69,.5)}
+.spd{font:700 26px var(--mono);margin-top:6px}.spd small{font-size:12px;color:var(--dim);margin-left:5px}
+.row3{display:flex;justify-content:center;gap:10px;align-items:center;margin-top:8px}
+.gear{font:700 22px var(--mono);color:var(--lime);border:1px solid #55701c;background:#1a2408;border-radius:10px;min-width:46px;padding:3px 0;text-align:center}
+.shift{font:700 11px var(--mono);letter-spacing:.2em;color:var(--dim2);border:1px solid var(--line);border-radius:99px;padding:6px 12px}
+.shift.on{color:#1a0600;background:var(--red);border-color:var(--red);box-shadow:0 0 18px var(--red);animation:bl .25s infinite alternate}
+@keyframes bl{to{opacity:.45}}
+.rbar{height:12px;margin:14px 0 4px;position:relative}.rbar:after{content:"";position:absolute;right:0;top:0;bottom:0;width:8.3%;background:#ff5a4540}
+.rbar i{background:linear-gradient(90deg,#35c7ff,#7fe9ff)}.rbar.hot i{background:var(--red)}
+.tps{display:flex;align-items:center;gap:10px;margin-top:12px;font:500 12px var(--mono);color:var(--dim)}
+.afr{display:flex;align-items:baseline;gap:8px}
+.afr b{font:700 46px var(--mono)}.afr .tag{margin-left:auto;font-size:12px;font-weight:600;padding:4px 11px;border-radius:8px;border:1px solid}
+.tag.ok{color:var(--grn);border-color:#17663f;background:#0a2418}.tag.rich{color:var(--amb);border-color:#6b4a0c;background:#241a08}.tag.lean{color:var(--red);border-color:#6b2118;background:#240d0a}
+.scale{position:relative;margin-top:14px;height:12px;border-radius:99px;background:linear-gradient(90deg,#ff5a45,#ffb020 30%,#2be38a 48%,#2be38a 55%,#ffb020 72%,#ff5a45)}
+.scale .band{position:absolute;top:-3px;bottom:-3px;border:1.5px solid #fff8;border-radius:6px}
+.scale .mk{position:absolute;top:-6px;width:4px;height:24px;margin-left:-2px;background:#fff;border-radius:3px;box-shadow:0 0 10px #fff;transition:left .15s}
+.ticks{display:flex;justify-content:space-between;margin-top:12px;font:11px var(--mono);color:var(--dim2)}
+.sum{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.sum b{display:block;font:700 20px var(--mono)}.sum span{font-size:11px;color:var(--dim)}
+</style>
 </head>
 <body>
 <div class="app">
@@ -78,6 +101,13 @@
           <span class="tm" id="tileLive">เดโม</span>
         </button>
 
+        <!-- ปุ่มเครื่องมือกล่อง (ลบโค้ด / รีเซ็ตกล่อง / ลบจำนวนอัด) -->
+        <button class="tile" data-go="service" type="button">
+          <span class="ti red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+          <span class="th">เครื่องมือกล่อง</span>
+          <span class="tm">ลบโค้ด · รีเซ็ตกล่อง · ลบจำนวนอัด</span>
+        </button>
+
         <button class="tile" data-open="settings" type="button">
           <span class="ti"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></span>
           <span class="th">การตั้งค่า</span>
@@ -97,36 +127,37 @@
       </div>
     </section>
 
-    <!-- ============================ LIVE DATA ============================ -->
+    <!-- ============================ LIVE DATA (ดีไซน์ใหม่) ============================ -->
     <section class="view" id="view-live">
-
       <div class="card glow hero">
         <div class="hero-top">
           <div>
             <div class="hero-name">WAVE 125i <span>PGM-FI</span></div>
-            <div class="hero-sub" id="heroSub">4 สปีด · 125 cc · ยังไม่โหลดไฟล์</div>
+            <div class="hero-sub" id="heroSub">4 สปีด · 125 cc · ข้อมูลสด</div>
           </div>
           <button class="pill dim" id="connChip" style="margin-left:auto;cursor:pointer;border:1px solid var(--line2)">
             <i></i><span id="connText">เดโม</span>
           </button>
         </div>
 
-        <div class="tach" id="tach">
-          <svg id="tachSvg" viewBox="0 0 320 320" aria-hidden="true"></svg>
-          <div class="mid">
-            <div class="rpmline"><b id="rpmVal">0</b><span>RPM</span></div>
-            <div class="speedline"><b id="spdVal">0</b><span>KM/H</span></div>
-            <div class="gearline">
-              <span class="gearbox" id="gearVal">N</span>
-              <span class="shift" id="shiftPill">SHIFT</span>
-            </div>
+        <div style="text-align:center;padding:20px 0 10px">
+          <div class="rpm" id="rpmVal">0</div>
+          <div class="u">RPM</div>
+          <div class="spd"><span id="spdVal">0</span><small>KM/H</small></div>
+          <div class="row3">
+            <span class="gear" id="gearVal">N</span>
+            <span class="shift" id="shiftPill">SHIFT</span>
           </div>
         </div>
 
-        <div class="hero-foot">
-          <span class="tl">TPS</span>
-          <div class="throttle"><i id="tpsFill"></i></div>
-          <span class="tv" id="tpsText">0%</span>
+        <div class="bar rbar" id="rBarWrap"><i id="rBarFill"></i></div>
+
+        <div class="tps">
+          <span>TPS</span>
+          <div class="bar" style="flex:1;height:8px;border-radius:9px;background:#0a121c;overflow:hidden;border:1px solid var(--line)">
+            <i id="tpsFill" style="display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cy),var(--lime),var(--amb));transition:width .1s"></i>
+          </div>
+          <span id="tpsText">0%</span>
         </div>
       </div>
 
@@ -135,16 +166,17 @@
           <h3>ส่วนผสมอากาศ / น้ำมัน</h3>
           <span class="right sub" id="afrTarget">เป้า 13.0</span>
         </div>
-        <div class="afr-big">
-          <span class="v" id="afrVal">--</span>
+        <div class="afr">
+          <b id="afrVal">--</b>
           <span class="u">AFR</span>
-          <span class="tag" id="afrTag">รอข้อมูล</span>
+          <span class="tag ok" id="afrTag">รอข้อมูล</span>
         </div>
-        <div class="afr-scale">
-          <div class="afr-track"></div>
-          <div class="afr-band" id="afrBand"></div>
-          <div class="afr-mark" id="afrMark" style="left:50%"></div>
-          <div class="afr-ticks"><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span></div>
+        <div class="scale">
+          <div class="band" id="afrBand" style="left:35%;width:10%"></div>
+          <div class="mk" id="afrMark" style="left:50%"></div>
+        </div>
+        <div class="ticks">
+          <span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span>
         </div>
       </div>
 
@@ -162,11 +194,11 @@
           <h3>กราฟสด</h3>
           <span class="right sub" id="traceState">30 วินาที</span>
         </div>
-        <canvas class="trace" id="traceCanvas"></canvas>
-        <div class="trace-legend">
-          <span><i style="background:#35C7FF"></i>RPM</span>
-          <span><i style="background:#C8F53C"></i>AFR</span>
-          <span><i style="background:#FFB020"></i>TPS</span>
+        <canvas class="trace" id="traceCanvas" style="width:100%;height:150px;display:block;border-radius:12px;background:#0a121c;border:1px solid var(--line)"></canvas>
+        <div class="trace-legend" style="display:flex;gap:14px;margin-top:8px;font:11px var(--mono);color:var(--dim)">
+          <span><i style="display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:6px;vertical-align:3px;background:#35C7FF"></i>RPM</span>
+          <span><i style="display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:6px;vertical-align:3px;background:#C8F53C"></i>AFR</span>
+          <span><i style="display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:6px;vertical-align:3px;background:#FFB020"></i>TPS</span>
         </div>
       </div>
 
@@ -183,31 +215,13 @@
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-head"><h3>ไฟล์จูนในเครื่อง</h3><span class="right sub" id="ecuState">ยังไม่โหลด</span></div>
-        <div class="ecu-row">
-          <span class="ecu-ic">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#35C7FF" stroke-width="1.6" stroke-linecap="round">
-              <rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/>
-            </svg>
-          </span>
-          <div style="min-width:0">
-            <div class="nm" id="ecuName">ยังไม่มีไฟล์ .bin</div>
-            <div class="mt" id="ecuMeta">โหลด .bin + .xdf เพื่อเริ่มจูน</div>
-          </div>
-          <button class="btn sm" id="goTune" style="margin-left:auto">ไปจูน ›</button>
-        </div>
-      </div>
-
       <div class="note blue">
-        <b>โหมดเดโม:</b> มาตรวัดจำลองการขับขี่ให้ดูการทำงาน ถ้าต่ออุปกรณ์จริงผ่าน Web Serial
-        ให้ส่งข้อมูลบรรทัดละชุด เช่น <span class="mono">rpm=5200,afr=13.2,tps=45,ect=88</span>
+        <b>โหมดเดโม:</b> มาตรวัดจำลองการขับขี่ให้ดูการทำงาน หากต้องการเชื่อมต่อจริงสามารถกดปุ่มเดโมด้านบนได้
       </div>
     </section>
 
     <!-- ============================ TUNE ============================ -->
     <section class="view" id="view-tune">
-
       <div class="filebar">
         <button class="fchip" id="fBinChip">
           <span class="fi">BIN</span>
@@ -280,7 +294,6 @@
 
     <!-- ============================ FLASH ============================ -->
     <section class="view" id="view-flash">
-
       <div class="card">
         <div class="card-head"><h3>ไฟล์ที่จะอัด</h3><span class="right sub" id="flashSrc">—</span></div>
         <div class="kv"><span class="k">ชื่อไฟล์</span><span class="v" id="flashName">—</span></div>
@@ -298,7 +311,6 @@
         <div class="kv" id="ckDefRow" hidden><span class="k">XDF checksum</span><span class="v" id="ckDef">—</span></div>
         <div class="note" style="margin-top:9px" id="ckNote">
           <b>อย่าลืม:</b> ไฟล์ที่แก้แล้วมักต้องคำนวณ checksum ของกล่องรุ่นนั้นก่อนอัด
-          ถ้า XDF ระบุ checksum ไว้ แอปจะแสดงให้ตรวจ — ถ้าไม่ระบุ ให้คำนวณด้วยเครื่องมือของรุ่นนั้น
         </div>
       </div>
 
@@ -335,12 +347,67 @@
 
       <div class="note red">
         <b>อ่านก่อนอัด:</b> การเขียนผิดไฟล์/ผิดรุ่นทำให้กล่องล็อกได้ สำรองไฟล์เดิมทุกครั้ง
-        กดค้างปุ่มอัดเพื่อยืนยัน และควรต่อแบตเตอรี่สำรองระหว่างแฟลช
+      </div>
+    </section>
+
+    <!-- ============================ VIEW: SERVICE & TOOLS (เครื่องมือกล่อง) ============================ -->
+    <section class="view" id="view-service">
+      <div class="card glow">
+        <div class="card-head">
+          <h3>เครื่องมือบริการกล่อง ECU</h3>
+          <span class="right sub">PGM-FI Service</span>
+        </div>
+        <p style="font-size:12px;color:var(--dim);margin-bottom:12px">
+          จัดการคำสั่งระบบ Service สำหรับกล่อง Honda PGM-FI และกล่องจูนแต่ง
+        </p>
+      </div>
+
+      <!-- ลบโค้ด DTC -->
+      <div class="card">
+        <div class="card-head">
+          <h3>ลบโค้ดข้อผิดพลาด (DTC)</h3>
+          <span class="right sub" id="dtcCountText">ไม่พบโค้ดค้าง</span>
+        </div>
+        <div class="kv"><span class="k">สถานะโค้ด</span><span class="v" id="dtcStatus">ปกติ (0 Code)</span></div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn primary" id="btnReadDtc">อ่านโค้ด DTC</button>
+          <button class="btn danger" id="btnClearDtc">ล้าง/ลบโค้ดชำรุด</button>
+        </div>
+      </div>
+
+      <!-- รีเซ็ตกล่อง (TP / ECM Reset) -->
+      <div class="card">
+        <div class="card-head">
+          <h3>รีเซ็ตกล่อง ECU / TP Sensor</h3>
+          <span class="right sub">Reset ECM</span>
+        </div>
+        <p style="font-size:12px;color:var(--dim);margin-bottom:10px">
+          คืนค่าเริ่มต้นการเรียนรู้ลิ้นผีเสื้อ (TPS Learn) และกล่องควบคุม ECU
+        </p>
+        <div class="row">
+          <button class="btn lime" id="btnResetEcu">รีเซ็ตกล่อง (ECU Reset)</button>
+        </div>
+      </div>
+
+      <!-- ลบ/ตั้งค่าจำนวนครั้งการอัดไฟล์ (Flash Counter) -->
+      <div class="card">
+        <div class="card-head">
+          <h3>จำนวนครั้งการอัดไฟล์ (Flash Counter)</h3>
+          <span class="right sub" id="flashCountVal">0 ครั้ง</span>
+        </div>
+        <div class="kv"><span class="k">จำนวนการเขียนข้อมูลปัจจุบัน</span><span class="v" id="flashCountText">0/255 ครั้ง</span></div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn" id="btnReadFlashCount">อ่านจำนวนอัด</button>
+          <button class="btn danger" id="btnResetFlashCount">ลบจำนวนอัด (Reset Counter)</button>
+        </div>
+      </div>
+
+      <div class="note red">
+        <b>คำเตือน:</b> ควรเปิดสวิตช์กุญแจรถ (Key ON) แต่ยังไม่ต้องติดเครื่องยนต์ขณะทำการสั่งลบโค้ดหรือรีเซ็ตกล่อง
       </div>
     </section>
 
   </main>
-
 </div>
 
 <div class="sheetwrap" id="sheetWrap">
@@ -352,8 +419,8 @@
 </div>
 
 <div id="toasts"></div>
-<input type="file" id="binInput" accept=".bin,.ori,.rom,.hex,application/octet-stream" hidden>
-<input type="file" id="xdfInput" accept=".xdf,text/xml,application/xml" hidden>
+<input type="file" id="binInput" accept=".bin,.ori,.rom,.hex,application/octet-stream"hidden> 
+<input type="file" id="xdfInput" accept=".xdf,text/xml,application/xml"hidden> 
 
 <script src="assets/xdf.js"></script>
 <script src="assets/core.js"></script>
