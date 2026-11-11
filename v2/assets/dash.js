@@ -165,6 +165,327 @@
 
   /* ---------------- serial input ---------------- */
   let serialOn = false;
+  /* ---------------- K-line (Honda Wave/Cub) อ่านค่าสด ----------------
+     ทำตามลำดับเดียวกับเฟิร์มแวร์สมาร์ทเกจ (smart_gaugebin.ino):
+       1) ปลุก: ลากสายต่ำ 70ms → สูง 130ms แล้วส่ง FE 04 72 8C (ไม่ตอบ → 2C 54 4E 23)
+       2) วนอ่านตาราง 17 (72 05 71 17 01) และตาราง 20 (72 05 71 20 F8) ทีละคำสั่ง
+          รอเฟรมตอบได้ทันทีที่มาถึง (ไม่ใช้เวลารอตายตัว) เว้น 20ms ระหว่างคำสั่ง
+       3) ล้มเหลวติดกัน 5 รอบ → ปลุกใหม่ (ห่างกันอย่างน้อย 2.5 วินาที)
+     ตำแหน่งไบต์นับจากไบต์แรกของเฟรมตอบ (02 LEN 71 TT ...) */
+  const KREQ17 = [0x72, 0x05, 0x71, 0x17, 0x01];
+  const KREQ20 = [0x72, 0x05, 0x71, 0x20, 0xF8];
+  const KWAKE = [[0xFE, 0x04, 0x72, 0x8C], [0x2C, 0x54, 0x4E, 0x23], [0x2C, 0x41, 0x4E, 0x23]];
+  let kbuf = [], kpoll = false, kgot = 0, klast17 = null, klast20 = null, kbytes = 0, ktail = [], ksent = 0, kwakes = 0, kwait = null, kbreak = '', kstop = '', kpause = false, ksvc = null, ksvcBusy = false;
+  function klineReset() { Object.assign(live, { rpm: 0, speed: 0, tps: 0, afr: 0, ect: 0, iat: 0, map: 0, inj: 0, ign: 0, batt: 0 }); }
+  const hex2 = a => Array.from(a).map(b => (b < 16 ? '0' : '') + b.toString(16)).join(' ').toUpperCase();
+  const ksleep = ms => new Promise(r => setTimeout(r, ms));
+
+  function klineFeed(bytes) {
+    kbytes += bytes.length;
+    ktail = ktail.concat(Array.from(bytes)).slice(-24);
+    if (ksvc) { for (const x of bytes) ksvc.buf.push(x); ksvcCheck(); return; }   /* กำลังรอคำตอบของคำสั่งบริการ (DTC) */
+    for (const x of bytes) kbuf.push(x);
+    if (kbuf.length > 200) kbuf = kbuf.slice(-100);
+    let progress = true;
+    while (progress) {
+      progress = false;
+      for (let i = 0; i + 4 <= kbuf.length; i++) {
+        if (kbuf[i] !== 0x02 || kbuf[i + 2] !== 0x71) continue;
+        const tbl = kbuf[i + 3], len = kbuf[i + 1];
+        if (tbl !== 0x17 && tbl !== 0x20) continue;
+        if (len < 6 || len > 60) continue;
+        if (i + len > kbuf.length) return;                       /* ยังมาไม่ครบ */
+        const fr = kbuf.slice(i, i + len);
+        if (fr.reduce((a, b) => (a + b) & 0xFF, 0) !== 0) continue;  /* checksum ผิด */
+        kbuf = kbuf.slice(i + len);
+        klineApply(tbl, fr);
+        progress = true;
+        break;
+      }
+    }
+  }
+
+  function klineApply(tbl, f) {
+    kgot++;
+    live.demo = false; live.connected = true; live.source = 'serial';
+    const u8 = i => (i < f.length ? f[i] : 0);
+    if (tbl === 0x17) {
+      klast17 = f;
+      live.rpm = (u8(4) << 8) | u8(5);
+      live.tps = Math.max(0, Math.min(100, u8(7) * 0.5));
+      live.iat = u8(9) - 40;                         /* ตำแหน่ง 0x09 (สมมติเป็นอากาศเข้า — เฟิร์มแวร์รุ่น blue ใช้เป็นอุณหภูมิ) */
+      live.ect = (u8(0x0B) === 0xFF || u8(0x0B) <= 40) ? 0 : u8(0x0B) - 40;   /* ตำแหน่ง 0x0B ยังไม่ยืนยัน: ECU ตัวที่ทดสอบส่ง FF (ไม่ใช้) → แสดง -- */
+      live.batt = u8(0x0E) / 10;
+      live.inj = (((u8(0x0F) << 8) | u8(0x10)) / 250);
+      live.ign = u8(0x11) / 2 - 64;
+    } else {
+      klast20 = f;
+      const afr = 10 + (u8(4) / 255) * 8;
+      live.afr = (afr < 5 || afr > 25) ? 0 : afr;
+    }
+    setConn('serial');
+    klineStatus();
+    if (kgot === 1) App.toast('ต่อ ECU สำเร็จ · กำลังอ่านค่าสด', 'good');
+    if (kwait && kwait.tbl === tbl) { const w = kwait; kwait = null; w.resolve(true); }
+  }
+
+  function klineStatus() {
+    const el = document.getElementById('klineRaw');
+    if (!el) return;
+    el.style.display = '';
+    let h = (kgot ? '<b>ECU ตอบแล้ว</b>' : '<b>ยังไม่มีเฟรมตอบ</b>') + ' · ส่ง ' + ksent + ' ครั้ง · เฟรมที่ถอดได้ ' + kgot +
+      ' · รับ ' + kbytes + ' ไบต์ · ปลุก ' + kwakes + ' ครั้ง' + (kbreak ? ' (' + kbreak + ')' : '');
+    if (!kgot && ktail.length) h += '<br>ไบต์ล่าสุด: <span style="font-family:monospace">' + hex2(ktail) + '</span>';
+    if (klast17) h += '<br>T17: <span style="font-family:monospace">' + hex2(klast17) + '</span>';
+    if (klast20) h += '<br>T20: <span style="font-family:monospace">' + hex2(klast20) + '</span>';
+    const dg = App.serial.dbg || {};
+    h += '<br><span style="font-family:monospace;opacity:.8">build r7 · open=' + App.serial.open + ' · loop#' + (dg.n || 0) +
+      ' chunks=' + (dg.chunks || 0) + ' errs=[' + (dg.errs || []).join(',') + ']' + (dg.end ? ' end=' + dg.end : '') + (kstop ? ' · ' + kstop : '') + '</span>';
+    el.innerHTML = h;
+  }
+
+  /* ส่ง 1 คำสั่งแล้วรอเฟรมตอบของตารางนั้น (หรือหมดเวลา) — แต่ละรอบมีตัวรอและตัวจับเวลาของตัวเอง ไม่ปนกัน */
+  function ktxn(req, tbl, timeoutMs) {
+    return new Promise(res => {
+      kbuf = [];
+      ksent++;
+      const me = { tbl: tbl, t: 0, resolve: null };
+      me.resolve = v => { clearTimeout(me.t); res(v); };
+      kwait = me;
+      me.t = setTimeout(() => { if (kwait === me) kwait = null; res(false); }, timeoutMs);
+      App.serial.writeBytes(req).catch(() => { if (kwait === me) kwait = null; me.resolve(false); });
+    });
+  }
+
+  async function klineWake() {
+    const port = App.serial.port;
+    if (!port) return;
+    kwakes++;
+    try {
+      await port.setSignals({ break: true }); await ksleep(70);
+      await port.setSignals({ break: false }); await ksleep(130);
+      kbreak = 'BREAK ok';
+    } catch (e) { kbreak = 'สายไม่รองรับ BREAK'; }
+    kbuf = [];
+    for (const w of KWAKE) {
+      const before = kbytes;
+      try { await App.serial.writeBytes(w); } catch (e) { return; }
+      await ksleep(220);
+      if (kbytes !== before) break;          /* มีไบต์กลับมา (รวมเสียงสะท้อน) = ถือว่าปลุกสำเร็จ เหมือนเฟิร์มแวร์ */
+    }
+    /* init (ทดสอบแล้วบน ECU จริง: ตอบ 02 04 00 FA) — ส่งก่อนเริ่มขอตาราง */
+    try { await App.serial.writeBytes([0x72, 0x05, 0x00, 0xF0, 0x99]); } catch (e) { return; }
+    await ksleep(150);
+    kbuf = [];
+    klineStatus();
+  }
+
+  async function klinePoll() {
+    if (kpoll) return;
+    kpoll = true; kstop = ''; kgot = 0; kbuf = []; klast17 = klast20 = null; kbytes = 0; ktail = []; ksent = 0; kwakes = 0; kbreak = '';
+    klineReset();
+    App.serial.onBytes = klineFeed;
+    const alive = () => App.serial.open && App.serial.onBytes === klineFeed;
+    let fails = 0, lastWake = Date.now(), lastUi = 0;
+    klineStatus();
+    await klineWake();
+    while (alive()) {
+      if (kpause) { await ksleep(40); continue; }            /* หยุดพักระหว่างทำคำสั่งบริการ */
+      const ok17 = await ktxn(KREQ17, 0x17, 150); if (!alive()) break;
+      await ksleep(20);
+      const ok20 = await ktxn(KREQ20, 0x20, 150); if (!alive()) break;
+      await ksleep(20);
+      fails = (ok17 || ok20) ? 0 : fails + 1;
+      if (fails >= 5) {                                   /* ไม่ตอบติดกัน 5 รอบ → ปลุกใหม่ */
+        klineReset();
+        const wait = 2500 - (Date.now() - lastWake);
+        if (wait > 0) await ksleep(wait);
+        if (!alive()) break;
+        lastWake = Date.now(); fails = 0;
+        await klineWake();
+      }
+      if (Date.now() - lastUi > 500) { lastUi = Date.now(); klineStatus(); }
+    }
+    kstop = 'poll หยุด: open=' + App.serial.open + ' onBytes=' + (App.serial.onBytes === klineFeed ? 'ok' : 'ไม่ตรง');
+    klineStatus();
+    kpoll = false;
+  }
+
+  /* ---------------- คำสั่งบริการ: อ่าน/ล้าง DTC ----------------
+     คำสั่งและรูปแบบตอบ แกะจากเฟิร์มแวร์ smart_gauge_blue.ino:
+       อ่าน DTC  72 05 74 01 14 → ตอบ 02 LEN 74 xx [โค้ด…] CS   (โค้ดแต่ละไบต์ ยกเว้น 00 และ FF)
+       ล้าง DTC  72 05 60 01 28 → ตอบ 02 LEN 60 …
+     ทำงานบนการเชื่อมต่อ K-line ของหน้าข้อมูลสด (พักการอ่านค่าสดชั่วคราวระหว่างส่งคำสั่ง) */
+  const KDTC_READ = [0x72, 0x05, 0x74, 0x01, 0x14];
+  const KDTC_CLEAR = [0x72, 0x05, 0x60, 0x01, 0x28];
+  const DTC_NAMES = { 1: 'MAP Sensor', 8: 'Throttle Pos', 9: 'IAT Sensor', 11: 'ABS / Speed', 12: 'Injector', 14: 'IACV Valve',
+    15: 'ECT Sensor', 18: 'CKP Sensor', 19: 'CMP Sensor', 21: 'O2 Sensor', 24: 'Ignition Coil', 29: 'IACV Error', 32: 'Injector Err',
+    33: 'Battery Volt', 35: 'EGR System', 44: 'EVAP Valve', 52: 'CKP Fault', 54: 'Bank Fault', 63: 'Mode Switch', 72: 'Exhaust Valve',
+    87: 'Fuel Pump', 90: 'Smart Key', 91: 'Security' };
+
+  function ksvcCheck() {
+    const b = ksvc.buf;
+    for (let i = 0; i + 4 <= b.length; i++) {
+      if (b[i] !== 0x02 || b[i + 2] !== ksvc.svc) continue;
+      const len = b[i + 1];
+      if (len < 4 || len > 40) continue;
+      if (i + len > b.length) return;                         /* ยังมาไม่ครบ */
+      const fr = b.slice(i, i + len);
+      if (fr.reduce((a, x) => (a + x) & 0xFF, 0) !== 0) continue;   /* checksum ผิด */
+      const s = ksvc; ksvc = null; s.resolve(fr); return;
+    }
+  }
+  async function ksvcTxn(req, svc, timeoutMs, tries) {
+    for (let a = 0; a < tries; a++) {
+      const r = await new Promise(res => {
+        const me = { svc: svc, buf: [], t: 0, resolve: null };
+        me.resolve = v => { clearTimeout(me.t); res(v); };
+        ksvc = me;
+        me.t = setTimeout(() => { if (ksvc === me) ksvc = null; res(null); }, timeoutMs);
+        App.serial.writeBytes(req).catch(() => { if (ksvc === me) ksvc = null; me.resolve(null); });
+      });
+      if (r) return r;
+      await ksleep(40);
+    }
+    return null;
+  }
+  async function ksvcRun(fn) {
+    if (ksvcBusy) return;
+    if (!App.serial.open || !kgot) {
+      App.toast('ยังไม่ได้ต่อ ECU — ไปหน้าข้อมูลสดแล้วเชื่อมต่อให้ขึ้น “ECU ตอบแล้ว” ก่อน', 'bad');
+      return;
+    }
+    ksvcBusy = true; kpause = true;
+    try { await ksleep(400); return await fn(); }
+    finally { ksvc = null; kpause = false; ksvcBusy = false; }
+  }
+
+  function showDtc(codes, fr) {
+    const st = document.getElementById('dtcStatus'), ct = document.getElementById('dtcCountText');
+    const list = codes.map(c => c + ' ' + (DTC_NAMES[c] || '')).join(' · ');
+    if (st) st.textContent = codes.length ? ('พบ ' + codes.length + ' โค้ด: ' + list) : 'ปกติ (0 Code)';
+    if (ct) ct.textContent = codes.length ? ('พบ ' + codes.length + ' โค้ด') : 'ไม่พบโค้ดค้าง';
+    let raw = document.getElementById('dtcRaw');
+    if (!raw && st && st.parentNode && st.parentNode.parentNode) {
+      raw = document.createElement('div');
+      raw.id = 'dtcRaw';
+      raw.style.cssText = 'font:10px monospace;color:var(--dim);margin-top:6px;word-break:break-all';
+      st.parentNode.parentNode.insertBefore(raw, st.parentNode.nextSibling);
+    }
+    if (raw && fr) raw.textContent = 'เฟรมตอบจาก ECU: ' + hex2(fr);
+  }
+  async function dtcRead(quiet) {
+    const fr = await ksvcTxn(KDTC_READ, 0x74, 1000, 2);
+    if (!fr) { if (!quiet) App.toast('อ่าน DTC ไม่สำเร็จ — ECU ไม่ตอบ (เปิดกุญแจ ON แต่ยังไม่ต้องสตาร์ท)', 'bad'); return null; }
+    const codes = [];
+    for (const b of fr.slice(4, fr.length - 1)) if (b !== 0x00 && b !== 0xFF && codes.length < 8) codes.push(b);
+    showDtc(codes, fr);
+    return codes;
+  }
+  function dtcClearSheet() {
+    App.sheet(
+      '<div class="sh-head"><b>ล้างโค้ดข้อผิดพลาด</b><button class="x" onclick="App.closeSheet()">✕</button></div>' +
+      '<div class="note red">ส่งคำสั่งล้าง DTC เข้า ECU ตัวจริง — ควรเปิดกุญแจ ON โดยไม่สตาร์ทเครื่อง ' +
+      'ถ้าอาการเสียยังอยู่ โค้ดจะกลับมาเอง</div>' +
+      '<div class="row" style="margin-top:12px">' +
+      '<button class="btn" id="dcCancel">ยกเลิก</button>' +
+      '<button class="btn danger" id="dcOk">ล้างโค้ด</button></div>');
+    document.getElementById('dcCancel').onclick = () => App.closeSheet();
+    document.getElementById('dcOk').onclick = () => {
+      App.closeSheet();
+      ksvcRun(async () => {
+        const fr = await ksvcTxn(KDTC_CLEAR, 0x60, 500, 6);
+        if (!fr) { App.toast('ล้างโค้ดไม่สำเร็จ — ECU ไม่ตอบ', 'bad'); return; }
+        await ksleep(100);
+        await dtcRead(true);
+        App.toast('ส่งคำสั่งล้างโค้ดแล้ว · ECU ตอบรับ', 'good');
+      });
+    };
+  }
+  function bindService() {
+    const g = id => document.getElementById(id);
+    if (g('btnReadDtc')) g('btnReadDtc').onclick = () => ksvcRun(async () => { const c = await dtcRead(false); if (c) App.toast(c.length ? 'พบ ' + c.length + ' โค้ด' : 'ไม่พบโค้ดค้าง', c.length ? 'bad' : 'good'); });
+    if (g('btnClearDtc')) g('btnClearDtc').onclick = dtcClearSheet;
+
+    /* ---------------- จำนวนครั้งการอัดไฟล์ (Flash Counter) ---------------- */
+    const fc = window.FlashCount || App.flashCount;
+    function countText() {
+      if (!fc) return 'ยังไม่มีตัวนับ';
+      const c = fc.read();
+      return 'อัดสำเร็จในแอป ' + c.count + '/255 ครั้ง' + (c.last ? ' · ล่าสุด ' + fc.human() : ' · ยังไม่เคยอัด');
+    }
+    if (fc) fc.render();
+
+    if (g('btnReadFlashCount')) g('btnReadFlashCount').onclick = () => {
+      if (fc) fc.render();
+      App.toast('อ่านจำนวนอัดแล้ว — ' + countText(), 'good');
+    };
+
+    if (g('btnResetFlashCount')) g('btnResetFlashCount').onclick = () => {
+      if (!fc) { App.toast('ยังไม่มีตัวนับจำนวนอัด', 'bad'); return; }
+      App.sheet(
+        '<div class="sh-head"><b>ลบจำนวนการอัด</b><button class="x" onclick="App.closeSheet()">✕</button></div>' +
+        '<div class="note red">ตั้งตัวนับจำนวนการอัดในแอปกลับเป็น 0 — ไม่แตะข้อมูลหรือตัวนับในกล่อง ECU</div>' +
+        '<div class="kv"><span class="k">ตอนนี้</span><span class="v">' + countText() + '</span></div>' +
+        '<div class="row" style="margin-top:12px"><button class="btn" id="fcCancel">ยกเลิก</button>' +
+        '<button class="btn danger" id="fcOk">ลบจำนวนอัด</button></div>');
+      document.getElementById('fcCancel').onclick = () => App.closeSheet();
+      document.getElementById('fcOk').onclick = () => {
+        App.closeSheet();
+        fc.reset();
+        fc.render();
+        App.toast('ลบจำนวนการอัดแล้ว — 0/255 ครั้ง', 'good');
+      };
+    };
+
+    /* ---------------- รีเซ็ตกล่อง ECU (KWP2000 ECUReset 11 01) ---------------- */
+    if (g('btnResetEcu')) g('btnResetEcu').onclick = () => {
+      App.sheet(
+        '<div class="sh-head"><b>รีเซ็ตกล่อง ECU</b><button class="x" onclick="App.closeSheet()">✕</button></div>' +
+        '<div class="note red">ส่งคำสั่ง ECU Reset เข้ากล่องจริง (KWP2000 service 11 / hardReset 01) — เปิดกุญแจ ON แต่ยังไม่ต้องสตาร์ท<br>' +
+        'กล่องจะล้างการเรียนรู้ลิ้นผีเสื้อ ถ้ากล่องรุ่นนั้นไม่รับคำสั่งนี้ จะไม่มีการเขียนข้อมูลใด ๆ ลงกล่อง</div>' +
+        '<div class="row" style="margin-top:12px"><button class="btn" id="reCancel">ยกเลิก</button>' +
+        '<button class="btn danger" id="reOk">รีเซ็ตกล่อง</button></div>');
+      document.getElementById('reCancel').onclick = () => App.closeSheet();
+      document.getElementById('reOk').onclick = () => {
+        App.closeSheet();
+        ksvcRun(async () => {
+          const req = [0x72, 0x05, 0x11, 0x01, 0x77];   /* 72 05 11 01 + checksum (ผลรวมไบต์ = 0) */
+          const fr = await ksvcTxn(req, 0x11, 1200, 2);
+          if (fr) App.toast('ส่งคำสั่งรีเซ็ตกล่องแล้ว · ECU ตอบรับ', 'good');
+          else App.toast('รีเซ็ตไม่สำเร็จ — ECU ไม่ตอบคำสั่งนี้ (กล่องรุ่นนี้อาจใช้โปรแกรมจูนของตัวเอง)', 'bad');
+        });
+      };
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', bindService);
+
+  /* เลือกโหมดตามบอดเรต: 10400 = K-line ECU, อย่างอื่น = อุปกรณ์ส่งข้อความ rpm=...,tps=... */
+  function afterOpen() {
+    const baud = App.serial.baud();
+    const el = document.getElementById('klineRaw');
+    if (baud === 10400) {
+      if (el) { el.style.display = ''; el.textContent = 'ต่อพอร์ตแล้ว · 10400 baud · โหมด K-line (Honda) — กำลังรอ ECU ตอบ…'; }
+      klinePoll();
+    } else {
+      App.serial.onBytes = null;
+      if (el) {
+        el.style.display = '';
+        el.innerHTML = 'ต่อพอร์ตแล้ว · <b>' + baud + ' baud</b> · โหมดอุปกรณ์ส่งข้อความ (rpm=..,tps=..) — ' +
+          'ถ้าต่อกับ ECU ผ่านสาย K-line ให้ใช้โหมด K-line ' +
+          '<button class="btn sm" id="klineSwitch" style="margin-left:6px">สลับเป็น K-line 10400</button>';
+        const sw = document.getElementById('klineSwitch');
+        if (sw) sw.onclick = async () => {
+          App.serial.setBaud(10400);
+          const p = App.serial.port;
+          await App.serial.disconnect();
+          if (p) { try { await App.serial.openPort(p, 10400, 'usb', parseSerialLine); live.demo = false; live.source = 'serial'; bindSerialClose(); afterOpen(); } catch (e) { App.toast('เปิดพอร์ตไม่ได้: ' + (App.serial.friendly(e) || ''), 'bad'); } }
+        };
+      }
+    }
+  }
+
   function parseSerialLine(line) {
     let used = 0;
     line.split(/[,\s]+/).forEach(part => {
@@ -194,7 +515,7 @@
     if (!chip || !txt) return;
     chip.classList.remove('dim', 'amber', 'red');
     if (kind === 'serial') { chip.className = 'pill'; txt.textContent = 'ต่อสายแล้ว'; }
-    else if (kind === 'demo') { chip.className = 'pill dim'; txt.textContent = 'เดโม'; }
+    else if (kind === 'demo') { chip.className = 'pill dim'; txt.textContent = 'เดโม · แตะเพื่อต่อ'; }
     else { chip.className = 'pill amber'; txt.textContent = 'หยุดชั่วคราว'; }
     const st = document.getElementById('statusPill');
     if (st) {
@@ -203,37 +524,74 @@
     }
   }
 
-  async function connectSerial() {
-    if (!App.serial.supported()) {
-      App.toast('เบราว์เซอร์ไม่รองรับ Web Serial — ใช้ Chrome/Edge', 'bad');
-      return;
+  async function connectSerial(kind) {
+    if (!App.serial.available()) {
+      App.toast(App.serial.why(), 'bad');
+      return false;
     }
     try {
-      await App.serial.connect(115200, parseSerialLine);
+      if (App.releasePort) await App.releasePort();
+      await App.serial.connect(App.serial.baud(), parseSerialLine, kind);
       serialOn = true;
       live.demo = false;
       live.source = 'serial';
       setConn('serial');
+      bindSerialClose();
+      afterOpen();
       App.toast('เชื่อมต่อแล้ว · รอข้อมูลจากอุปกรณ์', 'good');
+      return true;
     } catch (e) {
-      if (e && e.name === 'NotFoundError') return;
-      App.toast('เชื่อมต่อไม่สำเร็จ: ' + (e.message || e), 'bad');
+      const msg = App.serial.friendly(e);
+      if (msg) App.toast('เชื่อมต่อไม่สำเร็จ: ' + msg, 'bad');
+      return false;
     }
   }
 
+  function bindSerialClose() {
+    App.serial.onClose = (why) => {
+      if (live.source === 'serial') {
+        live.source = 'demo'; live.demo = true; setConn('demo');
+        if (why === 'unplug') App.toast('สายหลุด — กลับโหมดเดโม', 'bad');
+      }
+    };
+  }
+
+  /* เสียบสายแล้วต่อเอง ใช้พอร์ตที่เคยอนุญาตไว้ */
+  let autoBusy = false;
+  async function autoConnect() {
+    if (autoBusy || App.serial.open || !App.serial.available()) return;
+    autoBusy = true;
+    try {
+      if (App.releasePort) await App.releasePort();
+      const p = await App.serial.autoOpen(App.serial.baud(), parseSerialLine);
+      if (p) {
+        serialOn = true; live.demo = false; live.source = 'serial';
+        setConn('serial'); bindSerialClose();
+        afterOpen();
+        App.toast('ต่ออุปกรณ์อัตโนมัติแล้ว · รอข้อมูล', 'good');
+      }
+    } finally { autoBusy = false; }
+  }
+  document.addEventListener('serial-plugged', () => setTimeout(autoConnect, 400));
+
+  function startConnect() {
+    App.chooseTransport(kind => { connectSerial(kind); });
+  }
+
   function connSheet() {
-    const support = App.serial.supported();
+    const support = App.serial.available();
     App.sheet(
       '<div class="sh-head"><b>แหล่งข้อมูลสด</b><button class="x" onclick="App.closeSheet()">✕</button></div>' +
       '<div class="sh-sub">เลือกโหมดการอ่านค่าของมาตรวัด</div>' +
       '<button class="item' + (live.source === 'demo' ? ' on' : '') + '" data-src="demo" style="margin-bottom:6px">' +
       '<div><div class="nm">โหมดเดโม</div><div class="mt">จำลองรอบเครื่อง/เกียร์/AFR ให้ดูก่อน</div></div><div class="sp">ฟรี</div></button>' +
       '<button class="item' + (live.source === 'serial' ? ' on' : '') + '" data-src="serial">' +
-      '<div><div class="nm">Web Serial</div><div class="mt">อ่านบรรทัด rpm=..,afr=..,tps=.. จากอุปกรณ์</div></div>' +
+      '<div><div class="nm">USB / บลูทูธ</div><div class="mt">อ่านบรรทัด rpm=..,afr=..,tps=.. จากอุปกรณ์</div></div>' +
       '<div class="sp">' + (support ? 'รองรับ' : 'ไม่รองรับ') + '</div></button>' +
       '<div class="lbl">รูปแบบข้อมูลที่รับ</div>' +
       '<div class="note blue mono" style="font-size:10px">rpm=5200,afr=13.2,tps=45,ect=88,iat=32,map=68,inj=4.2,ign=18,batt=13.9,spd=92,gear=3</div>' +
-      '<button class="btn wide" id="btnSerialConnect" style="margin-top:10px"' + (support ? '' : ' disabled') + '>เชื่อมต่อ USB/ serial</button>' +
+      '<button class="btn wide" id="btnSerialConnect" style="margin-top:10px"' + '>เชื่อมต่อ USB / บลูทูธ</button>' +
+      (support ? '' : '<div class="note red" style="margin-top:8px">' + App.esc(App.serial.why()) + '</div>') +
       '<div class="sh-sub" style="margin-top:8px">ปิดการเชื่อมต่อก่อนไปหน้าอัดไฟ เพราะพอร์ตหนึ่งใช้ได้ทีละโปรแกรม</div>'
     );
     document.querySelectorAll('[data-src]').forEach(b => b.onclick = () => {
@@ -244,11 +602,11 @@
         setConn('demo'); App.closeSheet();
         App.toast('โหมดเดโม');
       } else {
-        connectSerial().then(() => App.closeSheet());
+        App.closeSheet(); startConnect();
       }
     });
     const c = document.getElementById('btnSerialConnect');
-    if (c) c.onclick = () => connectSerial().then(() => App.closeSheet());
+    if (c) c.onclick = () => { App.closeSheet(); startConnect(); };
   }
 
   /* ---------------- trace ---------------- */
@@ -424,6 +782,11 @@
       if (!document.hidden) { last = 0; }
     });
     setConn('demo');
+    const kr0 = document.getElementById('klineRaw');
+    if (kr0 && live.demo) kr0.textContent = 'สถานะ: ยังไม่ได้เชื่อมต่อ — ค่าที่เห็นเป็นเดโม · build r6';
+    const lb = document.getElementById('liveConnectBtn');
+    if (lb) lb.onclick = startConnect;
+    autoConnect();
   }
 
   App.registerView('live', { render: render });
