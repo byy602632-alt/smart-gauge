@@ -1,4 +1,3 @@
-
 /* ============================================================
    ECU TUNE — XDF Parser & TunerPro Parity Engine (Fixed IIFE)
    ============================================================ */
@@ -37,7 +36,7 @@
       return { fn: (x) => x, source: raw, error: e.message };
     }
   }
- 
+
   function tagNameOf(node) {
     return ((node && (node.localName || node.tagName)) || '').toUpperCase();
   }
@@ -350,6 +349,7 @@
       title: headerEl ? childText(headerEl, 'deftitle', '') : '',
       items,
       defaults: header.defaults,
+      binSize: header.binSize,
     };
   }
  
@@ -637,7 +637,7 @@
     return { refresh, element: wrap };
   }
  
- 
+
   /* ---------- ฟังก์ชันที่ core.js / tune.js / flash.js เรียกใช้ ---------- */
   function readRaw(bytes, addr, sizeBits, flags, defaults) {
     const d = defaults || {};
@@ -668,7 +668,7 @@
     }
     return n;
   }
- 
+
   /* ---------- สแกนหาตารางจากไบต์ (ใช้เมื่อไม่มี XDF) + เขียน XDF ---------- */
   function scanWords(bin, le) {
     const n = Math.floor(bin.length / 2), v = new Array(n);
@@ -758,7 +758,7 @@
     const best = score(b) > score(a) ? b : a;
     return best.sort((p, q) => p.address - q.address);
   }
- 
+
   function xe(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   function writeXdf(items, opts) {
     opts = opts || {};
@@ -789,7 +789,7 @@
     });
     return xml + '</XDFFORMAT>\n';
   }
- 
+
   global.Xdf = {
     parse: parseXdf,
     parseXdf: parseXdf,
