@@ -818,60 +818,314 @@
     if (title) title.textContent = changed ? changed + ' ไบต์ที่แก้' : (s.bin ? 'พร้อมจูน' : 'ยังไม่โหลด');
   };
 
-  /* ---------------- serial (shared) ---------------- */
+  /* ---------------- transport: USB serial + Bluetooth LE (shared) ---------------- */
+  const BLE_UUID = {
+    nus: ['6e400001-b5a0-f393-e0a9-e3a5e5e8f2e0', '6e400002-b5a0-f393-e0a9-e3a5e5e8f2e0', '6e400003-b5a0-f393-e0a9-e3a5e5e8f2e0'], // Nordic UART (ESP32/nRF)
+    ffe0: [0xFFE0, 0xFFE1, 0xFFE1],                                                                                              // HM-10 / JDY style
+    spp: ['0000abf0-0000-1000-8000-00805f9b34fb', '0000abf1-0000-1000-8000-00805f9b34fb', '0000abf2-0000-1000-8000-00805f9b34fb']
+  };
+  const isIOS = () => /iP(hone|ad|od)/.test(navigator.userAgent || '') ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  /* ทำให้ BLE หน้าตาเหมือน SerialPort (readable/writable/open/close) เพื่อให้โค้ดเดิมใช้ต่อได้ */
+  function makeBlePort(device, server, rxChar, txChar) {
+    let onNotify = null, closed = false;
+    const port = {
+      kind: 'ble', device: device, readable: null, writable: null,
+      open: async function () { /* เปิดแล้วตอน requestDevice */ },
+      close: async function () {
+        closed = true;
+        try { if (txChar) { txChar.removeEventListener('characteristicvaluechanged', onNotify); await txChar.stopNotifications(); } } catch (e) { }
+        try { if (device.gatt && device.gatt.connected) device.gatt.disconnect(); } catch (e) { }
+      }
+    };
+    port.readable = new ReadableStream({
+      start: function (c) {
+        onNotify = function (ev) {
+          const v = ev.target.value;
+          try { c.enqueue(new Uint8Array(v.buffer, v.byteOffset, v.byteLength).slice()); } catch (e) { }
+        };
+        txChar.addEventListener('characteristicvaluechanged', onNotify);
+        device.addEventListener('gattserverdisconnected', function () {
+          if (closed) return;
+          closed = true;
+          try { c.close(); } catch (e) { }
+        });
+      },
+      cancel: function () { closed = true; }
+    });
+    const canNoResp = !!rxChar.properties.writeWithoutResponse && typeof rxChar.writeValueWithoutResponse === 'function';
+    port.writable = new WritableStream({
+      write: async function (chunk) {
+        const CH = 20; // MTU ค่าเริ่มต้น 23 → payload 20 ไบต์ ใช้ได้กับทุกอุปกรณ์
+        for (let i = 0; i < chunk.length; i += CH) {
+          const part = chunk.slice(i, i + CH);
+          if (canNoResp) await rxChar.writeValueWithoutResponse(part);
+          else await rxChar.writeValue(part);
+        }
+      }
+    });
+    return port;
+  }
+
+  async function requestBlePort() {
+    const optional = [BLE_UUID.nus[0], BLE_UUID.ffe0[0], BLE_UUID.spp[0]];
+    const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: optional });
+    const server = await device.gatt.connect();
+    let rx = null, tx = null;
+    for (const k of ['nus', 'ffe0', 'spp']) {
+      const u = BLE_UUID[k];
+      try {
+        const svc = await server.getPrimaryService(u[0]);
+        const w = await svc.getCharacteristic(u[1]);
+        const n = (u[2] === u[1]) ? w : await svc.getCharacteristic(u[2]);
+        rx = w; tx = n; break;
+      } catch (e) { /* ลองชุดถัดไป */ }
+    }
+    if (!rx || !tx) {
+      try { server.disconnect(); } catch (e) { }
+      const err = new Error('อุปกรณ์นี้ไม่มีบริการ BLE UART (Nordic UART / FFE0)');
+      err.name = 'NoUartError';
+      throw err;
+    }
+    await tx.startNotifications();
+    return makeBlePort(device, server, rx, tx);
+  }
+
+  /* ---------------- จำนวนครั้งการอัดไฟล์ (Flash Counter) ----------------
+     นับทุกครั้งที่อัดสำเร็จจากแอปนี้ เก็บไว้ในเครื่อง (localStorage)
+     ใช้กับการ์ด "จำนวนครั้งการอัดไฟล์" และปุ่มอ่าน/ลบจำนวนอัด */
+  App.flashCount = (function () {
+    const KEY = 'ecu.flashcount.v1';
+    let data = { count: 0, last: '', byName: {} };
+    try {
+      const raw = JSON.parse(localStorage.getItem(KEY) || 'null');
+      if (raw && typeof raw === 'object') {
+        data.count = Math.max(0, Math.min(255, Number(raw.count) || 0));
+        data.last = typeof raw.last === 'string' ? raw.last : '';
+        data.byName = raw.byName && typeof raw.byName === 'object' ? raw.byName : {};
+      }
+    } catch (e) { }
+
+    function human(iso) {
+      if (!iso) return '—';
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return '—';
+      const p = n => String(n).padStart(2, '0');
+      return p(d.getDate()) + '/' + p(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+    }
+
+    function render() {
+      const val = document.getElementById('flashCountVal');
+      const txt = document.getElementById('flashCountText');
+      if (val) val.textContent = data.count + ' ครั้ง';
+      if (txt) txt.textContent = data.count + '/255 ครั้ง' + (data.last ? ' · ล่าสุด ' + human(data.last) : ' · ยังไม่เคยอัด');
+    }
+
+    function save() {
+      try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { }
+      render();
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render);
+    else render();
+
+    return {
+      read: function () { return data; },
+      human: function () { return human(data.last); },
+      bump: function (name) {
+        data.byName[name || 'ecu'] = (data.byName[name || 'ecu'] || 0) + 1;
+        data.count = Math.min(255, data.count + 1);
+        data.last = new Date().toISOString();
+        save();
+        return data.count;
+      },
+      reset: function () {
+        data = { count: 0, last: '', byName: {} };
+        save();
+        return 0;
+      },
+      render: render
+    };
+  })();
+  window.FlashCount = App.flashCount;
+
   App.serial = {
-    port: null, reader: null, open: false, onLine: null, onClose: null, buffer: '',
-    supported: function () { return typeof navigator !== 'undefined' && 'serial' in navigator; },
-    connect: async function (baud, onLine) {
-      if (!this.supported()) throw new Error('เบราว์เซอร์นี้ไม่รองรับ Web Serial');
-      if (this.port) await this.disconnect();
-      const port = await navigator.serial.requestPort();
-      await port.open({ baudRate: baud || 115200, dataBits: 8, stopBits: 1, parity: 'none' });
-      this.port = port;
-      this.open = true;
-      this.onLine = onLine;
-      this.buffer = '';
+    baud: function () { try { const v = parseInt(localStorage.getItem('ecu.baud'), 10); return v > 0 ? v : 10400; } catch (e) { return 10400; } },
+    setBaud: function (v) { try { localStorage.setItem('ecu.baud', String(v)); } catch (e) { } },
+    onBytes: null, port: null, lastPort: null, reader: null, open: false, onLine: null, onClose: null, buffer: '', kind: '',
+    usbSupported: function () { return typeof navigator !== 'undefined' && 'serial' in navigator; },
+    bleSupported: function () { return typeof navigator !== 'undefined' && 'bluetooth' in navigator; },
+    supported: function () { return this.usbSupported() || this.bleSupported(); },
+    secure: function () { return typeof window === 'undefined' || window.isSecureContext !== false; },
+    /* เหตุผลที่ใช้ไม่ได้ — ข้อความภาษาไทยบอกวิธีแก้ */
+    why: function () {
+      if (!this.secure()) return 'ต้องเปิดแอปผ่าน https:// (หรือ localhost) เบราว์เซอร์จึงจะอนุญาตให้ต่อ USB/บลูทูธ';
+      if (isIOS()) return 'iPhone/iPad (Safari, Chrome) ไม่รองรับ USB/บลูทูธจากเว็บ — ใช้แอปเบราว์เซอร์ Bluefy หรือเปิดบนมือถือ Android (Chrome) / คอมพิวเตอร์';
+      return 'เบราว์เซอร์นี้ไม่รองรับ — บนมือถือใช้ Chrome (Android) หรือ Edge';
+    },
+    available: function () { return this.secure() && this.supported(); },
+    friendly: function (e) {
+      const n = e && e.name, m = (e && e.message) || String(e);
+      if (n === 'NotFoundError') return null;                 /* ผู้ใช้กดยกเลิก */
+      if (n === 'SecurityError') return 'เบราว์เซอร์ไม่อนุญาต — ต้องเปิดผ่าน https:// และกดปุ่มเอง';
+      if (n === 'NetworkError' || /Failed to open|GATT|Connection/i.test(m))
+        return 'เปิดพอร์ตไม่ได้ — ตรวจสาย OTG/ให้สิทธิ์ USB ปิดแอปอื่นที่ใช้พอร์ตอยู่ แล้วลองใหม่';
+      if (n === 'InvalidStateError') return 'พอร์ตถูกใช้งานอยู่ — ตัดการเชื่อมต่อก่อน แล้วลองใหม่';
+      return m;
+    },
+    /* ต้องเรียกจากการกดปุ่มโดยตรง (user gesture) — จึงขอพอร์ตก่อนทำอย่างอื่น */
+    requestPort: async function (kind) {
+      if (!this.secure()) throw new Error(this.why());
+      if (kind === 'ble') {
+        if (!this.bleSupported()) throw new Error(this.why());
+        return requestBlePort();
+      }
+      if (!this.usbSupported()) throw new Error(this.why());
+      return navigator.serial.requestPort();
+    },
+    curBaud: 0, _loopP: null, _wq: null,
+    /* เปิดพอร์ตที่มีอยู่แล้ว (ใช้ร่วมกันทุกทาง) — ถ้าเปิดอยู่แล้วที่พอร์ต/บอดเรตเดียวกันจะใช้ต่อเลย ไม่ปิดแล้วเปิดใหม่ */
+    openPort: async function (port, baud, kind, onLine) {
+      baud = baud || this.baud();
+      if (this.open && this.port === port && this.curBaud === baud) {
+        if (onLine) this.onLine = onLine;
+        return port;
+      }
+      if (this.open || this.port) await this.disconnect();
+      if (kind !== 'ble') {
+        await port.open({ baudRate: baud, dataBits: 8, stopBits: 1, parity: 'none' });
+        this.lastPort = port;
+      }
+      this.port = port; this.kind = kind; this.curBaud = baud;
+      this.open = true; this.onLine = onLine || null; this.buffer = '';
       this.loop();
       return port;
     },
-    loop: async function () {
-      const decoder = new TextDecoder();
-      try {
-        this.reader = this.port.readable.getReader();
-        while (this.open) {
-          const { value, done } = await this.reader.read();
-          if (done) break;
-          if (!value) continue;
-          this.buffer += decoder.decode(value, { stream: true });
-          let idx;
-          while ((idx = this.buffer.indexOf('\n')) >= 0) {
-            const line = this.buffer.slice(0, idx).replace(/\r$/, '');
-            this.buffer = this.buffer.slice(idx + 1);
-            if (line && this.onLine) { try { this.onLine(line); } catch (e) { } }
+    connect: async function (baud, onLine, kind) {
+      kind = kind || (this.usbSupported() ? 'usb' : 'ble');
+      const port = await this.requestPort(kind);               /* ขอพอร์ตก่อน เพื่อให้ยังนับเป็นการกดปุ่ม */
+      return this.openPort(port, baud, kind, onLine);
+    },
+    /* พอร์ต USB ที่เคยอนุญาตไว้แล้ว — เปิดได้เองโดยไม่ต้องกดเลือกใหม่ */
+    knownPort: async function () {
+      if (!this.usbSupported() || !this.secure()) return null;
+      if (this.lastPort) return this.lastPort;
+      try { const l = await navigator.serial.getPorts(); return l.length ? l[0] : null; } catch (e) { return null; }
+    },
+    autoOpen: async function (baud, onLine) {
+      if (this.open) return this.port;
+      const port = await this.knownPort();
+      if (!port) return null;
+      try { return await this.openPort(port, baud, 'usb', onLine); } catch (e) { return null; }
+    },
+    loop: function () {
+      const self = this;
+      self.dbg = { n: (self.dbg ? self.dbg.n : 0) + 1, chunks: 0, errs: [], end: '' };
+      this._loopP = (async function () {
+        const decoder = new TextDecoder();
+        const port = self.port;
+        let ended = false, errs = 0;
+        try {
+          /* BREAK / Framing / Parity / BufferOverrun เป็นข้อผิดพลาดที่กู้คืนได้ — port.readable จะกลายเป็นสตรีมใหม่
+             จึงต้องวนขอ reader ใหม่แล้วอ่านต่อ (เดิมจับ error แล้วถือว่าสายหลุด ทำให้หลัง BREAK แรกไม่รับอะไรอีกเลย)
+             ส่วนสายหลุดจริง port.readable จะเป็น null แล้วออกจากลูปเอง */
+          while (!ended && self.open && self.port === port && port.readable) {
+            const reader = port.readable.getReader();
+            self.reader = reader;
+            try {
+              while (self.open && self.port === port) {
+                const { value, done } = await reader.read();
+                if (done) { ended = true; break; }
+                if (!value) continue;
+                errs = 0; self.dbg.chunks++;
+                if (self.onBytes) { try { self.onBytes(value); } catch (e) { } }
+                self.buffer += decoder.decode(value, { stream: true });
+                let idx;
+                while ((idx = self.buffer.indexOf('\n')) >= 0) {
+                  const line = self.buffer.slice(0, idx).replace(/\r$/, '');
+                  self.buffer = self.buffer.slice(idx + 1);
+                  if (line && self.onLine) { try { self.onLine(line); } catch (e) { } }
+                }
+              }
+            } catch (e) {
+              self.dbg.errs = self.dbg.errs.concat((e && e.name) || 'err').slice(-4);
+              if (typeof console !== 'undefined') console.warn('[serial] read error', e && e.name, e && e.message);
+              if (++errs > 50) ended = true;            /* error ซ้ำๆ โดยไม่มีข้อมูลเลย = พังจริง */
+              else await new Promise(r => setTimeout(r, 5));
+            } finally {
+              try { reader.releaseLock(); } catch (e) { }
+              if (self.reader === reader) self.reader = null;
+            }
           }
+        } finally {
+          self.dbg.end = ended ? 'stream done/errors' : !self.open ? 'closed' : self.port !== port ? 'port changed' : !port.readable ? 'readable=null' : '?';
+          /* อุปกรณ์หลุดเอง (ไม่ได้กดตัดการเชื่อมต่อ) */
+          if (self.open && self.port === port) { self.open = false; self.port = null; if (self.onClose) self.onClose('unplug'); }
         }
-      } catch (e) {
-        /* device unplugged */
-      } finally {
-        try { if (this.reader) this.reader.releaseLock(); } catch (e) { }
-        this.reader = null;
-      }
+      })();
+      return this._loopP;
     },
-    write: async function (text) {
-      if (!this.port || !this.port.writable) return false;
-      const w = this.port.writable.getWriter();
-      try {
-        await w.write(new TextEncoder().encode(text));
-        return true;
-      } finally { try { w.releaseLock(); } catch (e) { } }
+    /* เขียนทีละคำสั่งตามลำดับ ไม่ให้ตัวเขียนซ้อนกัน (writer ล็อกอยู่ทีละตัว) */
+    writeBytes: function (arr) {
+      const self = this;
+      const run = async function () {
+        if (!self.port || !self.port.writable) return false;
+        const w = self.port.writable.getWriter();
+        try { await w.write(new Uint8Array(arr)); return true; }
+        finally { try { w.releaseLock(); } catch (e) { } }
+      };
+      this._wq = (this._wq || Promise.resolve()).then(run, run);
+      return this._wq;
     },
+    write: function (text) { return this.writeBytes(new TextEncoder().encode(text)); },
     disconnect: async function () {
+      const port = this.port, loopP = this._loopP;
       this.open = false;
       try { if (this.reader) await this.reader.cancel(); } catch (e) { }
-      try { if (this.port) await this.port.close(); } catch (e) { }
-      this.port = null;
-      if (this.onClose) this.onClose();
+      /* ต้องรอให้ลูปอ่านปล่อย reader ก่อน ไม่งั้น port.close() จะล้มเหลวและพอร์ตค้างเปิดอยู่ */
+      try { if (loopP) await Promise.race([loopP, new Promise(r => setTimeout(r, 1500))]); } catch (e) { }
+      try { if (this._wq) await Promise.race([this._wq, new Promise(r => setTimeout(r, 500))]); } catch (e) { }
+      try { if (port) await port.close(); } catch (e) { }
+      this.port = null; this.curBaud = 0; this.onBytes = null;
+      if (this.onClose) this.onClose('manual');
     }
+  };
+  /* เสียบสาย/ถอดสาย → แจ้งทั้งแอป */
+  if (typeof navigator !== 'undefined' && 'serial' in navigator) {
+    navigator.serial.addEventListener('connect', function () { document.dispatchEvent(new CustomEvent('serial-plugged')); });
+    navigator.serial.addEventListener('disconnect', function () { document.dispatchEvent(new CustomEvent('serial-unplugged')); });
+  }
+
+  /* เลือกช่องทางเชื่อมต่อ: USB หรือ บลูทูธ — ถ้ามีแบบเดียวก็ไปต่อเลย */
+  App.chooseTransport = function (cb) {
+    const S = App.serial;
+    if (!S.secure() || !S.supported()) { App.toast(S.why(), 'bad'); return; }
+    const BAUDS = [10400, 9600, 4800, 38400, 57600, 115200];
+    let h = '<div class="sh-head"><b>เชื่อมต่ออุปกรณ์</b><button class="x" onclick="App.closeSheet()">✕</button></div>' +
+      '<div class="lbl">บอดเรต (K-line ปกติ = 10400)</div><div class="row" style="flex-wrap:wrap;gap:6px" id="trBauds">';
+    BAUDS.forEach(b => { h += '<button class="btn sm" data-baud="' + b + '">' + b + '</button>'; });
+    h += '</div><div class="lbl">ช่องทาง</div>';
+    if (S.usbSupported()) h += '<button class="item" id="trUsb"><div><div class="nm">สาย USB / OTG</div>' +
+      '<div class="mt">เลือกพอร์ตที่ต่อกับสาย</div></div><div class="sp">›</div></button>';
+    if (S.bleSupported()) h += '<button class="item" id="trBle" style="margin-top:6px"><div><div class="nm">บลูทูธ (BLE)</div>' +
+      '<div class="mt">โมดูล BLE เช่น ESP32, HM-10 (Nordic UART / FFE0)</div></div><div class="sp">›</div></button>';
+    App.sheet(h);
+    const paint = () => {
+      const cur = S.baud();
+      document.querySelectorAll('#trBauds [data-baud]').forEach(el => {
+        const on = parseInt(el.dataset.baud, 10) === cur;
+        el.style.outline = on ? '2px solid var(--red, #ff5a44)' : '';
+        el.style.fontWeight = on ? '700' : '';
+      });
+    };
+    document.querySelectorAll('#trBauds [data-baud]').forEach(el => {
+      el.onclick = () => { S.setBaud(parseInt(el.dataset.baud, 10)); paint(); };
+    });
+    paint();
+    const u = document.getElementById('trUsb'), bl = document.getElementById('trBle');
+    if (u) u.onclick = () => { App.closeSheet(); cb('usb'); };
+    if (bl) bl.onclick = () => { App.closeSheet(); cb('ble'); };
   };
 
   /* ---------------- boot ---------------- */
