@@ -129,6 +129,10 @@
 
     <!-- ============================ LIVE DATA (ดีไซน์ใหม่) ============================ -->
     <section class="view" id="view-live">
+      <div class="row" style="gap:8px;margin-bottom:8px;align-items:center">
+        <button class="btn sm" id="liveConnectBtn" style="flex:1">เชื่อมต่ออุปกรณ์ (USB / บลูทูธ)</button>
+      </div>
+      <div class="note blue" id="klineRaw" style="margin-bottom:8px;position:sticky;top:58px;z-index:6;backdrop-filter:blur(6px);word-break:break-all">สถานะ: ยังไม่ได้เชื่อมต่อ — ค่าที่เห็นเป็นเดโม · build r6</div>
       <div class="card glow hero">
         <div class="hero-top">
           <div>
@@ -216,7 +220,7 @@
       </div>
 
       <div class="note blue">
-        <b>โหมดเดโม:</b> มาตรวัดจำลองการขับขี่ให้ดูการทำงาน หากต้องการเชื่อมต่อจริงสามารถกดปุ่มเดโมด้านบนได้
+        <b>โหมดเดโม:</b> มาตรวัดจำลองการขับขี่ให้ดูการทำงาน เสียบสายแล้วแอปจะต่อให้เอง (หลังอนุญาตพอร์ตครั้งแรก)
       </div>
     </section>
 
@@ -301,6 +305,10 @@
         <div class="kv"><span class="k">ไบต์ที่แก้</span><span class="v" id="flashMod">—</span></div>
         <div class="kv"><span class="k">XDF</span><span class="v" id="flashXdf">—</span></div>
         <div class="kv"><span class="k">ผลตรวจขนาด</span><span class="v" id="flashCheck">—</span></div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn" id="btnFlashLoadBin">โหลดไฟล์ .bin</button>
+          <button class="btn" id="btnFlashLoadXdf">โหลดไฟล์ .xdf</button>
+        </div>
       </div>
 
       <div class="card">
@@ -341,6 +349,7 @@
           <button class="btn danger holdbtn" id="btnFlash"><span>⤓ กดค้างเพื่ออัดไฟ</span><span class="fill" id="flashHold"></span></button>
         </div>
         <button class="btn ghost sm wide" id="btnProto" style="margin-top:8px;color:var(--dim)">สเปกโปรโตคอล / วิธีต่อสาย</button>
+        <button class="btn ghost sm wide" id="btnRaw" style="margin-top:8px;color:var(--dim)">เครื่องมือ K-line (ส่ง/รับไบต์เอง)</button>
 
         <div class="log" id="flashLog" style="margin-top:10px">ยังไม่มีกิจกรรม</div>
       </div>
