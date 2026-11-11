@@ -93,8 +93,29 @@
   }
 
   /* ---------------- preflight ---------------- */
+  let autoTried = false;
+  function autoFlashConnect() {
+    if (autoTried || running || raw.running || mode === 'real') return;
+    autoTried = true;
+    connectReal('auto');
+  }
+  document.addEventListener('serial-plugged', () => { autoTried = false; if (App.state.tab === 'flash') setTimeout(autoFlashConnect, 400); });
+
+  /* ให้หน้า Live Data ขอพอร์ตคืนจากหน้าอัดไฟ (พอร์ตใช้ได้ทีละหน้า) */
+  App.releasePort = async function () {
+    if (raw.running) { try { await rawStop(); } catch (e) { } }
+    if (mode === 'real' && link) {
+      try { await link.close(); } catch (e) { }
+      link = new DemoLink(); mode = 'demo';
+      const fm = $id('flashMode'); if (fm) fm.textContent = 'โหมดจำลอง';
+      const bc = $id('btnConnect'); if (bc) bc.textContent = 'เชื่อมต่อสาย';
+    }
+    autoTried = false;
+  };
+
   function render() {
     bindOnce();
+    if (App.state.tab === 'flash') setTimeout(autoFlashConnect, 0);
     const s = App.state;
     const has = !!s.bin;
     const mod = App.changedBytes();
@@ -170,6 +191,10 @@
       } catch (e) { /* closed */ }
     }
     feed(chunk) {
+      this.rxTotal = (this.rxTotal || 0) + chunk.length;
+      if (!this.rxHead || this.rxHead.length < 48) {
+        this.rxHead = (this.rxHead || []).concat(Array.from(chunk.slice(0, 48 - (this.rxHead ? this.rxHead.length : 0))));
+      }
       const nb = new Uint8Array(this.buf.length + chunk.length);
       nb.set(this.buf); nb.set(chunk, this.buf.length);
       this.buf = nb;
@@ -187,7 +212,13 @@
         const payload = this.buf.slice(5, 5 + len);
         const crc = (this.buf[5 + len] << 8) | this.buf[6 + len];
         const good = crc === crc16(this.buf.subarray(2, 5 + len));
+        const whole = this.buf.slice(0, 7 + len);
         this.buf = this.buf.slice(7 + len);
+        /* สาย K-line/อะแดปเตอร์หลายตัวสะท้อนไบต์ที่ส่งกลับมา — ถ้าเฟรมที่รับตรงกับที่เพิ่งส่งทุกไบต์ ถือว่าเป็นเสียงสะท้อน ไม่ใช่คำตอบจากกล่อง */
+        if (this.lastTx && whole.length === this.lastTx.length && whole.every((b, i) => b === this.lastTx[i])) {
+          this.echoes = (this.echoes || 0) + 1;
+          continue;
+        }
         if (good && this.waiter) {
           const w = this.waiter; this.waiter = null;
           w.resolve({ cmd, payload });
@@ -206,7 +237,8 @@
           reject: (e) => { clearTimeout(to); reject(e); }
         };
         const w = this.port.writable.getWriter();
-        w.write(frame(cmd, payload))
+        this.lastTx = frame(cmd, payload);
+        w.write(this.lastTx)
           .catch(e => {
             if (this.waiter) this.waiter = null;
             clearTimeout(to);
@@ -259,21 +291,22 @@
 
   const u32 = n => new Uint8Array([(n >>> 24) & 0xFF, (n >>> 16) & 0xFF, (n >>> 8) & 0xFF, n & 0xFF]);
 
-  async function connectReal() {
-    if (!('serial' in navigator)) {
-      App.toast('เบราว์เซอร์ไม่รองรับ Web Serial', 'bad');
-      return;
-    }
-    if (App.serial.open) {
-      try { await App.serial.disconnect(); } catch (e) { }
-    }
+  function startConnectReal() { App.chooseTransport(kind => connectReal(kind)); }
+
+  async function connectReal(kind) {
     let port;
+    if (raw.running) await rawStop();
     try {
-      port = await navigator.serial.requestPort();
-      await port.open({ baudRate: 115200, dataBits: 8, stopBits: 1, parity: 'none' });
+      if (kind === 'auto') {
+        port = await App.serial.knownPort();
+        if (!port) return;                                 /* ยังไม่เคยอนุญาตพอร์ต — รอให้กดเชื่อมต่อเอง */
+      } else port = await App.serial.requestPort(kind);           /* ขอพอร์ตก่อน เพื่อให้ยังนับเป็นการกดปุ่ม */
+      if (App.serial.open) { try { await App.serial.disconnect(); } catch (e) { } }
+      if (kind !== 'ble') App.serial.lastPort = port;
+      if (kind !== 'ble') await port.open({ baudRate: App.serial.baud(), dataBits: 8, stopBits: 1, parity: 'none' });
     } catch (e) {
-      if (e && e.name === 'NotFoundError') return;
-      App.toast('เปิดพอร์ตไม่ได้: ' + (e.message || e), 'bad');
+      const msg = App.serial.friendly(e);
+      if (msg && kind !== 'auto') App.toast('เปิดพอร์ตไม่ได้: ' + msg, 'bad');
       return;
     }
     if (link && link.close) { try { await link.close(); } catch (e) { } }
@@ -282,17 +315,32 @@
     mode = 'real';
     $id('flashMode').textContent = 'อุปกรณ์จริง';
     $id('btnConnect').textContent = 'เปลี่ยนสาย';
+    setStep('connect', 'run', 'รอกล่องบูต…');
+    /* บอร์ดส่วนใหญ่รีเซ็ตตอนเปิดพอร์ต — รอให้บูตก่อน แล้วลองถามซ้ำ */
+    await new Promise(r => setTimeout(r, 1500));
     setStep('connect', 'run', 'กำลังถามรหัสกล่อง…');
-    try {
-      const res = await link.cmd(0x01, null, 2000);
-      const id = new TextDecoder().decode(res.payload);
-      log('เชื่อมต่อแล้ว · ' + id, 'ok');
-      setStep('connect', 'done', 'ต่อแล้ว · ' + id);
+    let okId = null, lastErr = null;
+    for (let i = 1; i <= 3 && !okId; i++) {
+      try {
+        const res = await link.cmd(0x01, null, 1500);
+        okId = new TextDecoder().decode(res.payload);
+      } catch (e) { lastErr = e; log('ลองถามครั้งที่ ' + i + ' ไม่มีคำตอบ', 'dm'); }
+    }
+    if (okId !== null) {
+      log('เชื่อมต่อแล้ว · ' + okId, 'ok');
+      setStep('connect', 'done', 'ต่อแล้ว · ' + okId);
       App.toast('เชื่อมต่อกล่องแล้ว', 'good');
-    } catch (e) {
-      setStep('connect', 'fail', 'ตอบสนองผิดรูปแบบ');
-      log('เชื่อมต่อแล้วแต่ไม่ตอบสนอง: ' + e.message, 'er');
-      App.toast('กล่องไม่ตอบสนอง — ตรวจสาย/โปรโตคอล', 'bad');
+    } else {
+      const n = link.rxTotal || 0;
+      const hex = (link.rxHead || []).map(b => (b < 16 ? '0' : '') + b.toString(16)).join(' ');
+      let txt = '';
+      try { txt = new TextDecoder().decode(new Uint8Array(link.rxHead || [])).replace(/[^\x20-\x7e]/g, '.'); } catch (e) { }
+      setStep('connect', 'fail', n ? ('รับ ' + n + ' ไบต์ hex: ' + hex.slice(0, 48)) : 'อุปกรณ์เงียบ ไม่ส่งอะไรกลับ');
+      if (n) log('รับมา ' + n + ' ไบต์ แต่ไม่ใช่เฟรม AA 55: ' + hex, 'er');
+      if (n && txt) log('ข้อความที่เห็น: ' + txt, 'er');
+      if (link.echoes) log('อุปกรณ์แค่สะท้อนไบต์ที่ส่งกลับมา (' + link.echoes + ' เฟรม) — ไม่ใช่กล่องที่รองรับโปรโตคอลอัดไฟ จึงไม่ได้เขียนอะไรลง ECU', 'er');
+      if (!n) log('ไม่ได้รับไบต์ใดเลย — ตรวจพอร์ตที่เลือก/บอดเรต 115200/เฟิร์มแวร์ฝั่งกล่อง', 'er');
+      App.toast(link.echoes ? 'อุปกรณ์สะท้อนไบต์กลับ — ไม่ใช่กล่องอัดไฟ' : (n ? 'ไม่ใช่โปรโตคอลอัดไฟ' : 'อุปกรณ์เงียบ'), 'bad');
     }
     render();
   }
@@ -403,6 +451,7 @@
       progress(100, total);
       setStep('reset', 'done', 'รีเซ็ตแล้ว · พร้อมสตาร์ท');
       log('อัดไฟสำเร็จ — ปิดสวิตช์กุญแจ 3 วินาทีแล้วสตาร์ท', 'ok');
+      if (window.FlashCount) window.FlashCount.bump(s.binName);
       App.toast('อัดไฟสำเร็จ', 'good');
     } catch (e) {
       running = false;
@@ -436,6 +485,198 @@
     const sync = () => { go.disabled = !(a.checked && b.checked); };
     a.onchange = sync; b.onchange = sync;
     go.onclick = () => { App.closeSheet(); flash(); };
+  }
+
+  /* ---------------- K-line raw tool (ส่ง/รับไบต์เอง) ---------------- */
+  const raw = { poll: false, last: null, lastOk: false, port: null, reader: null, running: false, baud: 10400, buf: [], timer: null, dtr: true, rts: false };
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const hexs = a => Array.from(a).map(b => (b < 16 ? '0' : '') + b.toString(16)).join(' ').toUpperCase();
+  function rawLine(dir, bytes, extra) {
+    const box = $id('rawLog');
+    if (!box) return;
+    const d = document.createElement('div');
+    d.style.color = dir === 'TX' ? '#ffb347' : dir === 'RX' ? '#7ee787' : dir === 'DAT' ? '#6cb6ff' : '#9fb3c8';
+    const t = new Date();
+    const ms = String(t.getSeconds()).padStart(2, '0') + '.' + String(t.getMilliseconds()).padStart(3, '0');
+    d.textContent = ms + '  ' + dir + (bytes ? '  ' + hexs(bytes) : '') + (extra ? '  ' + extra : '');
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
+  }
+  function rawFlush() {
+    if (!raw.buf.length) return;
+    const b = raw.buf; raw.buf = [];
+    /* ตัดเสียงสะท้อนของคำสั่งที่เราส่ง (72 05 71 00 xx) ออก แล้วดูว่าเป็นคำตอบตาราง 71 ไหม: 02 LEN 71 00 ...data... CS */
+    const off = (b.length >= 5 && b[0] === 0x72 && b[1] === 0x05) ? 5 : 0;
+    const r = b.slice(off);
+    if (r.length >= 6 && r[0] === 0x02 && r[1] === r.length && r[2] === 0x71) {
+      const sum = r.reduce((a, x) => (a + x) & 0xFF, 0);
+      raw.last = r.slice(4, r.length - 1);
+      raw.lastOk = sum === 0;
+      if (raw.poll) rawLine('DAT', raw.last, raw.lastOk ? '' : '(checksum ผิด)');
+      else {
+        rawLine('RX', b, '(' + b.length + ' ไบต์)');
+        rawLine('DAT', raw.last, raw.lastOk ? '← ข้อมูลตาราง 71 (checksum ถูก)' : '← checksum ผิด');
+      }
+      return;
+    }
+    if (raw.poll) return;
+    rawLine('RX', b, '(' + b.length + ' ไบต์)');
+  }
+  /* ตัวรับไบต์ของเครื่องมือนี้ — ใช้ตัวอ่านกลางของ App.serial ไม่ถือพอร์ตเอง จึงไม่ชนกับหน้าอื่น */
+  function rawOnBytes(value) {
+    if (!raw.running) return;
+    for (const x of value) raw.buf.push(x);
+    clearTimeout(raw.timer);
+    raw.timer = setTimeout(rawFlush, 30);   /* รวมไบต์ที่มาติดกันเป็นบรรทัดเดียว */
+  }
+  async function rawStop() {
+    raw.running = false; raw.poll = false;
+    clearTimeout(raw.timer); rawFlush();
+    raw.port = null;
+    try { await App.serial.disconnect(); } catch (e) { }
+    const st = $id('rawState'); if (st) st.textContent = 'ยังไม่ได้เชื่อมต่อ';
+  }
+  async function rawStart() {
+    if (raw.running && App.serial.open && App.serial.curBaud === raw.baud) return true;
+    autoTried = true;
+    try {
+      let port = App.serial.port || App.serial.lastPort || await App.serial.knownPort();
+      if (!port) port = await App.serial.requestPort('usb');   /* ต้องมาจากการกดปุ่ม */
+      if (link && mode === 'real') { try { await link.close(); } catch (e) { } link = new DemoLink(); mode = 'demo'; const fm = $id('flashMode'); if (fm) fm.textContent = 'โหมดจำลอง'; }
+      await App.serial.openPort(port, raw.baud, 'usb', null);
+      App.serial.onBytes = rawOnBytes;
+      raw.port = App.serial.port; raw.running = true;
+      try { await raw.port.setSignals({ dataTerminalReady: raw.dtr, requestToSend: raw.rts }); } catch (e) { }
+      const st = $id('rawState'); if (st) st.textContent = 'เชื่อมต่อแล้ว · ' + raw.baud + ' baud';
+      rawLine('SYS', null, 'เปิดพอร์ต ' + raw.baud + ' 8N1');
+      return true;
+    } catch (e) {
+      rawLine('SYS', null, 'เปิดไม่ได้: ' + (e && e.message ? e.message : e));
+      const msg = App.serial.friendly(e);
+      if (msg) App.toast('เปิดพอร์ตไม่ได้: ' + msg, 'bad');
+      return false;
+    }
+  }
+  function csum(bytes, mode) {
+    const s = bytes.reduce((a, b) => (a + b) & 0xFF, 0);
+    if (mode === 'sum') return bytes.concat([s]);
+    if (mode === 'twos') return bytes.concat([(0x100 - s) & 0xFF]);   /* ส่วนเติมเต็มสอง แบบที่ Honda ใช้ */
+    return bytes;
+  }
+  async function rawTx(bytes, gap, quiet) {
+    if (gap > 0) { for (const b of bytes) { await App.serial.writeBytes([b]); await sleep(gap); } }
+    else await App.serial.writeBytes(bytes);
+    if (!quiet) rawLine('TX', bytes);
+  }
+  async function rawSend() {
+    const inp = $id('rawHex');
+    const hex = (inp.value || '').replace(/0x/gi, '').replace(/[^0-9a-f]/gi, '');
+    if (!hex || hex.length % 2) { App.toast('ใส่ hex เป็นคู่ เช่น 81 11 F1 81', 'bad'); return; }
+    let bytes = [];
+    for (let i = 0; i < hex.length; i += 2) bytes.push(parseInt(hex.substr(i, 2), 16));
+    bytes = csum(bytes, $id('rawSum').value);
+    if (!(await rawStart())) return;
+    await rawTx(bytes, parseInt($id('rawGap').value, 10) || 0);
+  }
+  /* ลองปลุก + อ่านรหัส (อ่านอย่างเดียว) แบบ Honda K-line: ต่ำ 70ms / สูง 120ms แล้วส่ง FE 04 72 8C, 72 05 00 F0 99 */
+  async function rawHonda(kind) {
+    if (!(await rawStart())) return;
+    try {
+      if (kind === 'id') {
+        rawLine('SYS', null, 'ปลุกกล่อง: ต่ำ 70 ms → สูง 120 ms');
+        await App.serial.port.setSignals({ break: true }); await sleep(70);
+        await App.serial.port.setSignals({ break: false }); await sleep(120);
+        await rawTx([0xFE, 0x04, 0x72, 0x8C], 0);
+        await sleep(300);
+        await rawTx(csum([0x72, 0x05, 0x00, 0xF0], 'twos'), 0);
+      } else {
+        await rawTx(csum([0x72, 0x05, 0x71, 0x17], 'twos'), 0);
+      }
+    } catch (e) { App.toast('ส่งไม่สำเร็จ: ' + e.message, 'bad'); }
+  }
+  async function rawPollToggle() {
+    const btn = $id('rawPoll');
+    if (raw.poll) { raw.poll = false; if (btn) btn.textContent = 'อ่านต่อเนื่อง'; return; }
+    if (!(await rawStart())) return;
+    raw.poll = true;
+    if (btn) btn.textContent = 'หยุดอ่าน';
+    rawLine('SYS', null, 'อ่านตาราง 17 ต่อเนื่อง (แสดงเฉพาะข้อมูล DAT)');
+    const req = csum([0x72, 0x05, 0x71, 0x17], 'twos');
+    while (raw.poll && raw.running) {
+      try { await rawTx(req, 0, true); } catch (e) { break; }
+      await sleep(250);
+    }
+    raw.poll = false;
+    if ($id('rawPoll')) $id('rawPoll').textContent = 'อ่านต่อเนื่อง';
+  }
+  async function rawCopy() {
+    const t = $id('rawLog').innerText;
+    try { await navigator.clipboard.writeText(t); App.toast('คัดลอกบันทึกแล้ว', 'good'); }
+    catch (e) { App.toast('คัดลอกไม่ได้ — ถ่ายภาพจอแทน', 'bad'); }
+  }
+  async function rawBreak() {
+    if (!(await rawStart())) return;
+    const ms = parseInt($id('rawBreakMs').value, 10) || 25;
+    try {
+      await App.serial.port.setSignals({ break: true });
+      await sleep(ms);
+      await App.serial.port.setSignals({ break: false });
+      rawLine('SYS', null, 'BREAK (ลากสายต่ำ) ' + ms + ' ms');
+    } catch (e) { App.toast('สายนี้ไม่รองรับ BREAK: ' + e.message, 'bad'); }
+  }
+  async function rawSignals() {
+    raw.dtr = $id('rawDtr').checked; raw.rts = $id('rawRts').checked;
+    if (!App.serial.port) return;
+    try { await App.serial.port.setSignals({ dataTerminalReady: raw.dtr, requestToSend: raw.rts }); rawLine('SYS', null, 'DTR=' + (raw.dtr ? 1 : 0) + ' RTS=' + (raw.rts ? 1 : 0)); } catch (e) { }
+  }
+  function rawSheet() {
+    const bauds = [10400, 9600, 4800, 38400, 57600, 115200];
+    App.sheet(
+      '<div class="sh-head"><b>เครื่องมือ K-line</b><button class="x" id="rawX">✕</button></div>' +
+      '<div class="sh-sub" id="rawState">ยังไม่ได้เชื่อมต่อ</div>' +
+      '<div class="lbl">บอดเรต</div><div class="row" style="flex-wrap:wrap;gap:6px" id="rawBauds">' +
+      bauds.map(b => '<button class="btn sm" data-b="' + b + '">' + b + '</button>').join('') + '</div>' +
+      '<div class="lbl">กระตุกสาย (BREAK) · ลองกับสายที่รองรับ</div>' +
+      '<div class="row" style="gap:6px"><input id="rawBreakMs" type="number" value="25" style="width:80px"> ms ' +
+      '<button class="btn sm" id="rawBrk">ส่ง BREAK</button></div>' +
+      '<div class="lbl">ลองอ่านจากกล่อง Honda (อ่านอย่างเดียว)</div>' +
+      '<div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sm" id="rawH1">ปลุก + อ่านรหัส</button>' +
+      '<button class="btn sm" id="rawH2">อ่านตาราง 17 (ค่าสด)</button>' +
+      '<button class="btn sm" id="rawPoll">อ่านต่อเนื่อง</button></div>' +
+      '<div class="lbl">ส่งไบต์ (hex)</div>' +
+      '<input id="rawHex" placeholder="เช่น 81 11 F1 81" style="width:100%;box-sizing:border-box">' +
+      '<div class="row" style="gap:10px;margin-top:6px;flex-wrap:wrap;align-items:center">' +
+      '<label>checksum <select id="rawSum"><option value="">ไม่ต่อ</option><option value="sum">ผลรวม 8 บิต</option><option value="twos">ส่วนเติมเต็มสอง (Honda)</option></select></label>' +
+      '<label>เว้นระหว่างไบต์ <input id="rawGap" type="number" value="0" style="width:56px"> ms</label></div>' +
+      '<div class="row" style="gap:6px;margin-top:6px"><button class="btn sm" id="rawSend">ส่ง</button>' +
+      '<button class="btn sm" id="rawConn">เชื่อมต่อ/ฟัง</button><button class="btn sm" id="rawClr">ล้างจอ</button><button class="btn sm" id="rawCp">คัดลอก</button></div>' +
+      '<div class="row" style="gap:12px;margin-top:6px"><label><input type="checkbox" id="rawDtr" checked> DTR</label>' +
+      '<label><input type="checkbox" id="rawRts"> RTS</label></div>' +
+      '<div class="lbl">ไบต์ที่ส่ง (ส้ม) / รับ (เขียว) — สาย K-line บางตัวสะท้อนไบต์ที่ส่งกลับมาด้วย</div>' +
+      '<div id="rawLog" style="font:12px monospace;height:190px;overflow:auto;background:rgba(0,0,0,.35);padding:8px;border-radius:8px"></div>'
+    );
+    const paint = () => document.querySelectorAll('#rawBauds [data-b]').forEach(el => {
+      const on = parseInt(el.dataset.b, 10) === raw.baud;
+      el.style.outline = on ? '2px solid var(--red, #ff5a44)' : ''; el.style.fontWeight = on ? '700' : '';
+    });
+    document.querySelectorAll('#rawBauds [data-b]').forEach(el => {
+      el.onclick = async () => {
+        raw.baud = parseInt(el.dataset.b, 10); paint();
+        if (raw.running) { await rawStart(); }
+      };
+    });
+    paint();
+    $id('rawX').onclick = async () => { await rawStop(); App.closeSheet(); autoTried = false; };
+    $id('rawConn').onclick = rawStart;
+    $id('rawH1').onclick = () => rawHonda('id');
+    $id('rawH2').onclick = () => rawHonda('live');
+    $id('rawCp').onclick = rawCopy;
+    $id('rawPoll').onclick = rawPollToggle;
+    $id('rawSend').onclick = rawSend;
+    $id('rawBrk').onclick = rawBreak;
+    $id('rawClr').onclick = () => { $id('rawLog').innerHTML = ''; };
+    $id('rawDtr').onchange = rawSignals; $id('rawRts').onchange = rawSignals;
+    if (raw.running) $id('rawState').textContent = 'เชื่อมต่อแล้ว · ' + raw.baud + ' baud';
   }
 
   function protocolSheet() {
@@ -478,10 +719,20 @@
         }
       }, 30);
     };
-    btn.addEventListener('pointerdown', e => { e.preventDefault(); start(); });
+    /* มือถือ: ต้องล็อกนิ้วไว้กับปุ่ม ไม่งั้นเบราว์เซอร์ยิง pointercancel/เมนูกดค้าง แล้วนับค้างไม่ถึง 1.2 วิ */
+    btn.style.touchAction = 'none';
+    btn.style.userSelect = 'none';
+    btn.style.webkitUserSelect = 'none';
+    btn.style.webkitTouchCallout = 'none';
+    btn.addEventListener('contextmenu', e => e.preventDefault());
+    btn.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      try { btn.setPointerCapture(e.pointerId); } catch (err) { }
+      start();
+    });
     btn.addEventListener('pointerup', stop);
-    btn.addEventListener('pointerleave', stop);
     btn.addEventListener('pointercancel', stop);
+    btn.addEventListener('lostpointercapture', stop);
   }
 
   /* ---------------- events ---------------- */
@@ -505,13 +756,17 @@
       App.toast('บันทึกไฟล์ที่จูนแล้ว', 'good');
       log('บันทึก ' + base + '-tuned.bin', 'ok');
     };
-    $id('btnConnect').onclick = connectReal;
+    $id('btnFlashLoadBin').onclick = () => App.pick('bin');
+    $id('btnFlashLoadXdf').onclick = () => App.pick('xdf');
+    $id('btnConnect').onclick = startConnectReal;
     $id('btnSim').onclick = useDemo;
     $id('flashMode').style.cursor = 'pointer';
     $id('flashMode').onclick = protocolSheet;
     $id('ckDefRow').onclick = protocolSheet;
     const proto = $id('btnProto');
     if (proto) proto.onclick = protocolSheet;
+    const rawBtn = $id('btnRaw');
+    if (rawBtn) rawBtn.onclick = rawSheet;
 
     bindHold();
 
